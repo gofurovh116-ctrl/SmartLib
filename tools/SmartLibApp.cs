@@ -39,8 +39,8 @@ namespace SmartLibDesktop
         private System.Windows.Forms.Timer statusTimer;
 
         private string localUrl = "http://127.0.0.1:8000";
-        private string wifiUrl = "http://172.20.1.147:8000";
-        private string tunnelUrl = "https://take-franchise-products-cigarette.trycloudflare.com";
+        private string wifiUrl = "http://10.238.231.53:8000";
+        private string tunnelUrl = "https://smartlib-1-olyc.onrender.com";
         private string baseDir = @"D:\SmartLib";
 
         public MainForm()
@@ -119,7 +119,7 @@ namespace SmartLibDesktop
             lblStatusWifi.AutoSize = true;
 
             Label lblTunTitle = new Label();
-            lblTunTitle.Text = " Telefonlar uchun Internet manzili (Cloudflare):";
+            lblTunTitle.Text = " Render Cloud 24/7 Manzil (Telefonlar uchun uzluksiz):";
             lblTunTitle.Font = new Font("Segoe UI", 9.5f, FontStyle.Regular);
             lblTunTitle.ForeColor = Color.FromArgb(30, 41, 59);
             lblTunTitle.Location = new Point(16, 84);
