@@ -173,7 +173,10 @@ namespace SmartLibDesktop
             btnLibrarian.FlatStyle = FlatStyle.Flat;
             btnLibrarian.FlatAppearance.BorderSize = 0;
             btnLibrarian.Font = new Font("Segoe UI", 10.5f, FontStyle.Bold);
-            btnLibrarian.Click += (s, e) => OpenUrl(localUrl + "/librarian/");
+            btnLibrarian.Click += (s, e) => {
+                string target = CheckServerStatus() ? (localUrl + "/librarian/") : (tunnelUrl + "/librarian/");
+                OpenUrl(target);
+            };
 
             // 2. Admin Panel
             btnAdmin = new Button();
@@ -185,7 +188,10 @@ namespace SmartLibDesktop
             btnAdmin.FlatStyle = FlatStyle.Flat;
             btnAdmin.FlatAppearance.BorderSize = 0;
             btnAdmin.Font = new Font("Segoe UI", 10.5f, FontStyle.Bold);
-            btnAdmin.Click += (s, e) => OpenUrl(localUrl + "/admin/");
+            btnAdmin.Click += (s, e) => {
+                string target = CheckServerStatus() ? (localUrl + "/admin/") : (tunnelUrl + "/admin/");
+                OpenUrl(target);
+            };
 
             // 3. QR Code & Readers Link
             btnShowQr = new Button();
@@ -235,8 +241,15 @@ namespace SmartLibDesktop
             // System Tray Setup
             trayMenu = new ContextMenuStrip();
             trayMenu.Items.Add("Ochish (SmartLib)", null, (s, e) => RestoreFromTray());
-            trayMenu.Items.Add("Kutubxonachi Ish Stoli", null, (s, e) => OpenUrl(localUrl + "/librarian/"));
-            trayMenu.Items.Add("Admin Panel", null, (s, e) => OpenUrl(localUrl + "/admin/"));
+            trayMenu.Items.Add("Kutubxonachi Ish Stoli", null, (s, e) => {
+                string target = CheckServerStatus() ? (localUrl + "/librarian/") : (tunnelUrl + "/librarian/");
+                OpenUrl(target);
+            });
+            trayMenu.Items.Add("Admin Panel", null, (s, e) => {
+                string target = CheckServerStatus() ? (localUrl + "/admin/") : (tunnelUrl + "/admin/");
+                OpenUrl(target);
+            });
+            trayMenu.Items.Add("24/7 Bulut Admin Panel", null, (s, e) => OpenUrl(tunnelUrl + "/admin/"));
             trayMenu.Items.Add("-");
             trayMenu.Items.Add("Chiqish (Exit)", null, (s, e) => Application.Exit());
 

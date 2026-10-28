@@ -16,11 +16,16 @@ echo ===========================================================================
 echo.
 
 cd /d "%~dp0"
-start "SmartLib Django Server" cmd /k "venv\Scripts\python.exe manage.py runserver 0.0.0.0:8000"
+set "PY_CMD=python"
+if exist "venv\Scripts\python.exe" set "PY_CMD=venv\Scripts\python.exe"
+
+start "SmartLib Django Server" cmd /k "%PY_CMD% manage.py runserver 0.0.0.0:8000"
 
 timeout /t 2 >nul
 start "" "http://127.0.0.1:8000/librarian/"
 
 echo Global Cloudflare HTTPS internet ssilkasi ochilmoqda (Telefonlar 4G/5G/Wi-Fi orqali kirishi uchun)...
-venv\Scripts\python.exe tools\run_tunnel.py
+if exist "tools\run_tunnel.py" (
+    %PY_CMD% tools\run_tunnel.py
+)
 pause
