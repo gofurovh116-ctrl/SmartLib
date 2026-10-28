@@ -17,6 +17,15 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome 6 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <script>
+        (function() {
+            try {
+                var savedTheme = localStorage.getItem('smartlib_theme_v3') || localStorage.getItem('smartlib_theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+                document.documentElement.setAttribute('data-bs-theme', savedTheme);
+            } catch (e) {}
+        })();
+    </script>
     <style>
         /* =========================================================
            CREATIVE AURORA & NEO-GLASS DESIGN SYSTEM (LIGHT MODE)
@@ -312,20 +321,28 @@
         }
 
         .theme-toggle-btn {
-            width: 38px;
-            height: 38px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            border: 1px solid var(--border-color);
+            border: 1.5px solid var(--border-color);
             background: var(--bg-card);
             color: var(--text-main);
             display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .theme-toggle-btn:hover {
+            transform: scale(1.08);
+            border-color: var(--primary-blue);
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
         }
         [data-theme="dark"] .theme-toggle-btn {
-            color: #facc15;
+            color: #facc15 !important;
+            border-color: #334155;
+            background: #1e293b;
         }
 
         /* Cards */
@@ -746,6 +763,18 @@
 
             <!-- Footer of Offcanvas -->
             <div class="pt-3 border-top mt-3" style="border-color: var(--border-color);">
+                <!-- Mobile Drawer Theme Mode Row -->
+                <div class="d-flex align-items-center justify-content-between mb-3 p-2.5 rounded-3" style="background: var(--bg-subtle); border: 1px solid var(--border-color);">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-circle-half-stroke text-primary"></i>
+                        <span class="small fw-bold" style="color: var(--text-main);">Tungi / Kunduzgi:</span>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 theme-toggle-action d-flex align-items-center gap-1.5 fw-bold" style="font-size: 0.8rem;">
+                        <i class="fa-solid fa-moon theme-icon"></i>
+                        <span class="theme-label-text">Tungi rejim</span>
+                    </button>
+                </div>
+
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small fw-bold text-muted">Til:</span>
                     <div class="btn-group btn-group-sm">
@@ -893,26 +922,45 @@
             function applyTheme(theme) {
                 htmlEl.setAttribute('data-theme', theme);
                 htmlEl.setAttribute('data-bs-theme', theme);
+                try {
+                    localStorage.setItem('smartlib_theme_v3', theme);
+                    localStorage.setItem('smartlib_theme', theme);
+                } catch (e) {}
+
+                // Update theme color meta
+                const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+                if (metaThemeColor) {
+                    metaThemeColor.setAttribute('content', theme === 'dark' ? '#070b14' : '#2563eb');
+                }
+
+                // Update all theme icons
                 document.querySelectorAll('.theme-icon').forEach(icon => {
                     if (theme === 'dark') {
                         icon.className = 'fa-solid fa-sun theme-icon text-warning';
                     } else {
-                        icon.className = 'fa-solid fa-moon theme-icon';
+                        icon.className = 'fa-solid fa-moon theme-icon text-primary';
                     }
+                });
+
+                // Update text labels
+                document.querySelectorAll('.theme-label-text').forEach(lbl => {
+                    lbl.textContent = theme === 'dark' ? 'Kunduzgi rejim' : 'Tungi rejim';
                 });
             }
 
-            // Always default to clean light mode (#f4f7fe + #ffffff + #2563eb)
-            let savedTheme = localStorage.getItem('smartlib_theme_v3') || 'light';
+            let savedTheme = 'light';
+            try {
+                savedTheme = localStorage.getItem('smartlib_theme_v3') || localStorage.getItem('smartlib_theme') || 'light';
+            } catch (e) {}
             applyTheme(savedTheme);
 
-            document.querySelectorAll('.theme-toggle-action').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const current = htmlEl.getAttribute('data-theme');
-                    const next = current === 'dark' ? 'light' : 'dark';
-                    localStorage.setItem('smartlib_theme_v3', next);
-                    applyTheme(next);
-                });
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('.theme-toggle-action');
+                if (!btn) return;
+                e.preventDefault();
+                const current = htmlEl.getAttribute('data-theme') || 'light';
+                const next = current === 'dark' ? 'light' : 'dark';
+                applyTheme(next);
             });
         })();
 

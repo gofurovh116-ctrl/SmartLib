@@ -72,3 +72,29 @@
     background: #0d6efd;
     color: #ffffff !important;
 }
+
+/* 4. Admin Theme Switcher Pill in Top Navbar */
+.admin-theme-btn {
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff !important;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 50px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 8px;
+    transition: all 0.2s ease;
+}
+.admin-theme-btn:hover {
+    background: rgba(255, 255, 255, 0.28);
+    transform: scale(1.05);
+}
+body.dark-mode .admin-theme-btn {
+    border-color: #475569;
+    color: #facc15 !important;
+    background: #1e293b;
+}

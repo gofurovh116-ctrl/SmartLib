@@ -317,8 +317,54 @@
         });
     }
 
+    function injectAdminThemeSwitcher() {
+        const rightNav = document.querySelector('ul.navbar-nav.ml-auto');
+        if (!rightNav || document.getElementById('adminThemeSwitcher')) return;
+
+        const li = document.createElement('li');
+        li.className = 'nav-item d-flex align-items-center';
+        li.id = 'adminThemeSwitcher';
+        li.innerHTML = `
+            <button type="button" class="admin-theme-btn" id="adminThemeBtn" title="Tungi / Kunduzgi rejim">
+                <i class="fas fa-moon" id="adminThemeIcon"></i>
+                <span id="adminThemeText">Tungi</span>
+            </button>
+        `;
+        rightNav.insertBefore(li, rightNav.firstChild);
+
+        function applyAdminTheme(theme) {
+            const body = document.body;
+            const icon = document.getElementById('adminThemeIcon');
+            const text = document.getElementById('adminThemeText');
+            if (theme === 'dark') {
+                body.classList.add('dark-mode');
+                if (icon) icon.className = 'fas fa-sun text-warning';
+                if (text) text.textContent = 'Kunduzgi';
+            } else {
+                body.classList.remove('dark-mode');
+                if (icon) icon.className = 'fas fa-moon';
+                if (text) text.textContent = 'Tungi';
+            }
+            try {
+                localStorage.setItem('smartlib_admin_theme', theme);
+                localStorage.setItem('smartlib_theme_v3', theme);
+                localStorage.setItem('smartlib_theme', theme);
+            } catch (e) {}
+        }
+
+        const savedTheme = localStorage.getItem('smartlib_admin_theme') || localStorage.getItem('smartlib_theme_v3') || 'light';
+        applyAdminTheme(savedTheme);
+
+        document.getElementById('adminThemeBtn')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            const isDark = document.body.classList.contains('dark-mode');
+            applyAdminTheme(isDark ? 'light' : 'dark');
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         injectAdminLangSwitcher();
+        injectAdminThemeSwitcher();
         const savedLang = localStorage.getItem('smartlib_lang') || 'uz';
         applyAdminLang(savedLang);
         // Re-apply after Select2 / Jazzmin async initialization
