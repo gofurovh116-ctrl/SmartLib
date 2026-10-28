@@ -261,7 +261,7 @@ if user:
     # --- CSRF hujum simulyatsiyasi ---
     evil = Client(enforce_csrf_checks=True, raise_request_exception=False)
     evil.force_login(user)
-    b0 = books[0] if books else None
+    b0 = next((b for b in books if b.copies.filter(is_available=True).exists()), books[0] if books else None)
     if b0:
         before = Loan.objects.filter(user=user).count()
         hit(evil, 'GET', f'/book/{b0.pk}/borrow/', expect=(302,), label='CSRF GET borrow ignored')
