@@ -2559,3 +2559,13 @@ def download_pc_view(request):
         return resp
     raise Http404("SmartLib_Desktop.exe fayli topilmadi.")
 
+
+def health_check_view(request):
+    """Render bulut monitoringi va Keep-Alive xizmati uchun engil health check."""
+    return JsonResponse({
+        'status': 'healthy',
+        'app': 'SmartLib',
+        'timestamp': timezone.now().isoformat(),
+        'keep_alive': True,
+    })
+

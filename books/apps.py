@@ -6,3 +6,10 @@ class BooksConfig(AppConfig):
     name = 'books'
     verbose_name = "Kitoblar va Fond"
 
+    def ready(self):
+        try:
+            from . import keep_alive
+            keep_alive.start_keep_alive_thread()
+        except Exception:
+            pass
+

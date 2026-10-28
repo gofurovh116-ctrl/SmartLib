@@ -42,6 +42,7 @@ namespace SmartLibDesktop
         private string wifiUrl = "http://10.238.231.53:8000";
         private string tunnelUrl = "https://smartlib-1-olyc.onrender.com";
         private string baseDir = @"D:\SmartLib";
+        private DateTime lastCloudPing = DateTime.MinValue;
 
         public MainForm()
         {
@@ -287,8 +288,30 @@ namespace SmartLibDesktop
             statusTimer.Tick += (s, e) => {
                 LoadTunnelUrl();
                 CheckServerStatus();
+                CheckAndPingCloud();
             };
             statusTimer.Start();
+        }
+
+        private void CheckAndPingCloud()
+        {
+            if ((DateTime.Now - lastCloudPing).TotalMinutes >= 8)
+            {
+                lastCloudPing = DateTime.Now;
+                ThreadPool.QueueUserWorkItem(_ => PingCloudKeepAlive());
+            }
+        }
+
+        private void PingCloudKeepAlive()
+        {
+            try
+            {
+                HttpWebRequest req = (HttpWebRequest)WebRequest.Create("https://smartlib-1-olyc.onrender.com/health/");
+                req.Timeout = 8000;
+                req.UserAgent = "SmartLib-Desktop-KeepAlive/1.0";
+                using (HttpWebResponse resp = (HttpWebResponse)req.GetResponse()) { }
+            }
+            catch { }
         }
 
         private bool CheckServerStatus()

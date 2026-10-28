@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from books import views
 
 urlpatterns = [
+    path('health/', views.health_check_view, name='health_check'),
     path('favicon.ico', views.favicon_view, name='favicon'),
     path('manifest.json', views.pwa_manifest_view, name='pwa_manifest'),
     path('sw.js', views.service_worker_view, name='service_worker'),
