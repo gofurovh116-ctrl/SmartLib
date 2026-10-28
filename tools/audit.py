@@ -43,6 +43,7 @@ from django.test import Client  # noqa: E402
 from django.test.utils import setup_test_environment  # noqa: E402
 from django.urls import reverse  # noqa: E402
 from django.contrib import admin  # noqa: E402
+from django.core.files.uploadedfile import SimpleUploadedFile  # noqa: E402
 
 setup_test_environment()
 
