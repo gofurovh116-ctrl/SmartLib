@@ -158,7 +158,16 @@
 
             <div id="readerViewport" class="reader-viewport">
                 {% if book.pdf_file %}
-                    <iframe id="pdfFrame" src="{{ book.pdf_file.url }}#page=1" width="100%" height="680" style="border: none; display: block;"></iframe>
+                    <object id="pdfObject" data="{{ book.pdf_file.url }}#page=1" type="application/pdf" width="100%" height="720" style="border: none; display: block;">
+                        <iframe id="pdfFrame" src="{{ book.pdf_file.url }}#page=1" width="100%" height="720" style="border: none;">
+                            <div class="p-4 text-center">
+                                <p class="text-muted">Brauzeringiz PDF ni to'g'ridan-to'g'ri ko'rsatishni qo'llab-quvvatlamadi.</p>
+                                <a href="{{ book.pdf_file.url }}" target="_blank" class="btn btn-primary rounded-pill px-4">
+                                    <i class="fa-solid fa-file-pdf me-2"></i>PDF faylni alohida oynada ochish
+                                </a>
+                            </div>
+                        </iframe>
+                    </object>
                 {% else %}
                     <div class="digital-text-page" id="digitalTextContent">
                         <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">

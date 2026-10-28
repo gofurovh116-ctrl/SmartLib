@@ -17,3 +17,4 @@ DATABASES = {
 }
 MEDIA_ROOT = os.path.join(os.path.dirname(AUDIT_DB), 'audit_media')
 ALLOWED_HOSTS = ['*', 'testserver']
+AUTH_PASSWORD_VALIDATORS = []

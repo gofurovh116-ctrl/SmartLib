@@ -7,3 +7,4 @@ staticfiles/
 android_build/
 tools/cloudflared.exe
 backups/audit/
+backups/database/

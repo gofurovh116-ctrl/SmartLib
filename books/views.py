@@ -20,6 +20,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.csrf import csrf_exempt
 
 from users.models import CustomUser, Library, StudentBase
 from .models import Book, BookCopy, Genre, Loan, Reservation, Review, Favorite, Notification, AuditLog
@@ -1122,7 +1123,23 @@ def reports_view(request):
         Book.objects
         .annotate(read_count=Count('copies__loans'))
         .filter(read_count__gt=0)
-        .order_by('-read_count')[:5]
+        .order_by('-read_count')[:10]
+    )
+
+    top_readers = list(
+        CustomUser.objects
+        .annotate(books_read_count=Count('loans', filter=Q(loans__is_returned=True), distinct=True))
+        .filter(books_read_count__gt=0)
+        .order_by('-books_read_count')[:10]
+    )
+    for r in top_readers:
+        r.rank_info = r.get_reader_rank(r.books_read_count)
+
+    overdue_list = list(
+        Loan.objects
+        .filter(is_returned=False, status__in=['active', 'return_pending'], due_date__lt=timezone.now())
+        .select_related('user', 'book_copy__book')
+        .order_by('due_date')[:50]
     )
 
     faculty_stats = list(
@@ -1147,10 +1164,12 @@ def reports_view(request):
         'overdue_loans': overdue_loans,
         'total_members': total_members,
         'top_books': top_books,
+        'top_readers': top_readers,
+        'overdue_list': overdue_list,
         'faculty_stats': faculty_stats,
         'genre_stats': genre_stats,
-        'chart_top_labels_json': json.dumps([b.title[:28] for b in top_books]),
-        'chart_top_counts_json': json.dumps([b.read_count for b in top_books]),
+        'chart_top_labels_json': json.dumps([b.title[:28] for b in top_books[:5]]),
+        'chart_top_counts_json': json.dumps([b.read_count for b in top_books[:5]]),
         'chart_genre_labels_json': json.dumps([g.name for g in genre_stats]),
         'chart_genre_counts_json': json.dumps([g.book_count for g in genre_stats]),
     }
@@ -1319,35 +1338,121 @@ def _build_xlsx_bytes(rows):
 
 @login_required
 def reports_excel_view(request):
-    overdue_count = Loan.objects.filter(is_returned=False, due_date__lt=timezone.now()).count()
+    now = timezone.now()
+    overdue_qs = (
+        Loan.objects
+        .filter(is_returned=False, due_date__lt=now)
+        .select_related('user', 'book_copy__book')
+        .order_by('due_date')
+    )
+    overdue_count = overdue_qs.count()
+
     rows = [
-        ["SMARTLIB — KUTUBXONA HISOBOTI (PQ-9)", "", "", "", ""],
-        ["Hisobot sanasi:", timezone.now().strftime('%d.%m.%Y %H:%M'), "", "", ""],
-        ["", "", "", "", ""],
-        ["Ko'rsatkich", "Qiymat", "", "", ""],
-        ["Jami Kitoblar (nomda)", Book.objects.count(), "", "", ""],
-        ["Jami Nusxalar (fond)", BookCopy.objects.count(), "", "", ""],
-        ["Hozir o'qilmoqda", Loan.objects.filter(is_returned=False).count(), "", "", ""],
-        ["Muddati o'tgan ijaralar", overdue_count, "", "", ""],
-        ["Jami A'zolar soni", CustomUser.objects.count(), "", "", ""],
-        ["", "", "", "", ""],
-        ["KITOBLAR KATALOGI VA STATISTIKASI", "", "", "", ""],
-        ["ID", "Kitob nomi", "Muallif", "Janr", "Mavjud / Jami", "O'qilgan marta"],
+        ["SMARTLIB — YAGONA INTELLEKTUAL KUTUBXONA HISOBOTI (PQ-9)", "", "", "", "", "", "", "", "", ""],
+        ["Hisobot sanasi:", now.strftime('%d.%m.%Y %H:%M'), "", "", "", "", "", "", "", ""],
+        ["Tizim muallifi:", "Xusniddin Gofurov", "", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", "", ""],
+        ["1. KUTUBXONA ASOSIY KO'RSATKICHLARI", "", "", "", "", "", "", "", "", ""],
+        ["Ko'rsatkich", "Qiymat", "Izoh", "", "", "", "", "", "", ""],
+        ["Jami Kitoblar (nomda)", Book.objects.count(), "Katalogdagi unikal kitob nomlari", "", "", "", "", "", "", ""],
+        ["Jami Nusxalar (fond)", BookCopy.objects.count(), "Shtrix-kodli jami inventar fondi", "", "", "", "", "", "", ""],
+        ["Hozirda kitobxonlar qo'lida", Loan.objects.filter(is_returned=False).count(), "Faol o'qilayotgan kitoblar", "", "", "", "", "", "", ""],
+        ["Muddati o'tgan qarzdorliklar", overdue_count, "Topshirish muddati o'tgan kitoblar soni", "", "", "", "", "", "", ""],
+        ["Jami A'zolar soni", CustomUser.objects.count(), "Ro'yxatdan o'tgan foydalanuvchilar", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", "", "", ""],
+        ["2. ENG KO'P O'QILGAN KITOBLAR (TOP-10)", "", "", "", "", "", "", "", "", ""],
+        ["№", "Kitob ID", "Kitob nomi", "Muallif", "Janr", "Mavjud / Jami", "O'qilgan marta", "", "", ""],
     ]
-    books_with_stats = (
+
+    top_books = (
         Book.objects.select_related('genre')
         .prefetch_related('copies')
         .annotate(read_count=Count('copies__loans'))
-        .order_by('-read_count', 'id')
+        .filter(read_count__gt=0)
+        .order_by('-read_count')[:10]
     )
-    for b in books_with_stats:
+    for idx, b in enumerate(top_books, start=1):
         rows.append([
+            idx,
             b.pk,
             b.title,
             b.author,
             b.genre.name if b.genre else "Umumiy",
             f"{b.available_copies_count} / {b.total_copies}",
             b.read_count,
+            "", "", "",
+        ])
+
+    rows.extend([
+        ["", "", "", "", "", "", "", "", "", ""],
+        ["3. ENG FAOL KITOBXONLAR (TOP-10)", "", "", "", "", "", "", "", "", ""],
+        ["№", "Ism-sharifi", "Login", "Maqomi", "Fakultet / Sinf", "O'qilgan kitoblar", "Kitobxonlik unvoni", "", "", ""],
+    ])
+    top_readers = (
+        CustomUser.objects
+        .annotate(books_read_count=Count('loans', filter=Q(loans__is_returned=True), distinct=True))
+        .filter(books_read_count__gt=0)
+        .order_by('-books_read_count')[:10]
+    )
+    for idx, r in enumerate(top_readers, start=1):
+        rank = r.get_reader_rank(r.books_read_count)
+        extra = r.faculty or (f"{r.grade}-{r.grade_letter}" if r.grade else "-")
+        rows.append([
+            idx,
+            r.full_display_name,
+            f"@{r.username}",
+            r.get_role_display(),
+            extra,
+            r.books_read_count,
+            rank['title'],
+            "", "", "",
+        ])
+
+    rows.extend([
+        ["", "", "", "", "", "", "", "", "", ""],
+        ["4. MUDDATI O'TGAN QARZDORLIKLAR (ZUDLIK BILAN QAYTARISH ZARUR)", "", "", "", "", "", "", "", "", ""],
+        ["№", "Kitobxon", "Login", "Telefon", "Fakultet / Sinf", "Kitob nomi", "Inventar", "Topshirish muddati", "Kechikkan kunlar", "Jarima XP"],
+    ])
+    if overdue_count > 0:
+        for idx, o in enumerate(overdue_qs[:100], start=1):
+            extra = o.user.faculty or (f"{o.user.grade}-{o.user.grade_letter}" if o.user.grade else "-")
+            rows.append([
+                idx,
+                o.user.full_display_name,
+                f"@{o.user.username}",
+                o.user.phone or "-",
+                extra,
+                o.book_copy.book.title,
+                o.book_copy.inventory_number,
+                o.due_date.strftime('%d.%m.%Y'),
+                f"{o.overdue_days} kun",
+                f"-{o.penalty_points} XP",
+            ])
+    else:
+        rows.append(["", "Hozirda muddati o'tgan qarzdorliklar mavjud emas (barcha kitoblar o'z vaqtida topshirilmoqda).", "", "", "", "", "", "", "", ""])
+
+    rows.extend([
+        ["", "", "", "", "", "", "", "", "", ""],
+        ["5. BARCHA KITOBLAR VA MAVJUDLIK FOND STATISTIKASI", "", "", "", "", "", "", "", "", ""],
+        ["ID", "Kitob nomi", "Muallif", "Janr", "ISBN", "UO'K", "Mavjud / Jami", "O'qilgan marta", "", ""],
+    ])
+    all_books = (
+        Book.objects.select_related('genre')
+        .prefetch_related('copies')
+        .annotate(read_count=Count('copies__loans'))
+        .order_by('-read_count', 'id')
+    )
+    for b in all_books:
+        rows.append([
+            b.pk,
+            b.title,
+            b.author,
+            b.genre.name if b.genre else "Umumiy",
+            b.isbn or "-",
+            b.udc or "-",
+            f"{b.available_copies_count} / {b.total_copies}",
+            b.read_count,
+            "", "",
         ])
 
     xlsx_data = _build_xlsx_bytes(rows)
@@ -1355,7 +1460,7 @@ def reports_excel_view(request):
         xlsx_data,
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     )
-    response['Content-Disposition'] = 'attachment; filename="smartlib_hisobot.xlsx"'
+    response['Content-Disposition'] = f'attachment; filename="smartlib_kengaytirilgan_hisobot_{now.strftime("%Y%m%d")}.xlsx"'
     return response
 
 
@@ -2568,4 +2673,211 @@ def health_check_view(request):
         'timestamp': timezone.now().isoformat(),
         'keep_alive': True,
     })
+
+
+@csrf_exempt
+def telegram_webhook_view(request):
+    """
+    Module 8: Telegram Bot Webhook Gateway.
+    Foydalanuvchilar bilan to'g'ridan-to'g'ri muloqot:
+    - /start va /start connect_<username> (1-klikda profilingizni ulash)
+    - /kitob <nomi> yoki /qidir <nomi> (Real-vaqtda kitob qidirish va mavjudlik tekshiruvi)
+    - /status yoki /profil (Shaxsiy ijaralar, qaytarish muddatlari va kitobxonlik XP bali)
+    - /yordam (Qo'llanma)
+    """
+    if request.method != 'POST':
+        return HttpResponse("SmartLib Telegram Webhook Gateway faol.", content_type="text/plain")
+
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        return JsonResponse({'ok': False, 'error': 'invalid_json'}, status=400)
+
+    msg = data.get('message') or data.get('edited_message')
+    if not msg:
+        return JsonResponse({'ok': True, 'ignored': 'no_message'})
+
+    chat = msg.get('chat', {})
+    chat_id = str(chat.get('id', '')).strip()
+    text = (msg.get('text') or '').strip()
+
+    if not chat_id or not text:
+        return JsonResponse({'ok': True, 'ignored': 'empty'})
+
+    public_url = (_get_public_tunnel_url() or "https://smartlib-1-olyc.onrender.com").rstrip('/')
+
+    # 1. /start command
+    if text.startswith('/start'):
+        parts = text.split()
+        if len(parts) > 1 and parts[1].startswith('connect_'):
+            target_username = parts[1][len('connect_'):].strip()
+            user = CustomUser.objects.filter(username__iexact=target_username).first()
+            if user:
+                user.telegram_chat_id = chat_id
+                user.save(update_fields=['telegram_chat_id'])
+                reply = (
+                    f"🎉 <b>Tabriklaymiz, {user.full_display_name}!</b>\n\n"
+                    f"Sizning SmartLib hisobingiz (<code>@{user.username}</code>) muvaffaqiyatli ulandi!\n\n"
+                    f"🔔 Endi quyidagi xabarnomalar to'g'ridan-to'g'ri shu yerga keladi:\n"
+                    f"• Kitob olish/topshirish 6-xonali kodlari\n"
+                    f"• Qaytarish muddati eslatmalari\n"
+                    f"• Kutubxonachi tasdiqlari va XP ballar\n\n"
+                    f"<i>Kitob qidirish uchun: <code>/kitob &lt;nomi&gt;</code></i>"
+                )
+            else:
+                reply = (
+                    f"❌ <b>Xatolik:</b> «{target_username}» nomli kitobxon topilmadi.\n"
+                    f"Iltimos, SmartLib saytidagi profilingiz loginini tekshiring."
+                )
+        else:
+            existing_user = CustomUser.objects.filter(telegram_chat_id=chat_id).first()
+            user_greeting = f", {existing_user.full_display_name}" if existing_user else ""
+            reply = (
+                f"📚 <b>Assalomu alaykum{user_greeting}!</b>\n\n"
+                f"SmartLib intellektual elektron kutubxona botiga xush kelibsiz.\n\n"
+                f"<b>Buyruqlar:</b>\n"
+                f"🔍 <code>/kitob &lt;nomi&gt;</code> — Kitob qidirish va mavjudlik tekshiruvi\n"
+                f"👤 <code>/status</code> — Mening kitoblarim va qaytarish muddatlari\n"
+                f"🔗 <code>/connect &lt;login&gt;</code> — Saytdagi profilingizni ulash\n"
+                f"🌐 <a href='{public_url}'>Saytga o'tish (SmartLib Online)</a>"
+            )
+        send_telegram_message(chat_id, reply)
+        return JsonResponse({'ok': True})
+
+    # 2. /connect <username> yoki /ulanish <username>
+    if text.startswith('/connect') or text.startswith('/ulanish'):
+        parts = text.split()
+        if len(parts) > 1:
+            target_username = parts[1].lstrip('@').strip()
+            user = CustomUser.objects.filter(username__iexact=target_username).first()
+            if user:
+                user.telegram_chat_id = chat_id
+                user.save(update_fields=['telegram_chat_id'])
+                reply = (
+                    f"✅ <b>SmartLib hisobi muvaffaqiyatli ulandi!</b>\n\n"
+                    f"Kitobxon: <b>{user.full_display_name}</b> (@{user.username})\n"
+                    f"Maqom: {user.get_role_display()}\n\n"
+                    f"Barcha xabarnomalar va kodlar shu chatga yuboriladi."
+                )
+            else:
+                reply = f"❌ «{target_username}» nomli login topilmadi. Qaytadan tekshirib yozing."
+        else:
+            reply = "Iltimos, profilingiz loginini yozing. Masalan: <code>/connect alisher</code>"
+        send_telegram_message(chat_id, reply)
+        return JsonResponse({'ok': True})
+
+    # 3. /status yoki /profil
+    if text in ('/status', '/profil', '/my', 'status', 'profil'):
+        user = CustomUser.objects.filter(telegram_chat_id=chat_id).first()
+        if not user:
+            reply = (
+                f"⚠️ <b>Sizning SmartLib profilingiz ulanmagan.</b>\n\n"
+                f"Hisobingizni ulash uchun: <code>/connect &lt;login&gt;</code> deb yozing "
+                f"yoki saytdagi profilingizdan Telegram tugmasini bosing."
+            )
+        else:
+            active_loans = list(
+                Loan.objects.filter(user=user, is_returned=False)
+                .select_related('book_copy__book')
+                .order_by('due_date')
+            )
+            completed_count = Loan.objects.filter(user=user, is_returned=True).count()
+            rank = user.get_reader_rank(completed_count)
+            disc = user.get_discipline_summary()
+
+            lines = [
+                f"👤 <b>Kitobxon:</b> {user.full_display_name} (@{user.username})",
+                f"🎖 <b>Daraja:</b> {rank['title']} ({disc['xp']} XP ball)",
+                f"📈 <b>Intizom:</b> {disc['discipline_score']}%",
+                "",
+                f"📖 <b>Qo'lingizdagi kitoblar ({len(active_loans)} ta):</b>",
+            ]
+            if active_loans:
+                for idx, al in enumerate(active_loans, start=1):
+                    overdue = al.is_overdue
+                    status_badge = f"🚨 <b>{al.overdue_days} kun kechikdi (-{al.penalty_points} XP)</b>" if overdue else f"Topshirish: {al.due_date.strftime('%d.%m.%Y')}"
+                    lines.append(f"{idx}. «{al.book_copy.book.title}» — {status_badge}")
+            else:
+                lines.append("<i>Hozirda qo'lingizda kitob yo'q. Yangi kitob buyurtma qilish uchun saytga kiring.</i>")
+
+            reply = "\n".join(lines)
+        send_telegram_message(chat_id, reply)
+        return JsonResponse({'ok': True})
+
+    # 4. /kitob <nomi> yoki /qidir <nomi>
+    search_query = ""
+    if text.startswith('/kitob') or text.startswith('/qidir'):
+        parts = text.split(maxsplit=1)
+        if len(parts) > 1:
+            search_query = parts[1].strip()
+    elif not text.startswith('/'):
+        search_query = text
+
+    if search_query:
+        books = list(
+            Book.objects.filter(
+                Q(title__icontains=search_query) |
+                Q(author__icontains=search_query) |
+                Q(isbn__icontains=search_query)
+            ).prefetch_related('copies')[:5]
+        )
+        if books:
+            lines = [f"🔍 <b>«{search_query}» bo'yicha topilgan kitoblar:</b>\n"]
+            for idx, b in enumerate(books, start=1):
+                avail = b.available_copies_count
+                status_icon = "🟢 Javonda bor" if avail > 0 else "🔴 Hozir band"
+                book_url = f"{public_url}/book/{b.pk}/"
+                lines.append(
+                    f"{idx}. <b><a href='{book_url}'>{b.title}</a></b>\n"
+                    f"   ✍️ {b.author} | {status_icon}: <b>{avail}/{b.total_copies} ta</b>\n"
+                )
+            reply = "\n".join(lines)
+        else:
+            reply = (
+                f"😔 «{search_query}» bo'yicha kutubxonada kitob topilmadi.\n"
+                f"Boshqa so'z bilan qidirib ko'ring yoki: <code>/kitob &lt;nomi&gt;</code>"
+            )
+        send_telegram_message(chat_id, reply)
+        return JsonResponse({'ok': True})
+
+    # Standart yordam
+    reply = (
+        f"🤖 <b>SmartLib Bot yordamchisi:</b>\n\n"
+        f"• Kitob qidirish: <code>/kitob &lt;nomi&gt;</code>\n"
+        f"• Shaxsiy holat: <code>/status</code>\n"
+        f"• Hisobni ulash: <code>/connect &lt;login&gt;</code>\n"
+        f"🌐 <a href='{public_url}'>SmartLib Web Portal</a>"
+    )
+    send_telegram_message(chat_id, reply)
+    return JsonResponse({'ok': True})
+
+
+@login_required
+def librarian_backup_download_view(request):
+    """Module 8: Kutubxonachi / Admin uchun jonli SQLite bazaning 1-klik zaxirasini (.sql) yuklab olish."""
+    if not _is_librarian_or_admin(request.user):
+        messages.error(request, "Faqat kutubxonachi yoki administratorlar zaxira yuklab olishi mumkin!")
+        return redirect('home')
+
+    db_path = str(settings.DATABASES['default']['NAME'])
+    if not os.path.isfile(db_path):
+        raise Http404("SQLite fayl topilmadi yoki tashqi baza ishlatilmoqda.")
+
+    import sqlite3
+    buf = io.BytesIO()
+    src = sqlite3.connect(db_path)
+    mem_dst = sqlite3.connect(":memory:")
+    src.backup(mem_dst)
+    src.close()
+
+    for line in mem_dst.iterdump():
+        buf.write((line + '\n').encode('utf-8'))
+    mem_dst.close()
+    buf.seek(0)
+
+    filename = f"smartlib_backup_{timezone.now().strftime('%Y%m%d_%H%M%S')}.sql"
+    response = HttpResponse(buf.getvalue(), content_type='application/x-sql')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    log_audit(request, 'BACKUP_DOWNLOAD', filename, "Baza to'liq zaxira fayli yuklab olindi")
+    return response
 

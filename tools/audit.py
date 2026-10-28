@@ -7,6 +7,7 @@ import os
 import sys
 import shutil
 import sqlite3
+import json
 import traceback
 from pathlib import Path
 
@@ -469,6 +470,34 @@ if su:
     r_ic512 = hit(anon, 'GET', '/pwa-icon/512/', expect=(200,), label='pwa icon 512')
     record('pwa icon 512 valid png', r_ic512 is not None and r_ic512.content.startswith(b'\x89PNG'), 'not png')
     hit(anon, 'GET', '/offline/', expect=(200,), label='pwa offline page')
+
+    # Module 8: Enhanced Analytics, Telegram Webhook Gateway & Live Backup Download
+    r_rep_xl = hit(ac, 'GET', '/reports/excel/', expect=(200,), label='reports excel export')
+    record('reports excel valid PK', r_rep_xl is not None and r_rep_xl.content.startswith(b'PK'), 'invalid excel')
+    hit(anon, 'GET', '/api/telegram-webhook/', expect=(200,), label='telegram webhook get')
+    tg_webhook_payload = json.dumps({
+        'update_id': 9999,
+        'message': {
+            'message_id': 1,
+            'chat': {'id': 123456789},
+            'from': {'id': 123456789, 'username': 'test_reader'},
+            'text': '/kitob python'
+        }
+    })
+    r_tg_post = hit(anon, 'POST', '/api/telegram-webhook/', expect=(200,), data=tg_webhook_payload, content_type='application/json', label='telegram webhook post /kitob')
+    record('telegram webhook post json ok', r_tg_post is not None and b'"ok": true' in r_tg_post.content.lower(), 'webhook fail')
+    r_bkp = hit(ac, 'GET', '/librarian/backup/download/', expect=(200,), label='librarian backup download')
+    record('backup download sql valid', r_bkp is not None and len(r_bkp.content) > 100, 'backup empty')
+    try:
+        call_command('send_due_reminders')
+        record('send_due_reminders command', True)
+    except Exception as exc:
+        record('send_due_reminders command', False, str(exc))
+    try:
+        call_command('backup_database')
+        record('backup_database command', True)
+    except Exception as exc:
+        record('backup_database command', False, str(exc))
 
 print("=== 5. Ma'lumotlar yaxlitligi ===")
 for c in BookCopy.objects.all():

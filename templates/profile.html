@@ -246,19 +246,29 @@
                 <p class="small text-muted mb-3">
                     Chat ID: <code class="fw-bold">{{ user.telegram_chat_id }}</code>. Tasdiqlash kodlari va muddat eslatmalari Telegramga yuboriladi.
                 </p>
-                <form method="post" action="{% url 'telegram_test_ping' %}" class="m-0">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-outline-info rounded-pill w-100 fw-semibold">
-                        <i class="fa-solid fa-paper-plane me-1"></i>Sinov xabarini yuborish
-                    </button>
-                </form>
+                <div class="d-flex flex-column gap-2">
+                    <form method="post" action="{% url 'telegram_test_ping' %}" class="m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-info rounded-pill w-100 fw-semibold">
+                            <i class="fa-solid fa-paper-plane me-1"></i>Sinov xabarini yuborish
+                        </button>
+                    </form>
+                    <a href="https://t.me/{{ bot_username|default:'SmartLibUzBot' }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill w-100 fw-semibold">
+                        <i class="fa-brands fa-telegram me-1"></i>Botni ochish (@{{ bot_username|default:'SmartLibUzBot' }})
+                    </a>
+                </div>
                 {% else %}
                 <p class="small text-muted mb-3">
-                    Kitob olish/topshirish 6-xonali kodlarini va muddat eslatmalarini Telegram orqali olish uchun Chat ID raqamingizni ulang.
+                    Kitob olish/topshirish kodlari va muddat eslatmalarini Telegram orqali olish uchun botga ulaning:
                 </p>
-                <a href="{% url 'profile_edit' %}" class="btn btn-sm btn-outline-primary rounded-pill w-100 fw-semibold">
-                    <i class="fa-brands fa-telegram me-1"></i>Telegram ID ni ulash
-                </a>
+                <div class="d-flex flex-column gap-2">
+                    <a href="https://t.me/{{ bot_username|default:'SmartLibUzBot' }}?start=connect_{{ user.username }}" target="_blank" class="btn btn-sm btn-primary rounded-pill w-100 fw-bold shadow-sm" style="background-color: #0088cc; border-color: #0088cc;">
+                        <i class="fa-brands fa-telegram me-1"></i>1-Klikda Botga Ulash
+                    </a>
+                    <a href="{% url 'profile_edit' %}" class="btn btn-sm btn-outline-secondary rounded-pill w-100 fw-semibold" style="font-size: 0.78rem;">
+                        <i class="fa-solid fa-pen me-1"></i>Chat ID ni qo'lda kiritish
+                    </a>
+                </div>
                 {% endif %}
             </div>
         </div>
