@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block title %}Skaner-Terminal (Kiosk) va Xavfsizlik Jurnali | SMARTLIB{% endblock %}
+
+{% block extra_css %}
+<style>
+    .kiosk-hero {
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #1d4ed8 100%);
+        border-radius: 24px;
+        padding: 2.2rem 2.4rem;
+        color: #ffffff !important;
+        box-shadow: 0 20px 44px rgba(15, 23, 42, 0.25);
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+    .kiosk-hero h2, .kiosk-hero p, .kiosk-hero span, .kiosk-hero i {
+        color: #ffffff !important;
+    }
+    .terminal-scanner-box {
+        background: var(--bg-card);
+        border: 2px solid #3b82f6;
+        border-radius: 22px;
+        padding: 2rem;
+        box-shadow: var(--shadow-hover);
+        margin-bottom: 2rem;
+    }
+    .scanner-input-lg {
+        font-family: monospace;
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        padding: 0.9rem 1.25rem !important;
+        border-radius: 14px !important;
+    }
+    .scan-result-banner {
+        border-radius: 20px;
+        padding: 1.6rem 2rem;
+        margin-bottom: 2rem;
+        border: 2px solid #10b981;
+        background: rgba(16, 185, 129, 0.10);
+    }
+    .audit-badge-action {
+        font-family: monospace;
+        font-size: 0.76rem;
+        font-weight: 700;
+        padding: 0.3rem 0.75rem;
+        border-radius: 50px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-3">
+    <!-- Kiosk Header -->
+    <div class="kiosk-hero">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-info text-dark rounded-pill px-3 py-1 fw-bold">
+                        <i class="fa-solid fa-barcode me-1"></i>1-Soniyali Kiosk Rejimi
+                    </span>
+                    <span class="badge bg-success rounded-pill px-3 py-1 fw-bold">
+                        <i class="fa-solid fa-shield-halved me-1"></i>Audit Log Faol
+                    </span>
+                </div>
+                <h2 class="fw-bold mb-1">Kutubxonachi Tezkor Skaner-Terminali</h2>
+                <p class="mb-0 opacity-75 small">
+                    USB Shtrix-kod skaner (Code128), 6-xonali tasdiqlash kodi yoki kamera yordamida kitoblarni 1 soniyada bering va qabul qiling.
+                </p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{% url 'librarian_desk' %}" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold">
+                    <i class="fa-solid fa-arrow-left me-1"></i>Kutubxonachi Paneli
+                </a>
+                <a href="{% url 'librarian_stickers_pdf' %}" class="btn btn-warning text-dark rounded-pill px-4 py-2 fw-bold">
+                    <i class="fa-solid fa-print me-1"></i>Stikerlar (A4 PDF)
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {% if scan_result %}
+    <div class="scan-result-banner">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <span class="badge bg-success rounded-pill px-3 py-1 fw-bold mb-2">{{ scan_result.badge }}</span>
+                <h4 class="fw-bold mb-1" style="color: var(--text-main);">
+                    {{ scan_result.title }} <span class="badge bg-secondary font-monospace ms-2">{{ scan_result.inv }}</span>
+                </h4>
+                <div class="fw-semibold" style="color: var(--text-main);">
+                    <i class="fa-solid fa-user-check text-primary me-1"></i>Kitobxon: {{ scan_result.user }}
+                </div>
+                <div class="small text-muted mt-1">{{ scan_result.detail }}</div>
+            </div>
+            <div class="fs-1 text-success">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Main Scanner Box -->
+    <div class="terminal-scanner-box">
+        <form method="post" action="{% url 'librarian_terminal' %}" id="terminalScanForm">
+            {% csrf_token %}
+            <div class="row g-3 align-items-end">
+                <div class="col-lg-6">
+                    <label class="fw-bold small mb-2 d-block" style="color: var(--text-main);">
+                        <i class="fa-solid fa-barcode text-primary me-1"></i>1. Shtrix-kod (INV-1-1) yoki 6-xonali Tasdiqlash Kodi:
+                    </label>
+                    <input type="text" name="scan_code" id="terminalScanInput" list="scanCodeSuggestions" class="form-control scanner-input-lg" placeholder="INV-1-1 yoki 123456..." autofocus required autocomplete="off">
+                    <datalist id="scanCodeSuggestions">
+                        {% for p in pending_otps_hint %}
+                        <option value="{{ p.verification_code }}">KOD: {{ p.verification_code }} — {{ p.user.username }} ({{ p.book_copy.book.title }})</option>
+                        {% endfor %}
+                        {% for cp in all_copies_hint %}
+                        <option value="{{ cp.inventory_number }}">{{ cp.inventory_number }} — {{ cp.book.title }} [{% if cp.is_available %}Bo'sh{% else %}Band{% endif %}]</option>
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <div class="col-lg-4">
+                    <label class="fw-bold small mb-2 d-block" style="color: var(--text-main);">
+                        <i class="fa-solid fa-id-badge text-success me-1"></i>2. Kitobxon Logini / ID (Ixtiyoriy):
+                    </label>
+                    <input type="text" name="student_query" list="studentQuerySuggestions" class="form-control scanner-input-lg" placeholder="talaba logini yoki SL-00001" style="font-size: 1.05rem;" autocomplete="off">
+                    <datalist id="studentQuerySuggestions">
+                        {% for r in readers_hint %}
+                        <option value="{{ r.username }}">{{ r.full_display_name }} (@{{ r.username }})</option>
+                        {% endfor %}
+                    </datalist>
+                </div>
+                <div class="col-lg-2 d-grid">
+                    <button type="submit" class="btn btn-primary rounded-4 py-3 fw-bold fs-6">
+                        <i class="fa-solid fa-bolt me-1"></i>Bajarish
+                    </button>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3 pt-2 border-top">
+                <small class="text-muted">
+                    <i class="fa-solid fa-circle-info text-primary me-1"></i><strong>Qanday ishlaydi?</strong> Agar nusxaga so'rov yuborilgan bo'lsa — kitobni beradi; agar kitob o'quvchida bo'lsa — qaytarib oladi; agar javonda bo'sh bo'lsa — ko'rsatilgan kitobxonga rasmiylashtiradi.
+                </small>
+                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#qrScannerModal">
+                    <i class="fa-solid fa-camera me-1"></i>Kamera Skaneri
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Immutable Security Audit Trail Table -->
+    <div class="smart-card overflow-hidden">
+        <div class="p-3 p-md-4 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h5 class="fw-bold mb-0" style="color: var(--text-main);">
+                    <i class="fa-solid fa-shield-cat text-primary me-2"></i>O'zgarmas Xavfsizlik va Audit Jurnali (Audit Trail)
+                </h5>
+                <small class="text-muted">Tizimdagi har bir berish, qaytarish, import va skaner amallari IP-manzil hamda vaqt shtampi bilan muhrlanadi.</small>
+            </div>
+            <span class="badge bg-primary-subtle text-primary border border-primary rounded-pill px-3 py-1 fw-bold">
+                So'nggi {{ audit_logs|length }} ta amal
+            </span>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Vaqt</th>
+                        <th>Mas'ul / Foydalanuvchi</th>
+                        <th>Amal turi</th>
+                        <th>Obyekt (Kitob / Nusxa)</th>
+                        <th>Tafsilotlar</th>
+                        <th class="pe-4 text-end">IP Manzil</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in audit_logs %}
+                    <tr>
+                        <td class="ps-4 small text-muted font-monospace">{{ log.created_at|date:"d.m.Y H:i:s" }}</td>
+                        <td>
+                            <span class="fw-bold">{{ log.actor.full_display_name|default:"Tizim" }}</span>
+                            {% if log.actor %}<small class="text-muted d-block">@{{ log.actor.username }}</small>{% endif %}
+                        </td>
+                        <td>
+                            <span class="audit-badge-action bg-primary-subtle text-primary border border-primary">
+                                {{ log.get_action_display }}
+                            </span>
+                        </td>
+                        <td class="fw-semibold">{{ log.target }}</td>
+                        <td class="small text-muted">{{ log.details }}</td>
+                        <td class="pe-4 text-end font-monospace small text-muted">{{ log.ip_address|default:"127.0.0.1" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            Hozircha audit yozuvlari mavjud emas.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

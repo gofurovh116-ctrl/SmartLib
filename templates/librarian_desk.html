@@ -1,0 +1,988 @@
+{% extends 'base.html' %}
+
+{% block title %}Kutubxonachi Paneli — SMARTLIB{% endblock %}
+
+{% block extra_css %}
+<style>
+    .desk-header {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border-radius: 20px;
+        padding: 2rem 2.2rem;
+        color: #ffffff !important;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+    }
+    .desk-header h2, .desk-header p, .desk-header span, .desk-header i {
+        color: #ffffff !important;
+    }
+    .desk-stat-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        box-shadow: var(--shadow-soft);
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        transition: transform 0.2s ease;
+    }
+    .desk-stat-card:hover {
+        transform: translateY(-2px);
+    }
+    .stat-icon-bubble {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+    }
+    .stat-bubble-amber {
+        background: rgba(245, 158, 11, 0.15);
+        color: #f59e0b;
+    }
+    .stat-bubble-blue {
+        background: rgba(59, 130, 246, 0.15);
+        color: #3b82f6;
+    }
+    .stat-bubble-green {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+    }
+    .desk-nav-pills .nav-link {
+        color: var(--text-muted);
+        font-weight: 600;
+        border-radius: 50px;
+        padding: 0.55rem 1.4rem;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+    .desk-nav-pills .nav-link.active {
+        background-color: #2563eb;
+        color: #ffffff !important;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+    }
+    .desk-table-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 18px;
+        box-shadow: var(--shadow-soft);
+        overflow: hidden;
+    }
+    .desk-table th {
+        background: var(--bg-subtle) !important;
+        color: var(--text-muted) !important;
+        font-weight: 600;
+        font-size: 0.84rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--border-color) !important;
+        padding: 1rem 1.25rem;
+    }
+    .desk-table td {
+        vertical-align: middle;
+        padding: 1.1rem 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-main);
+    }
+    .otp-code-badge {
+        font-family: monospace;
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        background: var(--bg-subtle);
+        border: 1px dashed var(--primary-blue);
+        color: var(--primary-blue);
+        padding: 0.35rem 0.75rem;
+        border-radius: 8px;
+        display: inline-block;
+    }
+    .otp-input-field {
+        max-width: 130px;
+        font-family: monospace;
+        letter-spacing: 2px;
+        font-weight: bold;
+        text-align: center;
+        background: var(--bg-input);
+        color: var(--text-main);
+        border: 1px solid var(--input-border);
+    }
+    .btn-approve-handshake {
+        background-color: #10b981;
+        color: #ffffff !important;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 0.45rem 1.15rem;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: opacity 0.2s;
+    }
+    .btn-approve-handshake:hover {
+        opacity: 0.9;
+        color: #ffffff !important;
+    }
+    .btn-reject-handshake {
+        background-color: transparent;
+        color: #ef4444 !important;
+        border: 1px solid #ef4444;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 0.45rem 1.15rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+    }
+    .btn-reject-handshake:hover {
+        background-color: #ef4444;
+        color: #ffffff !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-3">
+    <!-- Librarian Desk Banner -->
+    <div class="desk-header">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold">
+                        <i class="fa-solid fa-shield-halved me-1"></i>Xavfsiz Oldi-Berdi (Maker-Checker)
+                    </span>
+                    <span class="small opacity-75">
+                        <i class="fa-solid fa-user-check me-1"></i>Kutubxonachi: <strong>{{ request.user.full_display_name }}</strong>
+                    </span>
+                </div>
+                <h2 class="fw-bold mb-2">Kutubxona Qabul va Tarqatish Boshqaruvi</h2>
+                <p class="mb-0 opacity-75 small">
+                    Kitobxonlar kitobni faqat siz tasdiqlaganingizdan so'ng olishlari va topshirishlari mumkin. Har bir amal 6-xonali xavfsizlik kodi orqali himoyalangan.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <button type="button" class="btn btn-success rounded-pill px-3 py-2 fw-bold btn-sm me-1 mb-1" data-bs-toggle="modal" data-bs-target="#mobileAccessQrModal">
+                    <i class="fa-solid fa-mobile-screen-button me-1"></i>Mobil Kitobxon QR
+                </button>
+                <a href="{% url 'librarian_terminal' %}" class="btn btn-info text-dark rounded-pill px-3 py-2 fw-bold btn-sm me-1 mb-1">
+                    <i class="fa-solid fa-bolt me-1"></i>Skaner-Terminal (Kiosk)
+                </a>
+                <a href="{% url 'librarian_stickers_pdf' %}{% if search_query %}?q={{ search_query|urlencode }}{% endif %}" class="btn btn-warning text-dark rounded-pill px-3 py-2 fw-bold btn-sm me-1 mb-1">
+                    <i class="fa-solid fa-barcode me-1"></i>Shtrix-kod Stikerlar (A4 PDF)
+                </a>
+                <a href="/admin/books/loan/" class="btn btn-outline-light rounded-pill px-3 py-2 fw-semibold btn-sm me-1 mb-1">
+                    <i class="fa-solid fa-gear me-1"></i>Admin
+                </a>
+                <a href="{% url 'reports' %}" class="btn btn-primary rounded-pill px-3 py-2 fw-semibold btn-sm mb-1">
+                    <i class="fa-solid fa-chart-pie me-1"></i>Hisobotlar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Counters Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="desk-stat-card">
+                <div class="stat-icon-bubble stat-bubble-amber">
+                    <i class="fa-solid fa-hand-holding"></i>
+                </div>
+                <div>
+                    <div class="fs-4 fw-bold" style="color: var(--text-main);">{{ pending_borrows_count }}</div>
+                    <div class="text-muted small">Olish so'rovlari</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="desk-stat-card">
+                <div class="stat-icon-bubble stat-bubble-blue">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <div>
+                    <div class="fs-4 fw-bold" style="color: var(--text-main);">{{ pending_returns_count }}</div>
+                    <div class="text-muted small">Topshirish so'rovlari</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="desk-stat-card">
+                <div class="stat-icon-bubble stat-bubble-green">
+                    <i class="fa-solid fa-book-open-reader"></i>
+                </div>
+                <div>
+                    <div class="fs-4 fw-bold" style="color: var(--text-main);">{{ active_loans_count }}</div>
+                    <div class="text-muted small">Qo'lda o'qilayotganlar</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="desk-stat-card">
+                <div class="stat-icon-bubble" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <div class="fs-4 fw-bold text-danger">{{ overdue_loans_count|default:0 }}</div>
+                    <div class="text-muted small">Muddati o'tgan (Qarzdorlar)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="smart-card p-3 mb-4">
+        <form method="get" action="{% url 'librarian_desk' %}" class="row g-2 align-items-center">
+            <div class="col-md-9">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--input-border); color: var(--text-muted);">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" name="q" value="{{ search_query }}" class="form-control border-start-0" placeholder="Talaba ismi, kitob nomi, inventar raqam yoki 6-xonali kod..." style="background: var(--bg-input); color: var(--text-main); border-color: var(--input-border);">
+                </div>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold flex-grow-1">
+                    Qidirish
+                </button>
+                {% if search_query %}
+                <a href="{% url 'librarian_desk' %}" class="btn btn-outline-secondary rounded-pill px-3">
+                    <i class="fa-solid fa-xmark"></i>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <ul class="nav desk-nav-pills gap-2 mb-4" id="deskTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active position-relative" id="tab-borrows" data-bs-toggle="tab" data-bs-target="#content-borrows" type="button" role="tab">
+                <i class="fa-solid fa-hand-holding me-1"></i>Olish so'rovlari
+                {% if pending_borrows_count > 0 %}
+                <span class="badge rounded-pill bg-danger ms-1">{{ pending_borrows_count }}</span>
+                {% endif %}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link position-relative" id="tab-returns" data-bs-toggle="tab" data-bs-target="#content-returns" type="button" role="tab">
+                <i class="fa-solid fa-arrow-turn-down me-1"></i>Topshirish so'rovlari
+                {% if pending_returns_count > 0 %}
+                <span class="badge rounded-pill bg-info text-dark ms-1">{{ pending_returns_count }}</span>
+                {% endif %}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link position-relative" id="tab-active" data-bs-toggle="tab" data-bs-target="#content-active" type="button" role="tab">
+                <i class="fa-solid fa-book-open-reader me-1"></i>Hozir o'qilayotganlar
+                <span class="badge rounded-pill bg-secondary ms-1">{{ active_loans_count }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link position-relative" id="tab-overdue" data-bs-toggle="tab" data-bs-target="#content-overdue" type="button" role="tab">
+                <i class="fa-solid fa-bell text-danger me-1"></i>Qarzdorlar (Muddati o'tganlar)
+                {% if overdue_loans_count > 0 %}
+                <span class="badge rounded-pill bg-danger ms-1">{{ overdue_loans_count }}</span>
+                {% endif %}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-history" data-bs-toggle="tab" data-bs-target="#content-history" type="button" role="tab">
+                <i class="fa-solid fa-clock-rotate-left me-1"></i>Ijaralar tarixi
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-import" data-bs-toggle="tab" data-bs-target="#content-import" type="button" role="tab">
+                <i class="fa-solid fa-file-import text-success me-1"></i>ISBN Avto-Qo'shish & Excel Import
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-audit" data-bs-toggle="tab" data-bs-target="#content-audit" type="button" role="tab">
+                <i class="fa-solid fa-shield-halved text-info me-1"></i>Xavfsizlik Audit Jurnali
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Contents -->
+    <div class="tab-content" id="deskTabsContent">
+        <!-- 1. Borrow Requests -->
+        <div class="tab-pane fade show active" id="content-borrows" role="tabpanel">
+            <div class="desk-table-card">
+                <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                    <span class="fw-bold" style="color: var(--text-main);">
+                        <i class="fa-solid fa-hourglass-half text-warning me-2"></i>Tasdiqlanishi kerak bo'lgan olish so'rovlari
+                    </span>
+                    <span class="small text-muted">Jami: {{ pending_borrows|length }} ta</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table desk-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Kitobxon</th>
+                                <th>Kitob & Nusxa</th>
+                                <th>So'rov vaqti</th>
+                                <th>Tasdiqlash Kodi</th>
+                                <th class="text-end">Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in pending_borrows %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold" style="color: var(--text-main);">{{ loan.user.full_display_name }}</div>
+                                    <small class="text-muted">
+                                        @{{ loan.user.username }}
+                                        {% if loan.user.phone %}| <i class="fa-solid fa-phone me-1"></i>{{ loan.user.phone }}{% endif %}
+                                        {% if loan.user.faculty %}| {{ loan.user.faculty }}{% endif %}
+                                        {% if loan.user.group_name %}({{ loan.user.group_name }}){% endif %}
+                                    </small>
+                                </td>
+                                <td>
+                                    <div class="fw-bold" style="color: var(--text-main);">{{ loan.book_copy.book.title }}</div>
+                                    <small class="badge bg-secondary font-monospace">{{ loan.book_copy.inventory_number }}</small>
+                                </td>
+                                <td>
+                                    <span class="small text-muted">{{ loan.borrowed_at|date:"d.m.Y H:i" }}</span>
+                                </td>
+                                <td>
+                                    <span class="otp-code-badge">{{ loan.verification_code }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex align-items-center gap-2">
+                                        <form method="post" action="{% url 'librarian_approve_borrow' loan.pk %}" class="d-inline-flex align-items-center gap-1 m-0">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="verification_code" value="{{ loan.verification_code }}">
+                                            <button type="submit" class="btn-approve-handshake" title="Kitobni topshirishni tasdiqlash">
+                                                <i class="fa-solid fa-check"></i>Tasdiqlash (Berildi)
+                                            </button>
+                                        </form>
+                                        <form method="post" action="{% url 'librarian_reject_borrow' loan.pk %}" class="m-0" onsubmit="return confirm('Haqiqatan ham bu so\'rovni rad etmoqchimisiz? Kitob fondga qaytariladi.');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-reject-handshake" title="So'rovni bekor qilish">
+                                                <i class="fa-solid fa-xmark"></i>Rad etish
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-inbox fs-1 d-block mb-2 opacity-50"></i>
+                                    Hozircha kitob olish bo'yicha kutilayotgan so'rovlar yo'q.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Return Requests -->
+        <div class="tab-pane fade" id="content-returns" role="tabpanel">
+            <div class="desk-table-card">
+                <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                    <span class="fw-bold" style="color: var(--text-main);">
+                        <i class="fa-solid fa-arrow-turn-down text-info me-2"></i>Qaytarilishi tasdiqlanishi kerak bo'lgan kitoblar
+                    </span>
+                    <span class="small text-muted">Jami: {{ pending_returns|length }} ta</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table desk-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Kitobxon</th>
+                                <th>Kitob & Nusxa</th>
+                                <th>Muddat</th>
+                                <th>Topshirish Kodi</th>
+                                <th class="text-end">Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in pending_returns %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold" style="color: var(--text-main);">{{ loan.user.full_display_name }}</div>
+                                    <small class="text-muted">
+                                        @{{ loan.user.username }}
+                                        {% if loan.user.phone %}| <i class="fa-solid fa-phone me-1"></i>{{ loan.user.phone }}{% endif %}
+                                    </small>
+                                </td>
+                                <td>
+                                    <div class="fw-bold" style="color: var(--text-main);">{{ loan.book_copy.book.title }}</div>
+                                    <small class="badge bg-secondary font-monospace">{{ loan.book_copy.inventory_number }}</small>
+                                </td>
+                                <td>
+                                    <div class="small">{{ loan.due_date|date:"d.m.Y H:i" }}</div>
+                                    {% if loan.is_overdue %}
+                                    <span class="badge bg-danger rounded-pill" style="font-size: 0.7rem;">Muddati o'tgan!</span>
+                                    {% else %}
+                                    <span class="badge bg-success rounded-pill" style="font-size: 0.7rem;">Vaqtida</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="otp-code-badge" style="border-color: #0dcaf0; color: #0dcaf0;">{{ loan.verification_code }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <form method="post" action="{% url 'librarian_approve_return' loan.pk %}" class="d-inline-flex align-items-center gap-1 m-0">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="verification_code" value="{{ loan.verification_code }}">
+                                        <button type="submit" class="btn-approve-handshake" style="background-color: #0ea5e9;">
+                                            <i class="fa-solid fa-circle-check"></i>Qabul qilish (Qaytarildi)
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-inbox fs-1 d-block mb-2 opacity-50"></i>
+                                    Hozircha kitob qaytarish bo'yicha kutilayotgan so'rovlar yo'q.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Active Loans (Currently out) -->
+        <div class="tab-pane fade" id="content-active" role="tabpanel">
+            <div class="desk-table-card">
+                <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                    <span class="fw-bold" style="color: var(--text-main);">
+                        <i class="fa-solid fa-book-open text-primary me-2"></i>Hozirda kitobxonlar qo'lida bo'lgan barcha kitoblar
+                    </span>
+                    <span class="small text-muted">Jami: {{ active_loans|length }} ta</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table desk-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Kitobxon</th>
+                                <th>Kitob & Nusxa</th>
+                                <th>Berilgan vaqt</th>
+                                <th>Topshirish muddati</th>
+                                <th>Bergan xodim</th>
+                                <th class="text-end">Tezkor topshirish</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in active_loans %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold" style="color: var(--text-main);">{{ loan.user.full_display_name }}</div>
+                                    <small class="text-muted">@{{ loan.user.username }}</small>
+                                </td>
+                                <td>
+                                    <div class="fw-bold" style="color: var(--text-main);">{{ loan.book_copy.book.title }}</div>
+                                    <small class="badge bg-secondary font-monospace">{{ loan.book_copy.inventory_number }}</small>
+                                </td>
+                                <td>
+                                    <span class="small text-muted">{{ loan.borrowed_at|date:"d.m.Y H:i" }}</span>
+                                </td>
+                                <td>
+                                    <div class="small fw-semibold">{{ loan.due_date|date:"d.m.Y H:i" }}</div>
+                                    {% if loan.is_overdue %}
+                                    <span class="badge bg-danger rounded-pill" style="font-size: 0.7rem;">Muddati o'tgan!</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="small text-muted">
+                                        {% if loan.issued_by %}
+                                            {{ loan.issued_by.full_display_name }}
+                                        {% else %}
+                                            <span class="opacity-50">—</span>
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <form method="post" action="{% url 'librarian_approve_return' loan.pk %}" class="m-0" onsubmit="return confirm('Kitobxon kitobni qo\'lingizga topshirdimi? Ijarani yopishni tasdiqlaysizmi?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">
+                                            <i class="fa-solid fa-check me-1"></i>Qabul qilish
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    Hozirda kitobxonlar qo'lida kitoblar yo'q.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3.5 Overdue Loans (Debtors & Penalty Control) -->
+        <div class="tab-pane fade" id="content-overdue" role="tabpanel">
+            <div class="desk-table-card">
+                <div class="p-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <span class="fw-bold text-danger">
+                        <i class="fa-solid fa-triangle-exclamation me-2"></i>Topshirish muddati o'tib ketgan qarzdor kitobxonlar
+                    </span>
+                    {% if overdue_loans %}
+                    <form method="post" action="{% url 'librarian_remind_all_overdue' %}" class="m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3 fw-semibold">
+                            <i class="fa-solid fa-bell me-1"></i>Barchasiga eslatma yuborish ({{ overdue_loans|length }})
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                <div class="table-responsive">
+                    <table class="table desk-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Kitobxon & Aloqa</th>
+                                <th>Kitob & Nusxa</th>
+                                <th>Muddat & Kechikish</th>
+                                <th>Intizom Jarimasi</th>
+                                <th class="text-end">Ogohlantirish & Qabul</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in overdue_loans %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold" style="color: var(--text-main);">{{ loan.user.full_display_name }}</div>
+                                    <small class="text-muted">
+                                        @{{ loan.user.username }}
+                                        {% if loan.user.phone %}| <i class="fa-solid fa-phone me-1"></i>{{ loan.user.phone }}{% endif %}
+                                        {% if loan.user.telegram_chat_id %}| <span class="text-info"><i class="fa-brands fa-telegram"></i> Ulangan</span>{% endif %}
+                                    </small>
+                                </td>
+                                <td>
+                                    <div class="fw-bold" style="color: var(--text-main);">{{ loan.book_copy.book.title }}</div>
+                                    <small class="badge bg-secondary font-monospace">{{ loan.book_copy.inventory_number }}</small>
+                                </td>
+                                <td>
+                                    <div class="small text-danger fw-bold">{{ loan.due_date|date:"d.m.Y H:i" }}</div>
+                                    <span class="badge bg-danger rounded-pill">{{ loan.overdue_days }} kun kechikkan</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold">
+                                        -{{ loan.penalty_points }} XP
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex align-items-center gap-2">
+                                        <form method="post" action="{% url 'librarian_remind_overdue' loan.pk %}" class="m-0">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-warning text-dark rounded-pill px-3 fw-bold">
+                                                <i class="fa-solid fa-bell me-1"></i>Eslatma yuborish
+                                            </button>
+                                        </form>
+                                        <form method="post" action="{% url 'librarian_approve_return' loan.pk %}" class="m-0">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">
+                                                <i class="fa-solid fa-check me-1"></i>Qabul qilish
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-circle-check text-success fs-1 d-block mb-2 opacity-75"></i>
+                                    Ajoyib! Hozirda topshirish muddati o'tgan qarzdor kitobxonlar yo'q.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Loan History -->
+        <div class="tab-pane fade" id="content-history" role="tabpanel">
+            <div class="desk-table-card">
+                <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                    <span class="fw-bold" style="color: var(--text-main);">
+                        <i class="fa-solid fa-clock-rotate-left text-success me-2"></i>Yaqinda qaytarilgan kitoblar (So'nggi 25 ta)
+                    </span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table desk-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Kitobxon</th>
+                                <th>Kitob & Nusxa</th>
+                                <th>Olingan / Qaytarilgan</th>
+                                <th>Bergan xodim</th>
+                                <th>Qabul qilgan xodim</th>
+                                <th class="text-end">Holat</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in completed_loans %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold" style="color: var(--text-main);">{{ loan.user.full_display_name }}</div>
+                                    <small class="text-muted">@{{ loan.user.username }}</small>
+                                </td>
+                                <td>
+                                    <div class="fw-bold" style="color: var(--text-main);">{{ loan.book_copy.book.title }}</div>
+                                    <small class="badge bg-secondary font-monospace">{{ loan.book_copy.inventory_number }}</small>
+                                </td>
+                                <td>
+                                    <div class="small text-muted">Olingan: {{ loan.borrowed_at|date:"d.m.Y H:i" }}</div>
+                                    <div class="small fw-semibold text-success">Qaytarilgan: {{ loan.returned_at|date:"d.m.Y H:i" }}</div>
+                                </td>
+                                <td>
+                                    <span class="small text-muted">{{ loan.issued_by.full_display_name|default:"—" }}</span>
+                                </td>
+                                <td>
+                                    <span class="small text-muted">{{ loan.received_by.full_display_name|default:"—" }}</span>
+                                </td>
+                                <td class="text-end">
+                                    <span class="badge bg-success-subtle text-success border border-success px-3 py-1 rounded-pill">
+                                        <i class="fa-solid fa-check me-1"></i>Topshirilgan
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    Ijaralar tarixi hozircha bo'sh.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Module 4: Smart Cataloging (ISBN Auto-Lookup + Bulk Excel/CSV Import) -->
+        <div class="tab-pane fade" id="content-import" role="tabpanel">
+            <div class="row g-4">
+                <!-- Left: ISBN Quick Add -->
+                <div class="col-lg-7">
+                    <div class="smart-card p-4 h-100">
+                        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                            <h5 class="fw-bold mb-0" style="color: var(--text-main);">
+                                <i class="fa-solid fa-wand-magic-sparkles text-primary me-2"></i>ISBN Orqali 1-Soniyada Kitob Qo'shish
+                            </h5>
+                            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 fw-bold">Smart Cataloging</span>
+                        </div>
+                        <p class="small text-muted mb-3">
+                            ISBN raqamini kiriting va <strong>«ISBN orqali to'ldirish»</strong> tugmasini bosing — kitob nomi, muallifi, yili, betlari va annotatsiyasi avtomatik to'ldiriladi!
+                        </p>
+
+                        <!-- Quick Demo ISBN Chips -->
+                        <div class="mb-3 d-flex align-items-center gap-2 flex-wrap">
+                            <small class="text-muted fw-semibold">Namuna ISBN:</small>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill py-0 px-2 font-monospace" onclick="fillDemoIsbn('9789943231009')">9789943231009 (O'tkan kunlar)</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill py-0 px-2 font-monospace" onclick="fillDemoIsbn('9780132350884')">9780132350884 (Clean Code)</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill py-0 px-2 font-monospace" onclick="fillDemoIsbn('9789943546103')">9789943546103 (Atom odatlar)</button>
+                        </div>
+
+                        <form method="post" action="{% url 'librarian_quick_add_book' %}">
+                            {% csrf_token %}
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><i class="fa-solid fa-barcode"></i></span>
+                                <input type="text" name="isbn" id="quickIsbnInput" class="form-control font-monospace fw-bold" placeholder="ISBN kiriting (masalan: 9789943231009)">
+                                <button type="button" class="btn btn-primary fw-bold px-3" onclick="lookupIsbnAuto()">
+                                    <i class="fa-solid fa-magnifying-glass me-1"></i>ISBN orqali to'ldirish
+                                </button>
+                            </div>
+                            <div id="isbnLookupStatus" class="small fw-semibold mb-2"></div>
+
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-6">
+                                    <label class="small fw-bold">Kitob nomi *</label>
+                                    <input type="text" name="title" id="quickTitle" class="form-control" required placeholder="Kitob nomi">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small fw-bold">Muallif *</label>
+                                    <input type="text" name="author" id="quickAuthor" class="form-control" required placeholder="Muallif">
+                                </div>
+                            </div>
+
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-4">
+                                    <label class="small fw-bold">Janr</label>
+                                    <input type="text" name="genre_name" id="quickGenre" class="form-control" value="Badiiy adabiyot">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="small fw-bold">Nashriyot</label>
+                                    <input type="text" name="publisher" id="quickPublisher" class="form-control" value="Ziyo Nashr">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="small fw-bold">Yil</label>
+                                    <input type="number" name="published_year" id="quickYear" class="form-control" value="2024">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="small fw-bold">Nusxa</label>
+                                    <input type="number" name="total_copies_count" class="form-control" value="5" min="1" max="500">
+                                </div>
+                            </div>
+
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-4">
+                                    <label class="small fw-bold">Betlar soni</label>
+                                    <input type="number" name="pages" id="quickPages" class="form-control" value="320">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="small fw-bold">UO'K (UDC)</label>
+                                    <input type="text" name="udc" id="quickUdc" class="form-control" placeholder="821.512">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="small fw-bold">BBK</label>
+                                    <input type="text" name="bbk" id="quickBbk" class="form-control" placeholder="84(5O'zb)">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="small fw-bold">Annotatsiya</label>
+                                <textarea name="annotation" id="quickAnnotation" rows="2" class="form-control" placeholder="Kitob haqida qisqacha ma'lumot..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-success rounded-pill px-4 py-2 fw-bold w-100">
+                                <i class="fa-solid fa-plus-circle me-1"></i>Katalogga Qo'shish va QR/Inventar Yaratish
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Right: Bulk Excel/CSV Import -->
+                <div class="col-lg-5">
+                    <div class="smart-card p-4 h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h5 class="fw-bold mb-0" style="color: var(--text-main);">
+                                    <i class="fa-solid fa-file-excel text-success me-2"></i>Ommaviy Excel / CSV Import
+                                </h5>
+                                <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1 fw-bold">Zero Data Loss</span>
+                            </div>
+                            <p class="small text-muted mb-3">
+                                Yuzlab kitoblarni bitta Excel (<code>.xlsx</code>) yoki <code>.csv</code> jadval orqali 1 soniyada fondga yuklang. Tizim dublikatlarni avtomatik tekshiradi va har bir nusxa uchun inventar hamda QR-kodlarni yaratadi.
+                            </p>
+
+                            <div class="p-3 rounded-4 mb-3" style="background: var(--bg-subtle); border: 1px dashed var(--border-color);">
+                                <div class="fw-bold small mb-2">1-Qadam: Namuna shablonni yuklab oling</div>
+                                <a href="{% url 'librarian_import_template' %}" class="btn btn-outline-success rounded-pill w-100 fw-semibold btn-sm">
+                                    <i class="fa-solid fa-download me-1"></i>Namunaviy Excel (.xlsx) shablonni yuklash
+                                </a>
+                            </div>
+
+                            <form method="post" action="{% url 'librarian_bulk_import' %}" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label class="small fw-bold mb-2 d-block">2-Qadam: To'ldirilgan Excel (.xlsx) yoki CSV faylni tanlang</label>
+                                    <input type="file" name="import_file" class="form-control" accept=".xlsx,.csv" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-bold w-100">
+                                    <i class="fa-solid fa-cloud-arrow-up me-1"></i>Faylni Yuklash va Import Qilish
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="mt-3 pt-3 border-top small text-muted">
+                            <i class="fa-solid fa-shield-halved text-success me-1"></i><strong>Zero Data Loss Kafolati:</strong> Mavjud kitoblar ustiga bo'sh ma'lumot yozilmaydi, faqat yetishmayotgan ustunlar va nusxalar boyitiladi.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Module 6: Immutable Security Audit Log -->
+        <div class="tab-pane fade" id="content-audit" role="tabpanel">
+            <div class="desk-table-card">
+                <div class="p-3 border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <span class="fw-bold" style="color: var(--text-main);">
+                        <i class="fa-solid fa-shield-halved text-info me-2"></i>Tizim Xavfsizlik va Audit Jurnali (So'nggi 30 ta amal)
+                    </span>
+                    <a href="{% url 'librarian_terminal' %}" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold">
+                        <i class="fa-solid fa-bolt me-1"></i>To'liq Skaner-Terminalga o'tish
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table desk-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Vaqt</th>
+                                <th>Bajaruvchi</th>
+                                <th>Amal</th>
+                                <th>Obyekt</th>
+                                <th>Tafsilotlar</th>
+                                <th class="text-end">IP Manzil</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in recent_audit_logs %}
+                            <tr>
+                                <td class="small font-monospace text-muted">{{ log.created_at|date:"d.m.Y H:i:s" }}</td>
+                                <td class="fw-bold">{{ log.actor.full_display_name|default:"Tizim" }}</td>
+                                <td><span class="badge bg-info text-dark rounded-pill">{{ log.get_action_display }}</span></td>
+                                <td class="fw-semibold">{{ log.target }}</td>
+                                <td class="small text-muted">{{ log.details }}</td>
+                                <td class="text-end font-monospace small text-muted">{{ log.ip_address|default:"127.0.0.1" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">Hozircha audit yozuvlari yo'q.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mobil Kitobxonlar uchun Online / Wi-Fi Kirish QR Modali -->
+<div class="modal fade" id="mobileAccessQrModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background: var(--bg-card); color: var(--text-main); border-radius: 22px;">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold">
+                    <i class="fa-solid fa-qrcode text-primary me-2"></i>Kitobxonlar uchun Mobil Kirish
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <p class="small text-muted mb-3">
+                    Kitobxonlar telefon kamerasi orqali ushbu QR-kodni skanerlab, oddiy kitobxon sifatida tizimga kirishlari va kitobga buyurtma berishlari mumkin:
+                </p>
+                <div class="p-3 bg-white d-inline-block rounded-4 shadow-sm border mb-3">
+                    <img src="{% url 'mobile_entry_qr_png' %}?url={{ public_url|urlencode }}" alt="Mobile Access QR" width="220" height="220">
+                </div>
+                <div class="text-start p-3 rounded-4 mb-2" style="background: var(--bg-subtle);">
+                    <div class="small fw-bold text-primary mb-1"><i class="fa-solid fa-globe me-1"></i>Online / Mobil Kirish Manzili:</div>
+                    <div class="d-flex align-items-center justify-content-between gap-2">
+                        <code id="pubUrlText" class="fw-bold text-break" style="font-size: 0.9rem;">{{ public_url }}</code>
+                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" onclick="navigator.clipboard.writeText(document.getElementById('pubUrlText').textContent)">
+                            Nusxalash
+                        </button>
+                    </div>
+                    {% if lan_url and lan_url != public_url %}
+                    <div class="small text-muted mt-2 pt-2 border-top">
+                        <i class="fa-solid fa-wifi me-1"></i>Lokal Wi-Fi tarmog'i orqali: <code>{{ lan_url }}</code>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="small text-success fw-semibold mt-2">
+                    <i class="fa-solid fa-shield-halved me-1"></i>Telefondan yuborilgan har bir kitob so'rovi shu kompyuter ekraniga 4 soniya ichida jonli kelib tushadi va sizning ruxsatingiz bilan beriladi!
+                </div>
+                <div class="d-flex gap-2 justify-content-center mt-3 pt-3 border-top">
+                    <a href="{% url 'download_apk' %}" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold">
+                        <i class="fa-brands fa-android me-1"></i>Telefon APK (.apk)
+                    </a>
+                    <a href="{% url 'download_pc' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold">
+                        <i class="fa-brands fa-windows me-1"></i>Komp Dasturi (.exe)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Jonli (Real-Time) yangi so'rov bildirishnomasi -->
+<div id="liveRequestToast" class="position-fixed bottom-0 end-0 m-4 p-3 rounded-4 shadow-lg d-none" style="z-index: 2000; background: #1e293b; color: #fff; border: 2px solid #3b82f6; max-width: 360px;">
+    <div class="d-flex align-items-center justify-content-between gap-3">
+        <div>
+            <div class="fw-bold text-warning mb-1"><i class="fa-solid fa-bell fa-shake me-1"></i>Yangi Kitob So'rovi!</div>
+            <div class="small opacity-75">Kitobxon telefondan yangi so'rov yubordi.</div>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold" onclick="window.location.reload()">
+            Yangilash
+        </button>
+    </div>
+</div>
+
+<script>
+    // Kompyuterdagi Kutubxonachi uchun Jonli Radar (har 4 soniyada telefondan kelgan so'rovlarni tekshiradi)
+    (function() {
+        // Faol tabni saqlash va qayta tiklash
+        const savedTabId = sessionStorage.getItem('smartlib_desk_active_tab');
+        if (savedTabId && window.bootstrap) {
+            const tabEl = document.getElementById(savedTabId);
+            if (tabEl) new bootstrap.Tab(tabEl).show();
+        }
+        document.querySelectorAll('#deskTabs button[data-bs-toggle="tab"]').forEach(btn => {
+            btn.addEventListener('shown.bs.tab', function(e) {
+                if (e.target && e.target.id) {
+                    sessionStorage.setItem('smartlib_desk_active_tab', e.target.id);
+                }
+            });
+        });
+
+        const initialPending = {{ pending_borrows_count|default:0 }} + {{ pending_returns_count|default:0 }};
+        setInterval(function() {
+            fetch('/api/librarian-live-status/', { cache: 'no-store' })
+                .then(r => r.json())
+                .then(data => {
+                    if (typeof data.total_pending === 'number' && data.total_pending !== initialPending) {
+                        const activeEl = document.activeElement;
+                        const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
+                        const modalOpen = document.querySelector('.modal.show');
+                        if (!isTyping && !modalOpen) {
+                            window.location.reload();
+                        } else {
+                            const toast = document.getElementById('liveRequestToast');
+                            if (toast) toast.classList.remove('d-none');
+                        }
+                    }
+                })
+                .catch(() => {});
+        }, 4000);
+    })();
+
+    function fillDemoIsbn(isbnVal) {
+        const inp = document.getElementById('quickIsbnInput');
+        if (inp) {
+            inp.value = isbnVal;
+            lookupIsbnAuto();
+        }
+    }
+
+    function lookupIsbnAuto() {
+        const inp = document.getElementById('quickIsbnInput');
+        const statusEl = document.getElementById('isbnLookupStatus');
+        if (!inp || !inp.value.trim()) return;
+        const isbn = inp.value.trim();
+        if (statusEl) {
+            statusEl.className = "small fw-semibold text-primary mb-2";
+            statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i>ISBN bazadan qidirilmoqda...';
+        }
+        fetch('/api/isbn-lookup/?isbn=' + encodeURIComponent(isbn))
+            .then(r => r.json())
+            .then(data => {
+                if (data.found) {
+                    document.getElementById('quickTitle').value = data.title || '';
+                    document.getElementById('quickAuthor').value = data.author || '';
+                    document.getElementById('quickGenre').value = data.genre || 'Umumiy';
+                    document.getElementById('quickPublisher').value = data.publisher || 'Ziyo Nashr';
+                    document.getElementById('quickYear').value = data.published_year || 2024;
+                    document.getElementById('quickPages').value = data.pages || 300;
+                    document.getElementById('quickUdc').value = data.udc || '';
+                    document.getElementById('quickBbk').value = data.bbk || '';
+                    document.getElementById('quickAnnotation').value = data.annotation || '';
+                    if (statusEl) {
+                        statusEl.className = "small fw-semibold text-success mb-2";
+                        statusEl.innerHTML = '<i class="fa-solid fa-circle-check me-1"></i>Topildi! Ma\'lumotlar avtomatik to\'ldirildi (' + data.source + ').';
+                    }
+                } else {
+                    if (statusEl) {
+                        statusEl.className = "small fw-semibold text-warning mb-2";
+                        statusEl.innerHTML = '<i class="fa-solid fa-circle-exclamation me-1"></i>Xalqaro bazadan topilmadi — ma\'lumotlarni qo\'lda kiritishingiz mumkin.';
+                    }
+                }
+            })
+            .catch(() => {});
+    }
+</script>
+{% endblock %}

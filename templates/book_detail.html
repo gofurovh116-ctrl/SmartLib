@@ -1,0 +1,429 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    .detail-wrapper {
+        background: var(--bg-card);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: var(--shadow-soft);
+    }
+    .detail-left-panel {
+        background: radial-gradient(circle at 30% 20%, rgba(79, 70, 229, 0.14), transparent 70%), var(--bg-subtle);
+        min-height: 460px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2.5rem;
+        border-right: 1px solid var(--border-color);
+    }
+    .no-image-icon {
+        font-size: 6.5rem;
+        background: linear-gradient(135deg, #4f46e5, #06b6d4);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.75rem;
+        filter: drop-shadow(0 8px 18px rgba(79, 70, 229, 0.22));
+    }
+    .qr-box {
+        position: absolute;
+        bottom: 18px;
+        left: 18px;
+        background: #ffffff;
+        padding: 10px 10px 6px 10px;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        text-align: center;
+    }
+    .qr-box img {
+        width: 78px;
+        height: 78px;
+        display: block;
+    }
+    .qr-box small {
+        font-size: 0.68rem;
+        color: #0f172a !important;
+        font-weight: 600;
+        display: block;
+        margin-top: 3px;
+    }
+
+    .genre-pill {
+        background-color: #e7f1ff;
+        color: #0d6efd !important;
+        font-weight: 700;
+        font-size: 0.78rem;
+        padding: 0.35rem 1rem;
+        border-radius: 50px;
+    }
+    [data-theme="dark"] .genre-pill {
+        background-color: rgba(59, 130, 246, 0.2);
+        color: #93c5fd !important;
+    }
+    .status-pill-available {
+        background-color: #198754;
+        color: #ffffff !important;
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 0.38rem 1rem;
+        border-radius: 50px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .status-pill-unavailable {
+        background-color: #dc3545;
+        color: #ffffff !important;
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 0.38rem 1rem;
+        border-radius: 50px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .meta-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.65rem 0;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.92rem;
+    }
+    .meta-label {
+        color: var(--text-muted) !important;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .meta-val {
+        font-weight: 700;
+        color: var(--text-main) !important;
+    }
+
+    .annotation-box {
+        background-color: var(--bg-subtle);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.15rem 1.35rem;
+        margin-top: 1.5rem;
+        margin-bottom: 1.5rem;
+        color: var(--text-main);
+    }
+
+    .btn-borrow-main {
+        background-color: #3b5bdb;
+        color: #ffffff !important;
+        border: none;
+        border-radius: 50px;
+        padding: 0.85rem 1.5rem;
+        font-weight: 600;
+        font-size: 1rem;
+        width: 100%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        text-decoration: none;
+        box-shadow: 0 6px 18px rgba(59, 91, 219, 0.25);
+        transition: background-color 0.2s;
+    }
+    .btn-borrow-main:hover {
+        background-color: #364fc7;
+    }
+
+    .btn-disabled-gray {
+        background-color: #64748b;
+        color: #ffffff !important;
+        border: none;
+        border-radius: 50px;
+        padding: 0.85rem 1.5rem;
+        font-weight: 600;
+        font-size: 1rem;
+        flex-grow: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: not-allowed;
+    }
+    .btn-navbat {
+        border: 1px solid #3b82f6;
+        color: var(--primary-blue) !important;
+        background: var(--bg-card);
+        border-radius: 50px;
+        padding: 0.85rem 1.5rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        transition: all 0.2s;
+    }
+    .btn-navbat:hover {
+        background: #2563eb;
+        color: #ffffff !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-3">
+    <div class="detail-wrapper">
+        <div class="row g-0">
+            <!-- Left Cover & QR Column -->
+            <div class="col-lg-4 detail-left-panel">
+                {% if book.cover_image %}
+                    <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="img-fluid rounded-3 shadow-sm" style="max-height: 320px;">
+                {% else %}
+                    <div class="text-center">
+                        <i class="fa-solid fa-book no-image-icon"></i>
+                        <div class="text-muted">Rasm yo'q</div>
+                    </div>
+                {% endif %}
+
+                {% if book.qr_code %}
+                <div class="qr-box">
+                    <img src="{% url 'mobile_entry_qr_png' %}?url={{ book_qr_target_url|urlencode }}" alt="QR Code">
+                    <small>Scan Me</small>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right Details Column -->
+            <div class="col-lg-8 p-4 p-md-5">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="genre-pill">{{ book.genre.name|default:"Umumiy" }}</span>
+                    {% if available_count > 0 %}
+                        <span class="status-pill-available">
+                            <i class="fa-solid fa-circle-check"></i> Javonda bor
+                        </span>
+                    {% else %}
+                        <span class="status-pill-unavailable">
+                            <i class="fa-solid fa-circle-xmark"></i> Qolmagan
+                        </span>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-2">
+                    <h1 class="fw-bold mb-0" style="font-size: 2.3rem; color: var(--text-main);">{{ book.title }}</h1>
+                    {% if user.is_authenticated %}
+                    <form method="post" action="{% url 'toggle_favorite' book.pk %}" class="m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="btn {% if is_favorited %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-pill px-3 py-1 fw-semibold btn-sm">
+                            <i class="{% if is_favorited %}fa-solid{% else %}fa-regular{% endif %} fa-heart me-1"></i>
+                            <span>{% if is_favorited %}Sevimlilarda{% else %}Sevimlilarga qo'shish{% endif %}</span>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+                    <p class="text-muted fs-5 mb-0">
+                        <i class="fa-solid fa-pen-nib me-2"></i>{{ book.author }}
+                    </p>
+                    <div class="fw-bold text-warning fs-5">
+                        <i class="fa-solid fa-star"></i> {{ average_rating }}
+                        <span class="text-muted small fw-normal">({{ reviews_count }})</span>
+                    </div>
+                </div>
+
+                <hr class="opacity-25 my-4">
+
+                <div class="row gx-5">
+                    <div class="col-md-6">
+                        <div class="meta-row">
+                            <span class="meta-label"><i class="fa-solid fa-barcode"></i> ISBN:</span>
+                            <span class="meta-val">{{ book.isbn|default:"-" }}</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label"><i class="fa-solid fa-building"></i> Nashriyot:</span>
+                            <span class="meta-val">{{ book.publisher|default:"-" }}</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label"><i class="fa-solid fa-calendar-days"></i> Yil:</span>
+                            <span class="meta-val">{{ book.published_year|default:"-" }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="meta-row">
+                            <span class="meta-label"><i class="fa-solid fa-layer-group"></i> UO'K (UDC):</span>
+                            <span class="meta-val">{{ book.udc|default:"-" }}</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label"><i class="fa-solid fa-book-open"></i> Betlar:</span>
+                            <span class="meta-val">{{ book.pages|default:"-" }} b.</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label"><i class="fa-solid fa-cubes"></i> Mavjud / Jami:</span>
+                            <span class="meta-val text-primary">{{ available_count }} / {{ total_count }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="annotation-box">
+                    <div class="fw-bold mb-1" style="color: var(--text-main);">
+                        <i class="fa-solid fa-align-left me-2"></i>Annotatsiya
+                    </div>
+                    <div class="text-muted small">
+                        {{ book.annotation|default:"Tavsif kiritilmagan." }}
+                    </div>
+                    {% if book.library %}
+                    <div class="mt-2 pt-2 border-top small text-muted">
+                        <i class="fa-solid fa-university me-1"></i> Kutubxona: <strong style="color: var(--text-main);">{{ book.library }}</strong>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if book.pdf_file %}
+                <div class="mb-2">
+                    <a href="{{ book.pdf_file.url }}" target="_blank" class="btn btn-outline-danger rounded-pill w-100 py-2 fw-semibold">
+                        <i class="fa-solid fa-file-pdf me-2"></i>Elektron nusxani o'qish / Yuklab olish (PDF)
+                    </a>
+                </div>
+                {% endif %}
+
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <a href="{% url 'book_read' book.pk %}" class="btn btn-outline-primary rounded-pill flex-grow-1 py-2 fw-semibold">
+                        <i class="fa-solid fa-headphones-simple me-2"></i>Brauzerda O'qish va Audio Tinglash (Reader & TTS)
+                    </a>
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'book_stickers_pdf' book.pk %}" class="btn btn-outline-secondary rounded-pill px-3 py-2 fw-semibold" title="Shtrix-kod (Code128) va QR stikerlarni A4 PDF formatda yuklab olish">
+                        <i class="fa-solid fa-barcode me-1"></i>Stikerlar (PDF)
+                    </a>
+                    {% endif %}
+                </div>
+
+                {% if user_is_debtor and not user_has_active_loan %}
+                <div class="p-3 rounded-4 mb-3" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.4);">
+                    <div class="fw-bold text-danger mb-1">
+                        <i class="fa-solid fa-triangle-exclamation me-1"></i>Sizda muddati o'tgan qarzdorlik mavjud!
+                    </div>
+                    <div class="small text-muted">
+                        Qo'lingizdagi muddati o'tgan kitobni kutubxonaga topshirmaguncha yangi kitob olish vaqtincha cheklangan.
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if user_has_active_loan %}
+                    {% if user_loan and user_loan.status == 'borrow_pending' %}
+                        <div class="p-3 rounded-4 mb-3" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.4);">
+                            <div class="fw-bold text-warning-emphasis mb-1">
+                                <i class="fa-solid fa-hourglass-half me-1"></i>Kutubxonachi tasdig'i kutilmoqda
+                            </div>
+                            <div class="small mb-2">Kutubxonachiga ko'rsatish uchun tasdiqlash kodingiz: <strong class="badge bg-warning text-dark font-monospace fs-6">{{ user_loan.verification_code }}</strong></div>
+                            <a href="{% url 'profile' %}" class="btn btn-sm btn-outline-warning rounded-pill px-3 fw-semibold">
+                                <i class="fa-solid fa-user me-1"></i>Profilga o'tish
+                            </a>
+                        </div>
+                    {% elif user_loan and user_loan.status == 'return_pending' %}
+                        <div class="p-3 rounded-4 mb-3" style="background: rgba(13, 202, 240, 0.12); border: 1px solid rgba(13, 202, 240, 0.4);">
+                            <div class="fw-bold text-info-emphasis mb-1">
+                                <i class="fa-solid fa-clock-rotate-left me-1"></i>Topshirish tasdig'i kutilmoqda
+                            </div>
+                            <div class="small mb-2">Kutubxonachiga ko'rsatish uchun topshirish kodingiz: <strong class="badge bg-info text-dark font-monospace fs-6">{{ user_loan.verification_code }}</strong></div>
+                            <a href="{% url 'profile' %}" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-semibold">
+                                <i class="fa-solid fa-user me-1"></i>Profilga o'tish
+                            </a>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'profile' %}" class="btn-borrow-main" style="background-color: #198754;">
+                            <i class="fa-solid fa-book-open-reader"></i> Sizda ushbu kitob bor (Profilga o'tish)
+                        </a>
+                    {% endif %}
+                {% elif available_count > 0 %}
+                    <form method="post" action="{% url 'borrow_book' book.pk %}" class="m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-borrow-main" style="cursor: pointer;">
+                            <i class="fa-solid fa-hand-holding"></i> Kitobni olish
+                        </button>
+                    </form>
+                {% else %}
+                    <div class="d-flex align-items-center gap-3">
+                        <button type="button" class="btn-disabled-gray" disabled>
+                            <i class="fa-solid fa-ban"></i> Qolmadi
+                        </button>
+                        <form method="post" action="{% url 'reserve_book' book.pk %}" class="m-0">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-navbat" style="cursor: pointer;">
+                                <i class="fa-solid fa-clock"></i> {% if user_has_reservation %}Navbatdasiz{% else %}Navbat{% endif %}
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews & Star Rating Section -->
+    <div class="smart-card p-4 p-md-5 mt-4">
+        <h4 class="fw-bold mb-4" style="color: var(--text-main);">
+            <i class="fa-solid fa-star text-warning me-2"></i><span>Kitobxon Fikrlari va Baholar</span>
+        </h4>
+
+        {% if user.is_authenticated %}
+        <form method="post" action="{% url 'rate_book' book.pk %}" class="mb-4 p-3 rounded-4" style="background: var(--bg-subtle); border: 1px solid var(--border-color);">
+            {% csrf_token %}
+            <input type="hidden" name="rating" id="ratingValueInput" value="{{ user_review.rating|default:5 }}">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fw-semibold small">Bahoyingiz:</span>
+                    <div id="starPicker" class="fs-4" style="cursor: pointer;">
+                        <i class="fa-solid fa-star text-warning star-btn" data-val="1" onclick="pickStar(1)"></i>
+                        <i class="fa-solid fa-star text-warning star-btn" data-val="2" onclick="pickStar(2)"></i>
+                        <i class="fa-solid fa-star text-warning star-btn" data-val="3" onclick="pickStar(3)"></i>
+                        <i class="fa-solid fa-star text-warning star-btn" data-val="4" onclick="pickStar(4)"></i>
+                        <i class="fa-solid fa-star text-warning star-btn" data-val="5" onclick="pickStar(5)"></i>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-semibold btn-sm">
+                    <i class="fa-solid fa-paper-plane me-1"></i><span>Baho berish</span>
+                </button>
+            </div>
+            <textarea name="comment" rows="2" class="form-control" placeholder="Kitob haqida fikringizni yozing...">{{ user_review.comment|default:"" }}</textarea>
+        </form>
+        {% endif %}
+
+        <div class="space-y-3">
+            {% for rev in reviews %}
+            <div class="p-3 mb-2 rounded-3" style="background: var(--bg-subtle); border: 1px solid var(--border-color);">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <div class="fw-bold" style="color: var(--text-main);">
+                        <i class="fa-solid fa-user-circle text-primary me-1"></i>{{ rev.user.full_display_name }}
+                    </div>
+                    <div class="text-warning fw-bold small">
+                        <i class="fa-solid fa-star"></i> {{ rev.rating }} / 5
+                        <span class="text-muted fw-normal ms-2">{{ rev.created_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                </div>
+                {% if rev.comment %}
+                <div class="small" style="color: var(--text-main);">{{ rev.comment }}</div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="text-muted small py-2">Hozircha fikrlar qoldirilmagan. Birinchi bo'lib baho bering!</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<script>
+    function pickStar(n) {
+        const inp = document.getElementById('ratingValueInput');
+        if (inp) inp.value = n;
+        document.querySelectorAll('.star-btn').forEach(el => {
+            const v = parseInt(el.getAttribute('data-val'), 10);
+            el.className = (v <= n ? 'fa-solid fa-star text-warning' : 'fa-regular fa-star text-muted') + ' star-btn';
+        });
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const inp = document.getElementById('ratingValueInput');
+        if (inp) pickStar(parseInt(inp.value || '5', 10));
+    });
+</script>
+{% endblock %}

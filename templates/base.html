@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/pwa-icon/192/">
+    <title>{% block title %}SMARTLIB — Raqamlashtirilgan Yagona Kutubxona Tizimi{% endblock %}</title>
+    <!-- Google Fonts: Plus Jakarta Sans & Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+    <style>
+        /* =========================================================
+           CREATIVE AURORA & NEO-GLASS DESIGN SYSTEM (LIGHT MODE)
+           ========================================================= */
+        :root,
+        [data-theme="light"] {
+            --bg-body: #f4f7fe;
+            --bg-navbar: rgba(255, 255, 255, 0.84);
+            --bg-card: #ffffff;
+            --bg-subtle: #f1f5f9;
+            --bg-input: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --border-color: #e2e8f0;
+            --input-border: #cbd5e1;
+            --placeholder-color: #64748b;
+            --primary-blue: #2563eb;
+            --indigo-btn: #4f46e5;
+            --accent-cyan: #06b6d4;
+            --shadow-soft: 0 12px 34px -6px rgba(15, 23, 42, 0.07), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+            --shadow-hover: 0 20px 42px -8px rgba(37, 99, 235, 0.16), 0 8px 18px -4px rgba(15, 23, 42, 0.06);
+            --aurora-1: rgba(79, 70, 229, 0.10);
+            --aurora-2: rgba(6, 182, 212, 0.10);
+            --aurora-3: rgba(245, 158, 11, 0.07);
+
+            /* Bootstrap override variables */
+            --bs-body-color: #0f172a;
+            --bs-body-bg: #f4f7fe;
+            --bs-secondary-color: #475569;
+            --bs-border-color: #e2e8f0;
+        }
+
+        /* =========================================================
+           CREATIVE AURORA & NEO-GLASS DESIGN SYSTEM (DARK MODE)
+           ========================================================= */
+        [data-theme="dark"] {
+            --bg-body: #070b14;
+            --bg-navbar: rgba(15, 23, 42, 0.84);
+            --bg-card: #111827;
+            --bg-subtle: #1e293b;
+            --bg-input: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #cbd5e1;
+            --border-color: #1e293b;
+            --input-border: #334155;
+            --placeholder-color: #94a3b8;
+            --primary-blue: #60a5fa;
+            --indigo-btn: #6366f1;
+            --accent-cyan: #22d3ee;
+            --shadow-soft: 0 14px 36px -6px rgba(0, 0, 0, 0.55);
+            --shadow-hover: 0 22px 46px -8px rgba(59, 130, 246, 0.25), 0 8px 20px -4px rgba(0, 0, 0, 0.65);
+            --aurora-1: rgba(99, 102, 241, 0.16);
+            --aurora-2: rgba(6, 182, 212, 0.13);
+            --aurora-3: rgba(236, 72, 153, 0.08);
+
+            /* Bootstrap override variables */
+            --bs-body-color: #f8fafc;
+            --bs-body-bg: #070b14;
+            --bs-secondary-color: #cbd5e1;
+            --bs-border-color: #1e293b;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 9px;
+            height: 9px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-body);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #4f46e5, #06b6d4);
+            border-radius: 50px;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', 'Poppins', sans-serif;
+            background-color: var(--bg-body) !important;
+            background-image:
+                radial-gradient(at 0% 0%, var(--aurora-1) 0px, transparent 52%),
+                radial-gradient(at 100% 12%, var(--aurora-2) 0px, transparent 48%),
+                radial-gradient(at 50% 100%, var(--aurora-3) 0px, transparent 55%);
+            background-attachment: fixed;
+            color: var(--text-main) !important;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.25s ease, color 0.25s ease;
+            overflow-x: hidden;
+        }
+
+        /* Global Typography Contrast Enforcement */
+        h1, h2, h3, h4, h5, h6,
+        .h1, .h2, .h3, .h4, .h5, .h6,
+        p, span, label, div, td, th, li {
+            color: inherit;
+        }
+
+        .text-muted,
+        .text-secondary,
+        small.text-muted,
+        div.text-muted,
+        p.text-muted,
+        span.text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        .text-body,
+        .text-dark {
+            color: var(--text-main) !important;
+        }
+
+        [data-theme="dark"] .text-primary {
+            color: #60a5fa !important;
+        }
+
+        /* Global Form Controls Contrast */
+        .form-control,
+        .form-select {
+            background-color: var(--bg-input) !important;
+            color: var(--text-main) !important;
+            border: 1px solid var(--input-border) !important;
+            border-radius: 10px;
+            padding: 0.65rem 0.95rem;
+        }
+
+        .form-control::placeholder {
+            color: var(--placeholder-color) !important;
+            opacity: 1;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background-color: var(--bg-input) !important;
+            color: var(--text-main) !important;
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+        }
+
+        .form-select option {
+            background-color: var(--bg-card) !important;
+            color: var(--text-main) !important;
+        }
+
+
+        /* Global Table Contrast */
+        .table {
+            --bs-table-bg: transparent !important;
+            --bs-table-color: var(--text-main) !important;
+            --bs-table-border-color: var(--border-color) !important;
+            color: var(--text-main) !important;
+        }
+        .table th,
+        .table td {
+            background-color: transparent !important;
+            color: var(--text-main) !important;
+            border-bottom-color: var(--border-color) !important;
+        }
+
+        /* Navbar (Floating Neo-Glass) */
+        .smart-navbar {
+            background-color: var(--bg-navbar);
+            backdrop-filter: blur(18px) saturate(180%);
+            -webkit-backdrop-filter: blur(18px) saturate(180%);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.85rem 0;
+            box-shadow: 0 4px 24px rgba(15, 23, 42, 0.05);
+            transition: all 0.25s ease;
+        }
+
+        @media (max-width: 991.98px) {
+            .smart-navbar {
+                padding: 0.55rem 0 !important;
+            }
+            .brand-logo {
+                font-size: 1.25rem !important;
+            }
+        }
+
+        .brand-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 1.5rem;
+            letter-spacing: -0.3px;
+            background: linear-gradient(135deg, #4f46e5 0%, #2563eb 50%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: transform 0.2s ease;
+        }
+        .brand-logo:hover {
+            transform: scale(1.03);
+        }
+
+        .nav-link-custom {
+            color: var(--text-main) !important;
+            font-weight: 600;
+            font-size: 0.92rem;
+            text-decoration: none;
+            padding: 0.48rem 0.9rem;
+            border-radius: 50px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-link-custom:hover,
+        .nav-link-custom.active {
+            color: var(--primary-blue) !important;
+            background-color: rgba(37, 99, 235, 0.09);
+            transform: translateY(-1px);
+        }
+
+        .btn-admin-pill {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #ffffff !important;
+            border-radius: 50px;
+            padding: 0.42rem 1.2rem;
+            font-size: 0.86rem;
+            font-weight: 700;
+            text-decoration: none;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+            transition: all 0.2s ease;
+        }
+        [data-theme="dark"] .btn-admin-pill {
+            background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+            color: #ffffff !important;
+            border-color: #475569;
+        }
+        .btn-admin-pill:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.28);
+        }
+
+        .btn-register-pill {
+            background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%);
+            color: #ffffff !important;
+            border-radius: 50px;
+            padding: 0.48rem 1.3rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-decoration: none;
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
+            transition: all 0.2s ease;
+        }
+        .btn-register-pill:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.38);
+        }
+
+        /* Language & Theme Controls */
+        .lang-dropdown-btn {
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-main) !important;
+            border-radius: 50px;
+            padding: 0.35rem 0.95rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .dropdown-menu {
+            background-color: var(--bg-card) !important;
+            border: 1px solid var(--border-color) !important;
+        }
+
+        .dropdown-item {
+            color: var(--text-main) !important;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--bg-subtle) !important;
+            color: var(--text-main) !important;
+        }
+
+        .dropdown-item.active {
+            background-color: #2563eb !important;
+            color: #ffffff !important;
+        }
+        .dropdown-item.active small,
+        .dropdown-item.active span,
+        .dropdown-item.active i {
+            color: #ffffff !important;
+        }
+
+        .theme-toggle-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-main);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        [data-theme="dark"] .theme-toggle-btn {
+            color: #facc15;
+        }
+
+        /* Cards */
+        .smart-card {
+            background-color: var(--bg-card) !important;
+            color: var(--text-main) !important;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-soft);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+        .smart-card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* Alert Banner */
+        .smart-alert {
+            background-color: #d1e7dd;
+            color: #0f5132 !important;
+            border: 1px solid #a3cfbb;
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .smart-alert * {
+            color: #0f5132 !important;
+        }
+        [data-theme="dark"] .smart-alert {
+            background-color: rgba(25, 135, 84, 0.25);
+            color: #86efac !important;
+            border-color: #198754;
+        }
+        [data-theme="dark"] .smart-alert * {
+            color: #86efac !important;
+        }
+        .smart-alert.alert-error {
+            background-color: #f8d7da;
+            color: #842029 !important;
+            border-color: #f5c2c7;
+        }
+        .smart-alert.alert-error * {
+            color: #842029 !important;
+        }
+        [data-theme="dark"] .smart-alert.alert-error {
+            background-color: rgba(220, 53, 69, 0.25);
+            color: #fca5a5 !important;
+            border-color: #dc3545;
+        }
+        [data-theme="dark"] .smart-alert.alert-error * {
+            color: #fca5a5 !important;
+        }
+
+        /* Genre & Filter Pill Buttons */
+        .btn-filter-pill {
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-card);
+            color: var(--text-main) !important;
+            border-radius: 50px;
+            padding: 0.45rem 1.15rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+        }
+        .btn-filter-pill:hover {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue) !important;
+            transform: translateY(-2px);
+        }
+        .btn-filter-pill.active {
+            background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%);
+            border-color: transparent;
+            color: #ffffff !important;
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.28);
+        }
+
+        /* Footer */
+        .smart-footer {
+            background-color: var(--bg-navbar);
+            backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border-color);
+            padding: 2.5rem 0;
+            margin-top: auto;
+            text-align: center;
+            position: relative;
+        }
+        .smart-footer::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #4f46e5, #06b6d4, #10b981, #f59e0b);
+        }
+        .footer-title {
+            color: var(--primary-blue) !important;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 0.6px;
+            margin-bottom: 0.4rem;
+        }
+        .footer-sub {
+            color: var(--text-muted) !important;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+        .footer-sub strong {
+            color: var(--text-main) !important;
+        }
+        .social-pill-tg {
+            border: 1px solid #3b82f6;
+            color: var(--primary-blue) !important;
+            border-radius: 50px;
+            padding: 0.38rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0 5px;
+        }
+        .social-pill-ig {
+            border: 1px solid #f43f5e;
+            color: #f43f5e !important;
+            border-radius: 50px;
+            padding: 0.38rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0 5px;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="smart-navbar sticky-top">
+        <div class="container d-flex align-items-center justify-content-between">
+            <a href="{% url 'home' %}" class="brand-logo">
+                <svg width="32" height="32" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 8C6 6.89543 6.89543 6 8 6H16C17.1046 6 18 6.89543 18 8V28C18 29.1046 17.1046 30 16 30H8C6.89543 30 6 29.1046 6 28V8Z" fill="#3B5BDB"/>
+                    <path d="M18 10C18 8.89543 18.8954 8 20 8H28C29.1046 8 30 8.89543 30 10V28C30 29.1046 29.1046 30 28 30H20C18.8954 30 18 29.1046 18 28V10Z" fill="#3BC9DB"/>
+                    <circle cx="24" cy="5" r="2" fill="#3BC9DB"/>
+                    <circle cx="29" cy="6" r="1.5" fill="#3B5BDB"/>
+                </svg>
+                <span>SMARTLIB</span>
+            </a>
+
+            <!-- Desktop Navigation (Screen >= 992px) -->
+            <div class="d-none d-lg-flex align-items-center gap-3">
+                <a href="{% url 'home' %}" class="nav-link-custom">Kutubxona</a>
+                <a href="{% url 'reading_room' %}" class="nav-link-custom">
+                    <i class="fa-solid fa-cube text-primary"></i> <span>3D O'quv xonasi</span>
+                </a>
+
+                <button type="button" class="nav-link-custom border-0 bg-transparent" data-bs-toggle="modal" data-bs-target="#qrScannerModal" title="QR Skaner">
+                    <i class="fa-solid fa-qrcode text-primary"></i> <span>QR Skaner</span>
+                </button>
+
+                {% if user.is_authenticated %}
+                    <a href="{% url 'reports' %}" class="nav-link-custom fw-semibold">
+                        <i class="fa-solid fa-chart-pie"></i> <span>Hisobotlar</span>
+                    </a>
+                    <a href="{% url 'profile' %}" class="nav-link-custom">Mening profilim</a>
+
+                    {% if is_librarian_or_admin %}
+                    <a href="{% url 'librarian_desk' %}" class="nav-link-custom position-relative" title="Kutubxona Paneli">
+                        <i class="fa-solid fa-clipboard-check text-warning"></i> <span>Kutubxona Paneli</span>
+                        {% if pending_librarian_count > 0 %}
+                        <span class="badge rounded-pill bg-danger ms-1" style="font-size: 0.7rem;">{{ pending_librarian_count }}</span>
+                        {% endif %}
+                    </a>
+                    {% endif %}
+
+                    {% if user.is_staff or user.is_superuser or user.status == 'admin' or user.status == 'librarian' %}
+                        <a href="/admin/" class="btn-admin-pill">Admin</a>
+                    {% endif %}
+
+                    <!-- Notifications Bell Dropdown -->
+                    <div class="dropdown">
+                        <button class="theme-toggle-btn position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Bildirishnomalar">
+                            <i class="fa-solid fa-bell"></i>
+                            {% if unread_notifications_count > 0 %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                                {{ unread_notifications_count }}
+                            </span>
+                            {% endif %}
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end shadow rounded-4 p-3" style="width: 320px; max-height: 400px; overflow-y: auto;">
+                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                <span class="fw-bold small">Bildirishnomalar</span>
+                                {% if unread_notifications_count > 0 %}
+                                <form method="post" action="{% url 'mark_notifications_read' %}" class="m-0">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.path }}">
+                                    <button type="submit" class="btn btn-link btn-sm p-0 text-decoration-none" style="font-size: 0.75rem;">O'qildi deb belgilash</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                            {% if overdue_alerts_count > 0 %}
+                            <a href="{% url 'profile' %}" class="d-block p-2 mb-2 rounded-3 text-decoration-none" style="background: rgba(220, 53, 69, 0.12); border: 1px solid rgba(220, 53, 69, 0.3);">
+                                <div class="fw-bold text-danger small"><i class="fa-solid fa-triangle-exclamation me-1"></i>Muddati o'tgan kitob!</div>
+                                <div class="text-muted" style="font-size: 0.78rem;">Sizda {{ overdue_alerts_count }} ta topshirish muddati o'tgan kitob bor.</div>
+                            </a>
+                            {% endif %}
+                            {% for n in navbar_notifications %}
+                            <a href="{{ n.link|default:'/profile/' }}" class="d-block p-2 mb-1 rounded-3 text-decoration-none {% if not n.is_read %}border-start border-3 border-primary{% endif %}" style="background: var(--bg-subtle);">
+                                <div class="fw-semibold small" style="color: var(--text-main);">{{ n.title }}</div>
+                                <div class="text-muted" style="font-size: 0.76rem;">{{ n.message }}</div>
+                            </a>
+                            {% empty %}
+                                {% if overdue_alerts_count == 0 %}
+                                <div class="text-center text-muted py-3 small">Yangi bildirishnomalar yo'q.</div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <a href="{% url 'profile' %}" class="nav-link-custom fw-bold">
+                        <i class="fa-solid fa-circle-user text-primary"></i> <span>{{ user.username }}</span>
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="nav-link-custom">Kirish</a>
+                    <a href="{% url 'register' %}" class="btn-register-pill">A'zo bo'lish</a>
+                {% endif %}
+
+                <!-- Language Switcher Dropdown -->
+                <div class="dropdown">
+                    <button class="lang-dropdown-btn dropdown-toggle" id="langDropdownBtn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="text-muted fw-normal">UZ</span> <span>O'zbek</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow rounded-4 p-2">
+                        <li>
+                            <button type="button" class="dropdown-item lang-option rounded-3 d-flex align-items-center justify-content-between py-2 px-3" data-lang="uz" onclick="setLang('uz')">
+                                <span><small class="me-2">UZ</small> O'zbekcha</span>
+                                <i class="fa-solid fa-check ms-3 lang-check"></i>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item lang-option rounded-3 d-flex align-items-center justify-content-between py-2 px-3" data-lang="ru" onclick="setLang('ru')">
+                                <span><small class="me-2">RU</small> Русский</span>
+                                <i class="fa-solid fa-check ms-3 lang-check d-none"></i>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item lang-option rounded-3 d-flex align-items-center justify-content-between py-2 px-3" data-lang="en" onclick="setLang('en')">
+                                <span><small class="me-2">US</small> English</span>
+                                <i class="fa-solid fa-check ms-3 lang-check d-none"></i>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Dark/Light Theme Toggle -->
+                <button type="button" class="theme-toggle-btn theme-toggle-action" title="Kunduzgi / Tungi rejim">
+                    <i class="fa-solid fa-moon theme-icon"></i>
+                </button>
+
+                <!-- App Download Dropdown (Android APK, Windows PC, PWA) -->
+                <div class="dropdown">
+                    <button class="lang-dropdown-btn border-primary text-primary dropdown-toggle" id="appDownloadBtn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Telefon va kompyuter uchun ilovalar">
+                        <i class="fa-solid fa-download text-primary"></i> <span>Ilova</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-4 p-2 border-0" style="min-width: 250px;">
+                        <li class="px-3 py-1 text-muted small fw-bold text-uppercase border-bottom mb-2">SmartLib Ilovalari</li>
+                        <li>
+                            <a class="dropdown-item rounded-3 d-flex align-items-center py-2 px-3 fw-semibold text-success" href="{% url 'download_apk' %}">
+                                <i class="fa-brands fa-android fs-5 me-2"></i>
+                                <div>
+                                    <div class="text-dark fw-bold">Android APK (.apk)</div>
+                                    <small class="text-muted fw-normal">Telefon uchun ilova</small>
+                                </div>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item rounded-3 d-flex align-items-center py-2 px-3 fw-semibold text-primary" href="{% url 'download_pc' %}">
+                                <i class="fa-brands fa-windows fs-5 me-2"></i>
+                                <div>
+                                    <div class="text-dark fw-bold">Kompyuter (.exe)</div>
+                                    <small class="text-muted fw-normal">Windows ish stoli dasturi</small>
+                                </div>
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider my-2"></li>
+                        <li>
+                            <button type="button" class="dropdown-item rounded-3 d-flex align-items-center py-2 px-3 text-secondary" onclick="triggerPwaInstall()">
+                                <i class="fa-solid fa-mobile-screen-button fs-5 me-2"></i>
+                                <div>
+                                    <div class="text-dark fw-semibold">PWA O'rnatish</div>
+                                    <small class="text-muted">Brauzer orqali ekranga chiqarish</small>
+                                </div>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Mobile Controls Bar (Screen < 992px) -->
+            <div class="d-flex d-lg-none align-items-center gap-2">
+                <!-- Mobile APK Download Pill -->
+                <a href="{% url 'download_apk' %}" class="btn btn-sm btn-outline-success rounded-pill px-2.5 py-1 text-decoration-none fw-bold d-flex align-items-center gap-1" title="Android APK">
+                    <i class="fa-brands fa-android"></i> <span style="font-size: 0.75rem;">APK</span>
+                </a>
+
+                <!-- Mobile Theme Toggle -->
+                <button type="button" class="theme-toggle-btn theme-toggle-action" title="Mavzu" style="width: 36px; height: 36px;">
+                    <i class="fa-solid fa-moon theme-icon"></i>
+                </button>
+
+                <!-- Mobile Hamburger Button -->
+                <button class="btn btn-primary rounded-pill px-3 py-1.5 fw-bold d-flex align-items-center gap-1.5 shadow-sm border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNavOffcanvas" aria-controls="mobileNavOffcanvas" style="font-size: 0.82rem;">
+                    <i class="fa-solid fa-bars"></i>
+                    <span>Menyu</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Offcanvas Menu Drawer (Clean, Native Mobile Feel) -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="mobileNavOffcanvas" aria-labelledby="mobileNavOffcanvasLabel" style="background-color: var(--bg-card); color: var(--text-main); border-left: 1px solid var(--border-color); width: 85%; max-width: 320px;">
+        <div class="offcanvas-header border-bottom py-3 px-3 d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+                <svg width="26" height="26" viewBox="0 0 36 36" fill="none">
+                    <path d="M6 8C6 6.89543 6.89543 6 8 6H16C17.1046 6 18 6.89543 18 8V28C18 29.1046 17.1046 30 16 30H8C6.89543 30 6 29.1046 6 28V8Z" fill="#3B5BDB"/>
+                    <path d="M18 10C18 8.89543 18.8954 8 20 8H28C29.1046 8 30 8.89543 30 10V28C30 29.1046 29.1046 30 28 30H20C18.8954 30 18 29.1046 18 28V10Z" fill="#3BC9DB"/>
+                </svg>
+                <span class="fw-bold fs-5 text-primary">SMARTLIB</span>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body p-3 d-flex flex-column justify-content-between">
+            <div class="d-flex flex-column gap-2">
+                {% if user.is_authenticated %}
+                    <div class="p-3 rounded-4 mb-2 d-flex align-items-center gap-3" style="background: var(--bg-subtle);">
+                        <i class="fa-solid fa-circle-user fs-2 text-primary"></i>
+                        <div class="overflow-hidden">
+                            <div class="fw-bold text-truncate" style="color: var(--text-main);">{{ user.full_display_name|default:user.username }}</div>
+                            <div class="small text-muted text-truncate">@{{ user.username }} ({{ user.get_status_display }})</div>
+                        </div>
+                    </div>
+
+                    {% if is_librarian_or_admin %}
+                    <a href="{% url 'librarian_desk' %}" class="btn btn-warning text-dark fw-bold rounded-4 p-2.5 text-start d-flex align-items-center gap-2 mb-1">
+                        <i class="fa-solid fa-clipboard-check fs-5"></i>
+                        <span>Kutubxona Paneli</span>
+                        {% if pending_librarian_count > 0 %}
+                        <span class="badge bg-danger ms-auto rounded-pill">{{ pending_librarian_count }}</span>
+                        {% endif %}
+                    </a>
+                    {% endif %}
+
+                    {% if user.is_staff or user.is_superuser or user.status == 'admin' or user.status == 'librarian' %}
+                    <a href="/admin/" class="btn btn-dark fw-bold rounded-4 p-2.5 text-start d-flex align-items-center gap-2 mb-1">
+                        <i class="fa-solid fa-gear fs-5"></i>
+                        <span>Admin Panel</span>
+                    </a>
+                    {% endif %}
+                {% else %}
+                    <div class="d-grid gap-2 mb-3">
+                        <a href="{% url 'login' %}" class="btn btn-outline-primary rounded-pill py-2 fw-bold">Kirish</a>
+                        <a href="{% url 'register' %}" class="btn btn-primary rounded-pill py-2 fw-bold shadow-sm">A'zo bo'lish</a>
+                    </div>
+                {% endif %}
+
+                <!-- Core navigation links -->
+                <a href="{% url 'home' %}" class="nav-link-custom py-2 px-3 rounded-3 d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-book-open text-primary fs-5" style="width: 24px;"></i>
+                    <span>Kutubxona (Bosh sahifa)</span>
+                </a>
+                <a href="{% url 'reading_room' %}" class="nav-link-custom py-2 px-3 rounded-3 d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-cube text-info fs-5" style="width: 24px;"></i>
+                    <span>3D O'quv xonasi</span>
+                </a>
+                <button type="button" class="nav-link-custom border-0 bg-transparent py-2 px-3 rounded-3 d-flex align-items-center gap-2 text-start w-100" data-bs-dismiss="offcanvas" data-bs-toggle="modal" data-bs-target="#qrScannerModal">
+                    <i class="fa-solid fa-qrcode text-success fs-5" style="width: 24px;"></i>
+                    <span>QR Skaner</span>
+                </button>
+
+                {% if user.is_authenticated %}
+                <a href="{% url 'reports' %}" class="nav-link-custom py-2 px-3 rounded-3 d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-chart-pie text-warning fs-5" style="width: 24px;"></i>
+                    <span>Hisobotlar</span>
+                </a>
+                <a href="{% url 'profile' %}" class="nav-link-custom py-2 px-3 rounded-3 d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-id-card text-primary fs-5" style="width: 24px;"></i>
+                    <span>Mening profilim</span>
+                </a>
+                {% endif %}
+
+                <hr class="my-2" style="border-color: var(--border-color);">
+
+                <!-- Downloads Section -->
+                <div class="small fw-bold text-muted text-uppercase px-2 mb-1">Ilovalar:</div>
+                <a href="{% url 'download_apk' %}" class="p-2.5 rounded-3 d-flex align-items-center gap-2 text-decoration-none text-success fw-bold" style="background: rgba(16, 185, 129, 0.1);">
+                    <i class="fa-brands fa-android fs-4"></i>
+                    <div class="small">
+                        <div>Android APK (.apk)</div>
+                        <span class="text-muted fw-normal" style="font-size: 0.72rem;">Telefonga yuklab olish</span>
+                    </div>
+                </a>
+                <a href="{% url 'download_pc' %}" class="p-2.5 rounded-3 d-flex align-items-center gap-2 text-decoration-none text-primary fw-bold mt-1" style="background: rgba(37, 99, 235, 0.1);">
+                    <i class="fa-brands fa-windows fs-4"></i>
+                    <div class="small">
+                        <div>Kompyuter dasturi (.exe)</div>
+                        <span class="text-muted fw-normal" style="font-size: 0.72rem;">Windows dasturi</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Footer of Offcanvas -->
+            <div class="pt-3 border-top mt-3" style="border-color: var(--border-color);">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="small fw-bold text-muted">Til:</span>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-primary btn-sm px-2.5 py-1" onclick="setLang('uz')">UZ</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm px-2.5 py-1" onclick="setLang('ru')">RU</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm px-2.5 py-1" onclick="setLang('en')">EN</button>
+                    </div>
+                </div>
+                {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm w-100 rounded-pill mt-2 fw-semibold">
+                    <i class="fa-solid fa-right-from-bracket me-1"></i>Chiqish (Logout)
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="smart-alert {% if 'error' in message.tags or 'danger' in message.tags %}alert-error{% endif %} mb-3 fade show" role="alert">
+                    <div>
+                        {% if 'error' in message.tags or 'danger' in message.tags %}
+                            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                        {% else %}
+                            <i class="fa-solid fa-circle-info me-2"></i>
+                        {% endif %}
+                        {{ message }}
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-grow-1 py-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- QR Scanner Modal -->
+    <div class="modal fade" id="qrScannerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background: var(--bg-card); color: var(--text-main); border-radius: 18px;">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-qrcode text-primary me-2"></i>SmartLib QR Skaner</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="stopQrCamera()"></button>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <p class="text-muted small mb-3">Kitob QR-kodini kamera orqali skanerlang yoki QR rasm faylini tanlang:</p>
+                    <div id="qrReaderBox" class="mx-auto mb-3 rounded-3 overflow-hidden" style="max-width: 320px;"></div>
+                    <div class="d-flex justify-content-center gap-2 mb-3 flex-wrap">
+                        <button type="button" class="btn btn-primary rounded-pill px-3 btn-sm fw-semibold" onclick="startQrCamera()">
+                            <i class="fa-solid fa-camera me-1"></i>Kamerani yoqish
+                        </button>
+                        <label class="btn btn-outline-primary rounded-pill px-3 btn-sm fw-semibold mb-0" style="cursor: pointer;">
+                            <i class="fa-solid fa-image me-1"></i>QR rasmni yuklash
+                            <input type="file" id="qrFileInput" accept="image/*" class="d-none" onchange="scanQrFile(this)">
+                        </label>
+                    </div>
+                    <div id="qrScanResult" class="small fw-semibold text-success mb-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PWA Install Guide Modal -->
+    <div class="modal fade" id="pwaInstallModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background: var(--bg-card); color: var(--text-main); border-radius: 22px;">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-mobile-screen-button text-primary me-2"></i>SmartLib Ilovasini O'rnatish (PWA)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3 p-3 rounded-4" style="background: var(--bg-subtle);">
+                        <img src="/pwa-icon/192/" alt="SmartLib Icon" width="56" height="56" class="rounded-3 shadow-sm">
+                        <div>
+                            <div class="fw-bold">SmartLib — Elektron Kutubxona</div>
+                            <small class="text-muted">Android, iOS va Windows uchun tezkor PWA ilova</small>
+                        </div>
+                    </div>
+                    <ul class="small mb-0 ps-3" style="line-height: 1.8;">
+                        <li><strong>Kompyuterda (Chrome / Edge):</strong> Manzil satrining o'ng burchagidagi <i class="fa-solid fa-download text-primary"></i> <strong>"O'rnatish (Install SmartLib)"</strong> tugmasini bosing.</li>
+                        <li><strong>Android telefonda:</strong> Brauzer menyusidan (⋮) <strong>"Ilovani o'rnatish" (Add to Home screen)</strong> bandini tanlang.</li>
+                        <li><strong>iPhone (Safari):</strong> Pastdagi <strong>Ulashish (Share)</strong> tugmasini bosib, <strong>"На экран «Домой»"</strong> ni tanlang.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="smart-footer">
+        <div class="container">
+            <div class="footer-title">SMART LIBRARY SYSTEM</div>
+            <div class="footer-sub">
+                &copy; 2026 <span>Barcha huquqlar himoyalangan</span> | <span>Loyiha muallifi:</span> <strong>Xusniddin Gofurov</strong>
+            </div>
+            <div>
+                <a href="https://t.me/SmartLib_uz" target="_blank" class="social-pill-tg">
+                    <i class="fa-brands fa-telegram"></i> @SmartLib_uz
+                </a>
+                <a href="https://instagram.com/SmartLib_uz" target="_blank" class="social-pill-ig">
+                    <i class="fa-brands fa-instagram"></i> @SmartLib_uz
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        /* PWA Service Worker & Install Prompt Engine */
+        let deferredPwaPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPwaPrompt = e;
+        });
+
+        function triggerPwaInstall() {
+            if (deferredPwaPrompt) {
+                deferredPwaPrompt.prompt();
+                deferredPwaPrompt.userChoice.then(() => { deferredPwaPrompt = null; });
+            } else if (window.bootstrap) {
+                const modalEl = document.getElementById('pwaInstallModal');
+                if (modalEl) new bootstrap.Modal(modalEl).show();
+            }
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
+            });
+        }
+    </script>
+    <script>
+        /* Theme Engine */
+        (function() {
+            const htmlEl = document.documentElement;
+
+            function applyTheme(theme) {
+                htmlEl.setAttribute('data-theme', theme);
+                htmlEl.setAttribute('data-bs-theme', theme);
+                document.querySelectorAll('.theme-icon').forEach(icon => {
+                    if (theme === 'dark') {
+                        icon.className = 'fa-solid fa-sun theme-icon text-warning';
+                    } else {
+                        icon.className = 'fa-solid fa-moon theme-icon';
+                    }
+                });
+            }
+
+            // Always default to clean light mode (#f4f7fe + #ffffff + #2563eb)
+            let savedTheme = localStorage.getItem('smartlib_theme_v3') || 'light';
+            applyTheme(savedTheme);
+
+            document.querySelectorAll('.theme-toggle-action').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const current = htmlEl.getAttribute('data-theme');
+                    const next = current === 'dark' ? 'light' : 'dark';
+                    localStorage.setItem('smartlib_theme_v3', next);
+                    applyTheme(next);
+                });
+            });
+        })();
+
+        /* Complete 3-Language (UZ / RU / EN) Live Translation Engine */
+        const TRANSLATIONS = {
+            // Navbar & Footer
+            "Kutubxona": { uz: "Kutubxona", ru: "Библиотека", en: "Library" },
+            "QR Skaner": { uz: "QR Skaner", ru: "QR Сканер", en: "QR Scanner" },
+            "Bildirishnomalar": { uz: "Bildirishnomalar", ru: "Уведомления", en: "Notifications" },
+            "O'qildi deb belgilash": { uz: "O'qildi deb belgilash", ru: "Отметить прочитанным", en: "Mark all read" },
+            "Yangi bildirishnomalar yo'q.": { uz: "Yangi bildirishnomalar yo'q.", ru: "Новых уведомлений нет.", en: "No new notifications." },
+            "Sevimlilar": { uz: "Sevimlilar", ru: "Избранное", en: "Favorites" },
+            "Sevimli kitoblar": { uz: "Sevimli kitoblar", ru: "Избранные книги", en: "Favorite Books" },
+            "Sevimlilarga qo'shish": { uz: "Sevimlilarga qo'shish", ru: "В избранное", en: "Add to Favorites" },
+            "Sevimlilarda": { uz: "Sevimlilarda", ru: "В избранном", en: "In Favorites" },
+            "Kitobxon Fikrlari va Baholar": { uz: "Kitobxon Fikrlari va Baholar", ru: "Отзывы и оценки читателей", en: "Reader Reviews & Ratings" },
+            "Baho berish": { uz: "Baho berish", ru: "Оценить книгу", en: "Submit Review" },
+            "Elektron Guvohnoma (ID-Karta PDF)": { uz: "Elektron Guvohnoma (ID-Karta PDF)", ru: "Электронный билет (ID-Карта PDF)", en: "Digital ID Card (PDF)" },
+            "Faxriy Sertifikat (PDF)": { uz: "Faxriy Sertifikat (PDF)", ru: "Почетный сертификат (PDF)", en: "Honorary Certificate (PDF)" },
+            "Excel (.xlsx) yuklab olish": { uz: "Excel (.xlsx) yuklab olish", ru: "Скачать Excel (.xlsx)", en: "Download Excel (.xlsx)" },
+            "Yangi Kitobxon": { uz: "Yangi Kitobxon", ru: "Новый читатель", en: "Novice Reader" },
+            "Faol Kitobxon": { uz: "Faol Kitobxon", ru: "Активный читатель", en: "Active Reader" },
+            "Ziyo Elchisi": { uz: "Ziyo Elchisi", ru: "Посол знаний", en: "Knowledge Ambassador" },
+            "SmartLib Akademigi": { uz: "SmartLib Akademigi", ru: "Академик SmartLib", en: "SmartLib Academic" },
+            "Kutubxona:": { uz: "Kutubxona:", ru: "Библиотека:", en: "Library:" },
+            "Hisobotlar": { uz: "Hisobotlar", ru: "Отчеты", en: "Reports" },
+            "Mening profilim": { uz: "Mening profilim", ru: "Мой профиль", en: "My Profile" },
+            "Admin": { uz: "Admin", ru: "Админ", en: "Admin" },
+            "Kirish": { uz: "Kirish", ru: "Вход", en: "Login" },
+            "A'zo bo'lish": { uz: "A'zo bo'lish", ru: "Регистрация", en: "Sign Up" },
+            "Barcha huquqlar himoyalangan": { uz: "Barcha huquqlar himoyalangan", ru: "Все права защищены", en: "All rights reserved" },
+            "Loyiha muallifi:": { uz: "Loyiha muallifi:", ru: "Автор проекта:", en: "Project Author:" },
+
+            // Home Page & Genres
+            "SmartLib Kutubxonasi": { uz: "SmartLib Kutubxonasi", ru: "Библиотека SmartLib", en: "SmartLib Library" },
+            "PQ-9 Qarori doirasida raqamlashtirilgan yagona tizim": {
+                uz: "PQ-9 Qarori doirasida raqamlashtirilgan yagona tizim",
+                ru: "Единая цифровая система в рамках Постановления ПП-9",
+                en: "Unified Digital Library System under Decree PQ-9"
+            },
+            "Qidirish": { uz: "Qidirish", ru: "Поиск", en: "Search" },
+            "Tozalash": { uz: "Tozalash", ru: "Сбросить", en: "Clear" },
+            "Eng faol kitobxonlar": { uz: "Eng faol kitobxonlar", ru: "Самые активные читатели", en: "Most Active Readers" },
+            "So'nggi kelgan kitoblar": { uz: "So'nggi kelgan kitoblar", ru: "Новые поступления", en: "Latest Arrivals" },
+            "Barchasi": { uz: "Barchasi", ru: "Все", en: "All" },
+            "Biznes": { uz: "Biznes", ru: "Бизнес", en: "Business" },
+            "Tarix": { uz: "Tarix", ru: "История", en: "History" },
+            "Fantastika": { uz: "Fantastika", ru: "Фантастика", en: "Sci-Fi & Fantasy" },
+            "Badiiy Adabiyot": { uz: "Badiiy Adabiyot", ru: "Художественная литература", en: "Fiction" },
+            "Badiiy adabiyot": { uz: "Badiiy adabiyot", ru: "Художественная литература", en: "Fiction" },
+            "Dasturlash": { uz: "Dasturlash", ru: "Программирование", en: "Programming" },
+            "Jahon adabiyoti": { uz: "Jahon adabiyoti", ru: "Мировая литература", en: "World Literature" },
+            "Bolalar adabiyoti": { uz: "Bolalar adabiyoti", ru: "Детская литература", en: "Children's Literature" },
+            "Psixologiya va Biznes": { uz: "Psixologiya va Biznes", ru: "Психология и бизнес", en: "Psychology & Business" },
+            "Ilmiy-ommabop": { uz: "Ilmiy-ommabop", ru: "Научно-популярная", en: "Popular Science" },
+            "Umumiy": { uz: "Umumiy", ru: "Общее", en: "General" },
+            "Kitoblar topilmadi.": { uz: "Kitoblar topilmadi.", ru: "Книги не найдены.", en: "No books found." },
+            "Mavjud": { uz: "Mavjud", ru: "В наличии", en: "Available" },
+            "Qolmagan": { uz: "Qolmagan", ru: "Нет в наличии", en: "Out of stock" },
+            "Ko'rish": { uz: "Ko'rish", ru: "Смотреть", en: "View" },
+
+            // Book Detail Page
+            "Javonda bor": { uz: "Javonda bor", ru: "На полке", en: "On Shelf" },
+            "Rasm yo'q": { uz: "Rasm yo'q", ru: "Нет фото", en: "No Image" },
+            "Scan Me": { uz: "Scan Me", ru: "Сканируй", en: "Scan Me" },
+            "ISBN:": { uz: "ISBN:", ru: "ISBN:", en: "ISBN:" },
+            "Nashriyot:": { uz: "Nashriyot:", ru: "Издательство:", en: "Publisher:" },
+            "Yil:": { uz: "Yil:", ru: "Год:", en: "Year:" },
+            "Betlar:": { uz: "Betlar:", ru: "Страниц:", en: "Pages:" },
+            "UO'K (UDC):": { uz: "UO'K (UDC):", ru: "УДК:", en: "UDC:" },
+            "Mavjud / Jami:": { uz: "Mavjud / Jami:", ru: "Доступно / Всего:", en: "Available / Total:" },
+            "Annotatsiya": { uz: "Annotatsiya", ru: "Аннотация", en: "Annotation" },
+            "Tavsif kiritilmagan.": { uz: "Tavsif kiritilmagan.", ru: "Описание не добавлено.", en: "No description provided." },
+            "Elektron nusxani o'qish / Yuklab olish (PDF)": {
+                uz: "Elektron nusxani o'qish / Yuklab olish (PDF)",
+                ru: "Читать / Скачать электронную версию (PDF)",
+                en: "Read / Download Digital Copy (PDF)"
+            },
+            "Sizda ushbu kitob bor (Profilga o'tish)": {
+                uz: "Sizda ushbu kitob bor (Profilga o'tish)",
+                ru: "Эта книга уже у вас (Перейти в профиль)",
+                en: "You already borrowed this book (Go to Profile)"
+            },
+            "Kitobni olish": { uz: "Kitobni olish", ru: "Взять книгу", en: "Borrow Book" },
+            "Qolmadi": { uz: "Qolmadi", ru: "Нет в наличии", en: "Unavailable" },
+            "Navbat": { uz: "Navbat", ru: "Очередь", en: "Join Queue" },
+            "Navbatdasiz": { uz: "Navbatdasiz", ru: "Вы в очереди", en: "In Queue" },
+
+            // Reports Page
+            "Kutubxona Hisoboti": { uz: "Kutubxona Hisoboti", ru: "Отчет библиотеки", en: "Library Report" },
+            "PDF yuklab olish": { uz: "PDF yuklab olish", ru: "Скачать PDF", en: "Download PDF" },
+            "Jami Kitoblar": { uz: "Jami Kitoblar", ru: "Всего книг", en: "Total Books" },
+            "Jami Nusxalar": { uz: "Jami Nusxalar", ru: "Всего экземпляров", en: "Total Copies" },
+            "O'qilmoqda": { uz: "O'qilmoqda", ru: "Читают сейчас", en: "Currently Borrowed" },
+            "Muddati o'tgan": { uz: "Muddati o'tgan", ru: "Просрочено", en: "Overdue" },
+            "Muddati o'tgan!": { uz: "Muddati o'tgan!", ru: "Просрочено!", en: "Overdue!" },
+            "A'zolar soni": { uz: "A'zolar soni", ru: "Количество читателей", en: "Total Members" },
+            "Eng ko'p o'qilgan kitoblar (Top 5)": {
+                uz: "Eng ko'p o'qilgan kitoblar (Top 5)",
+                ru: "Самые читаемые книги (Топ 5)",
+                en: "Most Read Books (Top 5)"
+            },
+            "Kitob nomi": { uz: "Kitob nomi", ru: "Название книги", en: "Book Title" },
+            "Muallif": { uz: "Muallif", ru: "Автор", en: "Author" },
+            "Marta o'qildi": { uz: "Marta o'qildi", ru: "Прочитано раз", en: "Times Read" },
+            "Hozircha o'qilgan kitoblar yo'q.": {
+                uz: "Hozircha o'qilgan kitoblar yo'q.",
+                ru: "Пока нет прочитанных книг.",
+                en: "No books read yet."
+            },
+            "Fakultetlar kesimida kitobxonlik ko'rsatkichi": {
+                uz: "Fakultetlar kesimida kitobxonlik ko'rsatkichi",
+                ru: "Показатели чтения по факультетам",
+                en: "Reading Statistics by Faculty"
+            },
+            "Fakultet nomi": { uz: "Fakultet nomi", ru: "Факультет", en: "Faculty Name" },
+            "O'qilgan kitoblar": { uz: "O'qilgan kitoblar", ru: "Прочитано книг", en: "Books Borrowed" },
+            "Hozircha ma'lumotlar yetarli emas.": {
+                uz: "Hozircha ma'lumotlar yetarli emas.",
+                ru: "Пока недостаточно данных.",
+                en: "Not enough data yet."
+            },
+            "Foydalanuvchilarga fakultet biriktirilganiga va ular kitob olganiga ishonch hosil qiling.": {
+                uz: "Foydalanuvchilarga fakultet biriktirilganiga va ular kitob olganiga ishonch hosil qiling.",
+                ru: "Убедитесь, что пользователям назначен факультет и они брали книги.",
+                en: "Make sure users have a faculty assigned and have borrowed books."
+            },
+
+            // Librarian Desk & Maker-Checker
+            "Kutubxona Paneli": { uz: "Kutubxona Paneli", ru: "Панель библиотекаря", en: "Librarian Desk" },
+            "Kutubxonachi Paneli": { uz: "Kutubxonachi Paneli", ru: "Панель библиотекаря", en: "Librarian Desk" },
+            "Olish so'rovlari": { uz: "Olish so'rovlari", ru: "Запросы на выдачу", en: "Borrow Requests" },
+            "Topshirish so'rovlari": { uz: "Topshirish so'rovlari", ru: "Запросы на возврат", en: "Return Requests" },
+            "Hozir o'qilayotganlar": { uz: "Hozir o'qilayotganlar", ru: "Книги на руках", en: "Currently Borrowed" },
+            "Ijaralar tarixi": { uz: "Ijaralar tarixi", ru: "История выдачи", en: "Loan History" },
+            "Tasdiqlash": { uz: "Tasdiqlash", ru: "Подтвердить", en: "Approve" },
+            "Rad etish": { uz: "Rad etish", ru: "Отклонить", en: "Reject" },
+            "Kutubxonachi tasdig'i kutilmoqda": { uz: "Kutubxonachi tasdig'i kutilmoqda", ru: "Ожидает подтверждения библиотекаря", en: "Pending Librarian Approval" },
+            "Qaytarish kutilmoqda": { uz: "Qaytarish kutilmoqda", ru: "Ожидает возврата", en: "Pending Return" },
+            "Topshirish tasdig'i kutilmoqda": { uz: "Topshirish tasdig'i kutilmoqda", ru: "Ожидает подтверждения возврата", en: "Pending Return Approval" },
+            "Tasdiqlash kodi:": { uz: "Tasdiqlash kodi:", ru: "Код подтверждения:", en: "Verification Code:" },
+            "Topshirish kodi:": { uz: "Topshirish kodi:", ru: "Код возврата:", en: "Return Code:" },
+            "Topshirishga so'rov yuborish": { uz: "Topshirishga so'rov yuborish", ru: "Запросить возврат", en: "Request Return" },
+            "Qo'lingizda": { uz: "Qo'lingizda", ru: "У вас на руках", en: "With you" },
+            "Qarzdorlar (Muddati o'tganlar)": { uz: "Qarzdorlar (Muddati o'tganlar)", ru: "Должники (Просроченные)", en: "Overdue Debtors" },
+            "Shtrix-kod Stikerlar (A4 PDF)": { uz: "Shtrix-kod Stikerlar (A4 PDF)", ru: "Штрих-код Стикеры (A4 PDF)", en: "Barcode Stickers (A4 PDF)" },
+            "Stikerlar (PDF)": { uz: "Stikerlar (PDF)", ru: "Стикеры (PDF)", en: "Stickers (PDF)" },
+            "Brauzerda O'qish va Audio Tinglash (Reader & TTS)": {
+                uz: "Brauzerda O'qish va Audio Tinglash (Reader & TTS)",
+                ru: "Читать в браузере и Аудио (Reader & TTS)",
+                en: "Read in Browser & Listen Audio (Reader & TTS)"
+            },
+            "XP Reyting va Intizom": { uz: "XP Reyting va Intizom", ru: "XP Рейтинг и Дисциплина", en: "XP Rating & Discipline" },
+            "Telegram Xabarnoma": { uz: "Telegram Xabarnoma", ru: "Telegram Уведомления", en: "Telegram Notifications" },
+            "Sinov xabarini yuborish": { uz: "Sinov xabarini yuborish", ru: "Отправить тестовое сообщение", en: "Send Test Alert" },
+            "Telegram ID ni ulash": { uz: "Telegram ID ni ulash", ru: "Подключить Telegram ID", en: "Connect Telegram ID" },
+            "Eslatma yuborish": { uz: "Eslatma yuborish", ru: "Отправить напоминание", en: "Send Reminder" },
+
+            // Profile & Edit Profile Page
+            "Telefon": { uz: "Telefon", ru: "Телефон", en: "Phone" },
+            "Kiritilmagan": { uz: "Kiritilmagan", ru: "Не указано", en: "Not provided" },
+            "Rol": { uz: "Rol", ru: "Роль", en: "Role" },
+            "Fakultet": { uz: "Fakultet", ru: "Факультет", en: "Faculty" },
+            "Dasturiy injiniring": { uz: "Dasturiy injiniring", ru: "Программная инженерия", en: "Software Engineering" },
+            "Kompyuter injiniringi": { uz: "Kompyuter injiniringi", ru: "Компьютерная инженерия", en: "Computer Engineering" },
+            "Axborot xavfsizligi": { uz: "Axborot xavfsizligi", ru: "Информационная безопасность", en: "Information Security" },
+            "Guruh": { uz: "Guruh", ru: "Группа", en: "Group" },
+            "Guruh / Sinf": { uz: "Guruh / Sinf", ru: "Группа / Класс", en: "Group / Grade" },
+            "Sinf": { uz: "Sinf", ru: "Класс", en: "Grade" },
+            "Mahalla": { uz: "Mahalla", ru: "Махалля", en: "Neighborhood" },
+            "Kasbi": { uz: "Kasbi", ru: "Профессия", en: "Occupation" },
+            "Tahrirlash": { uz: "Tahrirlash", ru: "Редактировать", en: "Edit Profile" },
+            "Chiqish": { uz: "Chiqish", ru: "Выйти", en: "Logout" },
+            "Yillik Reja": { uz: "Yillik Reja", ru: "Годовой план", en: "Annual Goal" },
+            "Yillik Reja (kitob)": { uz: "Yillik Reja (kitob)", ru: "Годовой план (книг)", en: "Annual Goal (books)" },
+            "Hozir sizda": { uz: "Hozir sizda", ru: "Сейчас у вас", en: "Currently Borrowed" },
+            "Hozir qo'lingizda kitob yo'q.": {
+                uz: "Hozir qo'lingizda kitob yo'q.",
+                ru: "Сейчас у вас нет книг на руках.",
+                en: "You currently have no borrowed books."
+            },
+            "Kitob olish": { uz: "Kitob olish", ru: "Взять книгу", en: "Browse Books" },
+            "Navbatdagi kitoblar": { uz: "Navbatdagi kitoblar", ru: "Книги в очереди", en: "Queued Books" },
+            "Tarix bo'sh.": { uz: "Tarix bo'sh.", ru: "История пуста.", en: "History is empty." },
+            "Yopilgan": { uz: "Yopilgan", ru: "Закрыто", en: "Returned" },
+            "Topshirish": { uz: "Topshirish", ru: "Вернуть", en: "Return" },
+            "Profilni Tahrirlash": { uz: "Profilni Tahrirlash", ru: "Редактирование профиля", en: "Edit Profile" },
+            "Profil Rasmi": { uz: "Profil Rasmi", ru: "Фото профиля", en: "Profile Picture" },
+            "Ism": { uz: "Ism", ru: "Имя", en: "First Name" },
+            "Familiya": { uz: "Familiya", ru: "Фамилия", en: "Last Name" },
+            "Telefon raqam": { uz: "Telefon raqam", ru: "Номер телефона", en: "Phone Number" },
+            "Email": { uz: "Email", ru: "Email", en: "Email" },
+            "Email (Ixtiyoriy)": { uz: "Email (Ixtiyoriy)", ru: "Email (Необязательно)", en: "Email (Optional)" },
+            "Saqlash": { uz: "Saqlash", ru: "Сохранить", en: "Save" },
+            "Bekor qilish": { uz: "Bekor qilish", ru: "Отмена", en: "Cancel" },
+
+            // Login & Register Pages (including all <select> options and role-specific labels!)
+            "SmartLib tizimi": { uz: "SmartLib tizimi", ru: "Система SmartLib", en: "SmartLib System" },
+            "Login (Username)": { uz: "Login (Username)", ru: "Логин (Имя пользователя)", en: "Username (Login)" },
+            "Parol": { uz: "Parol", ru: "Пароль", en: "Password" },
+            "Parolni tasdiqlang": { uz: "Parolni tasdiqlang", ru: "Подтвердите пароль", en: "Confirm Password" },
+            "Tizimga kirish": { uz: "Tizimga kirish", ru: "Войти в систему", en: "Sign In" },
+            "Hisobingiz yo'qmi?": { uz: "Hisobingiz yo'qmi?", ru: "Нет аккаунта?", en: "Don't have an account?" },
+            "Ro'yxatdan o'tish": { uz: "Ro'yxatdan o'tish", ru: "Зарегистрироваться", en: "Register" },
+            "SmartLib tizimiga xush kelibsiz!": {
+                uz: "SmartLib tizimiga xush kelibsiz!",
+                ru: "Добро пожаловать в систему SmartLib!",
+                en: "Welcome to SmartLib System!"
+            },
+            "Kim sifatida kirmoqchisiz?": { uz: "Kim sifatida kirmoqchisiz?", ru: "Кем вы являетесь?", en: "Select your role" },
+            "Talaba (Universitet)": { uz: "Talaba (Universitet)", ru: "Студент (Университет)", en: "Student (University)" },
+            "O'quvchi (Maktab)": { uz: "O'quvchi (Maktab)", ru: "Ученик (Школа)", en: "Pupil (School)" },
+            "Mustaqil Kitobxon (Aholi)": {
+                uz: "Mustaqil Kitobxon (Aholi)",
+                ru: "Самостоятельный читатель (Население)",
+                en: "Independent Reader (Citizen)"
+            },
+            "Tanlovingizga qarab kerakli maydonlar ochiladi.": {
+                uz: "Tanlovingizga qarab kerakli maydonlar ochiladi.",
+                ru: "В зависимости от выбора откроются нужные поля.",
+                en: "Relevant fields will appear based on your selection."
+            },
+            "SHAXSIY MA'LUMOTLAR": { uz: "SHAXSIY MA'LUMOTLAR", ru: "ЛИЧНЫЕ ДАННЫЕ", en: "PERSONAL INFORMATION" },
+            "Kutubxonani tanlang": { uz: "Kutubxonani tanlang", ru: "Выберите библиотеку", en: "Select Library" },
+            "TATU Axborot Resurs Markazi": {
+                uz: "TATU Axborot Resurs Markazi",
+                ru: "Информационно-ресурсный центр ТУИТ",
+                en: "TUIT Information Resource Center"
+            },
+            "TATU Axborot Resurs Markazi (Oliy Ta'lim (ARM))": {
+                uz: "TATU Axborot Resurs Markazi (Oliy Ta'lim (ARM))",
+                ru: "Информационно-ресурсный центр ТУИТ (Высшее образование (ИРЦ))",
+                en: "TUIT Information Resource Center (Higher Education (IRC))"
+            },
+            "O'zbekiston Davlat San'at va Madaniyat Instituti": {
+                uz: "O'zbekiston Davlat San'at va Madaniyat Instituti",
+                ru: "Государственный институт искусств и культуры Узбекистана",
+                en: "Uzbekistan State Institute of Arts and Culture"
+            },
+            "O'zbekiston Davlat San'at va Madaniyat Instituti (Oliy Ta'lim (ARM))": {
+                uz: "O'zbekiston Davlat San'at va Madaniyat Instituti (Oliy Ta'lim (ARM))",
+                ru: "Государственный институт искусств и культуры Узбекистана (Высшее образование (ИРЦ))",
+                en: "Uzbekistan State Institute of Arts and Culture (Higher Education (IRC))"
+            },
+            "Talaba Ma'lumotlari": { uz: "Talaba Ma'lumotlari", ru: "Данные студента", en: "Student Information" },
+            "Student ID": { uz: "Student ID", ru: "ID студента (HEMIS)", en: "Student ID" },
+            "O'quvchi Ma'lumotlari": { uz: "O'quvchi Ma'lumotlari", ru: "Данные ученика", en: "Pupil Information" },
+            "Sinf (Masalan: 11)": { uz: "Sinf (Masalan: 11)", ru: "Класс (Например: 11)", en: "Grade (e.g., 11)" },
+            "Sinf Harfi (Masalan: A)": { uz: "Sinf Harfi (Masalan: A)", ru: "Буква класса (Например: А)", en: "Class Letter (e.g., A)" },
+            "Ota-ona telefoni": { uz: "Ota-ona telefoni", ru: "Телефон родителей", en: "Parent's Phone" },
+            "Yashash Manzili": { uz: "Yashash Manzili", ru: "Адрес проживания", en: "Residential Address" },
+            "Mahalla Nomi": { uz: "Mahalla Nomi", ru: "Название махалли", en: "Neighborhood (Mahalla)" },
+            "Ko'cha": { uz: "Ko'cha", ru: "Улица", en: "Street" },
+            "Uy raqami": { uz: "Uy raqami", ru: "Номер дома", en: "House Number" },
+            "Kasbi / Ish joyi": { uz: "Kasbi / Ish joyi", ru: "Профессия / Место работы", en: "Occupation / Workplace" },
+            "Saqlanmoqda...": { uz: "Saqlanmoqda...", ru: "Сохранение...", en: "Saving..." },
+
+            // Flash Alerts
+            "SmartLib tizimiga muvaffaqiyatli kirdingiz!": {
+                uz: "SmartLib tizimiga muvaffaqiyatli kirdingiz!",
+                ru: "Вы успешно вошли в систему SmartLib!",
+                en: "Successfully signed in to SmartLib!"
+            },
+            "SmartLib tizimidan muvaffaqiyatli ro'yxatdan o'tdingiz!": {
+                uz: "SmartLib tizimidan muvaffaqiyatli ro'yxatdan o'tdingiz!",
+                ru: "Вы успешно зарегистрировались в системе SmartLib!",
+                en: "Successfully registered in SmartLib!"
+            },
+            "Login yoki parol noto'g'ri!": {
+                uz: "Login yoki parol noto'g'ri!",
+                ru: "Неверный логин или пароль!",
+                en: "Invalid username or password!"
+            },
+            "Parollar mos kelmadi!": {
+                uz: "Parollar mos kelmadi!",
+                ru: "Пароли не совпадают!",
+                en: "Passwords do not match!"
+            },
+            "Login va parol kiritilishi shart!": {
+                uz: "Login va parol kiritilishi shart!",
+                ru: "Логин и пароль обязательны!",
+                en: "Username and password are required!"
+            },
+            "Profil ma'lumotlari muvaffaqiyatli yangilandi!": {
+                uz: "Profil ma'lumotlari muvaffaqiyatli yangilandi!",
+                ru: "Данные профиля успешно обновлены!",
+                en: "Profile information updated successfully!"
+            },
+            "Navbatga yozildingiz.": {
+                uz: "Navbatga yozildingiz.",
+                ru: "Вы записаны в очередь.",
+                en: "You have been added to the queue."
+            }
+        };
+
+        const PLACEHOLDER_TRANSLATIONS = {
+            "Kitob nomi, muallif yoki ISBN...": {
+                uz: "Kitob nomi, muallif yoki ISBN...",
+                ru: "Название книги, автор или ISBN...",
+                en: "Book title, author or ISBN..."
+            },
+            "Kitob nomi yoki muallif...": {
+                uz: "Kitob nomi yoki muallif...",
+                ru: "Название книги или автор...",
+                en: "Book title or author..."
+            },
+            "First name": { uz: "Ismingiz", ru: "Имя", en: "First name" },
+            "Last name": { uz: "Familiyangiz", ru: "Фамилия", en: "Last name" },
+            "Username": { uz: "Login (Username)", ru: "Имя пользователя", en: "Username" },
+            "Telefon raqam": { uz: "Telefon raqam", ru: "Номер телефона", en: "Phone number" },
+            "Email address": { uz: "Email manzili", ru: "Email адрес", en: "Email address" },
+            "Student ID (Hemis)": { uz: "Student ID (Hemis)", ru: "ID студента (Hemis)", en: "Student ID (Hemis)" },
+            "Fakultet": { uz: "Fakultet", ru: "Факультет", en: "Faculty" },
+            "Guruh": { uz: "Guruh", ru: "Группа", en: "Group" },
+            "Sinf": { uz: "Sinf", ru: "Класс", en: "Grade" },
+            "Sinf harfi": { uz: "Sinf harfi", ru: "Буква класса", en: "Class letter" },
+            "Ota-ona telefoni": { uz: "Ota-ona telefoni", ru: "Телефон родителей", en: "Parent's phone" },
+            "Mahalla nomi": { uz: "Mahalla nomi", ru: "Название махалли", en: "Neighborhood name" },
+            "Ko'cha": { uz: "Ko'cha", ru: "Улица", en: "Street" },
+            "Uy raqami": { uz: "Uy raqami", ru: "Номер дома", en: "House number" },
+            "Kasbi / Ish joyi": { uz: "Kasbi / Ish joyi", ru: "Профессия / Место работы", en: "Occupation / Workplace" },
+            "Parol": { uz: "Parol", ru: "Пароль", en: "Password" },
+            "Parolni tasdiqlang": { uz: "Parolni tasdiqlang", ru: "Подтвердите пароль", en: "Confirm password" },
+            "Masalan: Dasturiy injiniring": {
+                uz: "Masalan: Dasturiy injiniring",
+                ru: "Например: Программная инженерия",
+                en: "e.g., Software Engineering"
+            },
+            "Masalan: 912-21": {
+                uz: "Masalan: 912-21",
+                ru: "Например: 912-21",
+                en: "e.g., 912-21"
+            }
+        };
+
+        const DYNAMIC_PATTERNS = [
+            {
+                regex: /^(\d+)\s+ta kitob o'qidi$/,
+                uz: (m) => `${m[1]} ta kitob o'qidi`,
+                ru: (m) => `Прочитал(а) ${m[1]} кн.`,
+                en: (m) => `Read ${m[1]} books`
+            },
+            {
+                regex: /^Siz\s+(\d+)\s+ta kitobdan\s+(\d+)\s+tasini o'qidingiz\.$/,
+                uz: (m) => `Siz ${m[1]} ta kitobdan ${m[2]} tasini o'qidingiz.`,
+                ru: (m) => `Вы прочитали ${m[2]} из ${m[1]} книг.`,
+                en: (m) => `You have read ${m[2]} out of ${m[1]} books.`
+            },
+            {
+                regex: /^(\d+)\s+marta$/,
+                uz: (m) => `${m[1]} marta`,
+                ru: (m) => `${m[1]} раз(а)`,
+                en: (m) => `${m[1]} times`
+            },
+            {
+                regex: /^(\d+)\s+ta$/,
+                uz: (m) => `${m[1]} ta`,
+                ru: (m) => `${m[1]} шт.`,
+                en: (m) => `${m[1]} books`
+            },
+            {
+                regex: /^(\d+)\s+b\.$/,
+                uz: (m) => `${m[1]} b.`,
+                ru: (m) => `${m[1]} стр.`,
+                en: (m) => `${m[1]} p.`
+            },
+            {
+                regex: /^(.+)\s+da qaytarildi$/,
+                uz: (m) => `${m[1]} da qaytarildi`,
+                ru: (m) => `Возвращено: ${m[1]}`,
+                en: (m) => `Returned on ${m[1]}`
+            },
+            {
+                regex: /^(.+)\s+da navbatga yozilgan$/,
+                uz: (m) => `${m[1]} da navbatga yozilgan`,
+                ru: (m) => `В очереди с: ${m[1]}`,
+                en: (m) => `Queued on ${m[1]}`
+            },
+            {
+                regex: /^Inv:\s*(.+)\s*\|\s*Topshirish muddati:\s*(.+)$/,
+                uz: (m) => `Inv: ${m[1]} | Topshirish muddati: ${m[2]}`,
+                ru: (m) => `Инв: ${m[1]} | Срок возврата: ${m[2]}`,
+                en: (m) => `Inv: ${m[1]} | Due date: ${m[2]}`
+            },
+            {
+                regex: /^(.+)\s+\(Oliy Ta'lim \(ARM\)\)$/,
+                uz: (m) => `${m[1]} (Oliy Ta'lim (ARM))`,
+                ru: (m) => `${m[1]} (Высшее образование (ИРЦ))`,
+                en: (m) => `${m[1]} (Higher Education (IRC))`
+            },
+            {
+                regex: /^(.+)\s+\(Maktab Kutubxonasi\)$/,
+                uz: (m) => `${m[1]} (Maktab Kutubxonasi)`,
+                ru: (m) => `${m[1]} (Школьная библиотека)`,
+                en: (m) => `${m[1]} (School Library)`
+            },
+            {
+                regex: /^(.+)\s+\(Viloyat\/Tuman AKM \(Jamoat\)\)$/,
+                uz: (m) => `${m[1]} (Viloyat/Tuman AKM (Jamoat))`,
+                ru: (m) => `${m[1]} (Общественная библиотека (ИБЦ))`,
+                en: (m) => `${m[1]} (Public Library)`
+            },
+            {
+                regex: /^"(.+)" kitobi sizga rasmiylashtirildi \(Inventar:\s*(.+)\)\.$/,
+                uz: (m) => `"${m[1]}" kitobi sizga rasmiylashtirildi (Inventar: ${m[2]}).`,
+                ru: (m) => `Книга "${m[1]}" оформлена на вас (Инвентарь: ${m[2]}).`,
+                en: (m) => `Book "${m[1]}" has been checked out to you (Inventory: ${m[2]}).`
+            },
+            {
+                regex: /^"(.+)" kitobi muvaffaqiyatli topshirildi!$/,
+                uz: (m) => `"${m[1]}" kitobi muvaffaqiyatli topshirildi!`,
+                ru: (m) => `Книга "${m[1]}" успешно возвращена!`,
+                en: (m) => `Book "${m[1]}" has been returned successfully!`
+            },
+            {
+                regex: /^"(.+)" kitobi uchun navbat bekor qilindi\.$/,
+                uz: (m) => `"${m[1]}" kitobi uchun navbat bekor qilindi.`,
+                ru: (m) => `Очередь на книгу "${m[1]}" отменена.`,
+                en: (m) => `Reservation for "${m[1]}" has been cancelled.`
+            }
+        ];
+
+        const LANG_META = {
+            uz: { code: "UZ", label: "O'zbek" },
+            ru: { code: "RU", label: "Русский" },
+            en: { code: "US", label: "English" }
+        };
+
+        function translateTextValue(orig, lang) {
+            if (TRANSLATIONS[orig] && TRANSLATIONS[orig][lang]) {
+                return TRANSLATIONS[orig][lang];
+            }
+            for (const pat of DYNAMIC_PATTERNS) {
+                const match = orig.match(pat.regex);
+                if (match && pat[lang]) {
+                    return pat[lang](match);
+                }
+            }
+            return null;
+        }
+
+        function setLang(lang) {
+            if (!LANG_META[lang]) lang = 'uz';
+            localStorage.setItem('smartlib_lang', lang);
+            document.documentElement.setAttribute('lang', lang);
+
+            const btn = document.getElementById('langDropdownBtn');
+            if (btn) {
+                btn.innerHTML = `<span class="text-muted fw-normal">${LANG_META[lang].code}</span> <span>${LANG_META[lang].label}</span>`;
+            }
+
+            document.querySelectorAll('.lang-option').forEach(opt => {
+                const isMatch = opt.getAttribute('data-lang') === lang;
+                opt.classList.toggle('active', isMatch);
+                const chk = opt.querySelector('.lang-check');
+                if (chk) chk.classList.toggle('d-none', !isMatch);
+            });
+
+            // 1. Explicitly translate all <select><option> elements so browser repaints dropdown labels immediately
+            document.querySelectorAll('select option').forEach(opt => {
+                const currentText = (opt.textContent || '').trim().replace(/\s+/g, ' ');
+                if (!currentText || currentText === '---------') return;
+                if (!opt.dataset.origText) {
+                    if (translateTextValue(currentText, 'uz') !== null) {
+                        opt.dataset.origText = currentText;
+                    }
+                }
+                if (opt.dataset.origText) {
+                    const translatedOpt = translateTextValue(opt.dataset.origText, lang);
+                    if (translatedOpt) {
+                        opt.textContent = translatedOpt;
+                        opt.text = translatedOpt;
+                    }
+                }
+            });
+
+            // 2. Translate all DOM text nodes safely (with multi-line whitespace normalization)
+            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+            let node;
+            while ((node = walker.nextNode())) {
+                const parent = node.parentElement;
+                if (!parent || parent.tagName === 'SCRIPT' || parent.tagName === 'STYLE' || parent.tagName === 'OPTION') continue;
+                const raw = node.nodeValue;
+                const normalized = raw.trim().replace(/\s+/g, ' ');
+                if (!normalized) continue;
+
+                if (!node._origText) {
+                    if (translateTextValue(normalized, 'uz') !== null) {
+                        node._origText = normalized;
+                    }
+                }
+                if (node._origText) {
+                    const translated = translateTextValue(node._origText, lang);
+                    if (translated) {
+                        const leading = /^\s/.test(raw) ? ' ' : '';
+                        const trailing = /\s$/.test(raw) ? ' ' : '';
+                        node.nodeValue = leading + translated + trailing;
+                    }
+                }
+            }
+
+            // 3. Translate all input/textarea placeholders across the entire app
+            document.querySelectorAll('input[placeholder], textarea[placeholder]').forEach(el => {
+                const curPh = (el.getAttribute('placeholder') || '').trim();
+                if (!curPh) return;
+                if (!el.dataset.origPh) {
+                    if (PLACEHOLDER_TRANSLATIONS[curPh]) {
+                        el.dataset.origPh = curPh;
+                    }
+                }
+                if (el.dataset.origPh && PLACEHOLDER_TRANSLATIONS[el.dataset.origPh]) {
+                    const transPh = PLACEHOLDER_TRANSLATIONS[el.dataset.origPh][lang];
+                    if (transPh) {
+                        el.setAttribute('placeholder', transPh);
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedLang = localStorage.getItem('smartlib_lang') || 'uz';
+            setLang(savedLang);
+        });
+
+        /* QR Scanner Logic (Camera + Image File Upload) */
+        let qrScannerInstance = null;
+        function handleDecodedQr(decodedText) {
+            const raw = String(decodedText || '').trim();
+            const resBox = document.getElementById('qrScanResult');
+            if (resBox) resBox.textContent = "Topildi: " + raw;
+
+            // Agar Kutubxonachi Skaner-Terminalida (/librarian/terminal/) bo'lsa:
+            const termInput = document.getElementById('terminalScanInput');
+            const termForm = document.getElementById('terminalScanForm');
+            if (termInput && termForm) {
+                stopQrCamera();
+                if (/SMARTLIB-READER:/i.test(raw) || /USER:/i.test(raw)) {
+                    const sq = termForm.querySelector('input[name="student_query"]');
+                    const mUser = raw.match(/USER:([^|]+)/i);
+                    if (sq) sq.value = mUser ? mUser[1].trim() : raw;
+                    const modalEl = document.getElementById('qrScannerModal');
+                    if (modalEl && window.bootstrap) bootstrap.Modal.getInstance(modalEl)?.hide();
+                    return;
+                }
+                const mInv = raw.match(/[?&]inv=([^&#\s]+)/i) || raw.match(/(INV-\d+-\d+)/i);
+                termInput.value = mInv ? mInv[1] : raw;
+                termForm.submit();
+                return;
+            }
+
+            const match = raw.match(/\/book\/(\d+)\/?/) || raw.match(/BOOK:(\d+)/i);
+            if (match) {
+                stopQrCamera();
+                window.location.href = `/book/${match[1]}/`;
+            } else if (/^https?:\/\//i.test(raw)) {
+                stopQrCamera();
+                window.location.href = raw;
+            }
+        }
+        function ensureQrLib(cb) {
+            if (window.Html5Qrcode) return cb();
+            const s = document.createElement('script');
+            s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+            s.onload = cb;
+            document.head.appendChild(s);
+        }
+        function startQrCamera() {
+            ensureQrLib(function() {
+                const resBox = document.getElementById('qrScanResult');
+                if (!qrScannerInstance) {
+                    qrScannerInstance = new Html5Qrcode("qrReaderBox");
+                }
+                qrScannerInstance.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 220, height: 220 } },
+                    (decodedText) => handleDecodedQr(decodedText),
+                    () => {}
+                ).catch(err => {
+                    if (resBox) resBox.textContent = "Kamera topilmadi. QR rasm faylini yuklang.";
+                });
+            });
+        }
+        function stopQrCamera() {
+            if (qrScannerInstance && qrScannerInstance.isScanning) {
+                qrScannerInstance.stop().catch(() => {});
+            }
+        }
+        function scanQrFile(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            ensureQrLib(function() {
+                if (!qrScannerInstance) {
+                    qrScannerInstance = new Html5Qrcode("qrReaderBox");
+                }
+                qrScannerInstance.scanFile(file, true)
+                    .then(decodedText => handleDecodedQr(decodedText))
+                    .catch(() => {
+                        const resBox = document.getElementById('qrScanResult');
+                        if (resBox) resBox.textContent = "Ushbu rasmda QR-kod topilmadi.";
+                    });
+            });
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

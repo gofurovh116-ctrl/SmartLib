@@ -1,0 +1,442 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ book.title }} — Elektron Mutolaa va Audiokitob | SMARTLIB{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reader-header-card {
+        background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+        color: #ffffff !important;
+        border-radius: 20px;
+        padding: 1.5rem 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+    }
+    .reader-header-card h3, .reader-header-card p, .reader-header-card span, .reader-header-card i {
+        color: #ffffff !important;
+    }
+    .reader-toolbar {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 0.85rem 1.25rem;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        box-shadow: var(--shadow-soft);
+    }
+    .reader-viewport {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 18px;
+        overflow: hidden;
+        min-height: 640px;
+        box-shadow: var(--shadow-soft);
+        transition: filter 0.3s ease, background-color 0.3s ease;
+    }
+    .reader-viewport.filter-sepia {
+        filter: sepia(0.38) contrast(0.95);
+        background-color: #f4ecd8 !important;
+    }
+    .reader-viewport.filter-night {
+        filter: invert(0.9) hue-rotate(180deg);
+        background-color: #0f172a !important;
+    }
+    .audio-studio-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 18px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-soft);
+        margin-bottom: 1.25rem;
+    }
+    .speed-pill {
+        border: 1px solid var(--border-color);
+        background: var(--bg-subtle);
+        color: var(--text-main);
+        border-radius: 50px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .speed-pill.active {
+        background: #2563eb;
+        color: #ffffff !important;
+        border-color: #2563eb;
+    }
+    .digital-text-page {
+        padding: 2.5rem 3rem;
+        line-height: 1.85;
+        font-size: 1.08rem;
+        color: var(--text-main);
+        max-width: 820px;
+        margin: 0 auto;
+    }
+    .tts-wave-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0.35rem 0.9rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-3">
+    <!-- Top Header -->
+    <div class="reader-header-card">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-info text-dark rounded-pill px-3 py-1 fw-bold">
+                        <i class="fa-solid fa-book-open-reader me-1"></i>SmartLib Cloud Reader & Audio Studio
+                    </span>
+                    <span class="small opacity-75">{{ book.genre.name|default:"Umumiy" }}</span>
+                </div>
+                <h3 class="fw-bold mb-1">{{ book.title }}</h3>
+                <p class="mb-0 opacity-75 small">
+                    <i class="fa-solid fa-pen-nib me-1"></i>{{ book.author }}
+                    | ISBN: {{ book.isbn|default:"-" }}
+                    | {{ book.pages|default:300 }} bet
+                </p>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <a href="{% url 'book_detail' book.pk %}" class="btn btn-outline-light rounded-pill px-3 py-2 fw-semibold btn-sm">
+                    <i class="fa-solid fa-arrow-left me-1"></i>Kitob sahifasiga qaytish
+                </a>
+                {% if book.pdf_file %}
+                <a href="{{ book.pdf_file.url }}" download class="btn btn-light text-primary rounded-pill px-3 py-2 fw-bold btn-sm">
+                    <i class="fa-solid fa-download me-1"></i>PDF Yuklab olish
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column: Interactive PDF / Digital Text Reader -->
+        <div class="col-lg-8">
+            <div class="reader-toolbar">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="small fw-bold text-muted"><i class="fa-solid fa-bookmark text-primary me-1"></i>Xatcho'p (Bet):</span>
+                    <div class="input-group input-group-sm" style="width: 145px;">
+                        <button class="btn btn-outline-secondary" type="button" onclick="changeBookmarkPage(-1)">-</button>
+                        <input type="number" id="bookmarkPageInput" class="form-control text-center fw-bold" value="1" min="1" max="{{ book.pages|default:500 }}" onchange="saveBookmarkPage()">
+                        <button class="btn btn-outline-secondary" type="button" onclick="changeBookmarkPage(1)">+</button>
+                    </div>
+                    <span id="bookmarkSavedBadge" class="badge bg-success-subtle text-success border border-success rounded-pill px-2 py-1" style="font-size: 0.72rem;">
+                        <i class="fa-solid fa-check me-1"></i>Saqlangan
+                    </span>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="small fw-semibold text-muted">Ko'rinish:</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="setReaderFilter('normal')">
+                        <i class="fa-solid fa-sun me-1"></i>Kunduzgi
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3" onclick="setReaderFilter('sepia')">
+                        <i class="fa-solid fa-mug-hot me-1"></i>Sepia
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-dark rounded-pill px-3" onclick="setReaderFilter('night')">
+                        <i class="fa-solid fa-moon me-1"></i>Tungi
+                    </button>
+                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" onclick="toggleReaderFullscreen()">
+                        <i class="fa-solid fa-expand me-1"></i>To'liq ekran
+                    </button>
+                </div>
+            </div>
+
+            <div id="readerViewport" class="reader-viewport">
+                {% if book.pdf_file %}
+                    <iframe id="pdfFrame" src="{{ book.pdf_file.url }}#page=1" width="100%" height="680" style="border: none; display: block;"></iframe>
+                {% else %}
+                    <div class="digital-text-page" id="digitalTextContent">
+                        <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
+                            <div>
+                                <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 fw-bold mb-2">
+                                    Raqamli Konspekt va Annotatsiya Rejimi
+                                </span>
+                                <h4 class="fw-bold mb-0">{{ book.title }}</h4>
+                                <div class="text-muted small">Muallif: {{ book.author }} | Nashriyot: {{ book.publisher|default:"Ziyo Nashr" }} ({{ book.published_year|default:2024 }})</div>
+                            </div>
+                            <div class="text-end">
+                                <span class="font-monospace small text-muted">UO'K: {{ book.udc|default:"-" }}</span><br>
+                                <span class="font-monospace small text-muted">BBK: {{ book.bbk|default:"-" }}</span>
+                            </div>
+                        </div>
+
+                        <h5 class="fw-bold mb-3"><i class="fa-solid fa-feather-pointed text-primary me-2"></i>Asar mazmuni va annotatsiyasi</h5>
+                        <p id="bookReadableText" class="mb-4" style="text-align: justify;">
+                            {{ book.title }}. Muallif: {{ book.author }}.
+                            {{ book.annotation|default:"Ushbu asar o'zbek va jahon adabiyotining sara namunalaridan biri bo'lib, kitobxonni chuqur mushohada yuritishga, ilm-ma'rifat va insoniy fazilatlarni qadrlashga chorlaydi. SmartLib elektron kutubxona tizimi orqali asarning bosma nusxasini kutubxonadan olishingiz yoki o'ng tarafdagi AI Ovozli Mutolaa pleyeri yordamida tinglashingiz mumkin." }}
+                        </p>
+
+                        <div class="p-4 rounded-4 mt-4" style="background: var(--bg-subtle); border: 1px dashed var(--border-color);">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fa-solid fa-file-pdf fs-2 text-danger"></i>
+                                <div>
+                                    <div class="fw-bold">To'liq PDF fayl kutubxona fondida raqamlashtirilmoqda</div>
+                                    <div class="small text-muted">
+                                        Kutubxonachi tomonidan PDF fayl yuklangach, shu oynada to'liq sahifali PDF Reader avtomatik ochiladi. Ungacha asar annotatsiyasini <strong>AI Ovozli Mutolaa (TTS)</strong> orqali tinglashingiz yoki shaxsiy konspekt yozishingiz mumkin.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column: Audio Book Player + Web Speech TTS + Personal Notes -->
+        <div class="col-lg-4">
+            <!-- 1. Uploaded MP3/WAV Audio Player (if available) -->
+            {% if book.audio_file %}
+            <div class="audio-studio-card">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="fw-bold mb-0">
+                        <i class="fa-solid fa-headphones text-primary me-2"></i>Original Audiokitob (MP3)
+                    </h6>
+                    <span class="badge bg-primary rounded-pill">HD Audio</span>
+                </div>
+                <audio id="uploadedAudioPlayer" controls class="w-100 mb-3" src="{{ book.audio_file.url }}"></audio>
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-1">
+                    <span class="small text-muted fw-semibold">Tezlik:</span>
+                    <div class="d-flex gap-1">
+                        <button type="button" class="speed-pill" onclick="setAudioSpeed(0.75, this)">0.75x</button>
+                        <button type="button" class="speed-pill active" onclick="setAudioSpeed(1.0, this)">1x</button>
+                        <button type="button" class="speed-pill" onclick="setAudioSpeed(1.25, this)">1.25x</button>
+                        <button type="button" class="speed-pill" onclick="setAudioSpeed(1.5, this)">1.5x</button>
+                        <button type="button" class="speed-pill" onclick="setAudioSpeed(2.0, this)">2x</button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 2. Smart AI Voice Reader (Web Speech Synthesis TTS) -->
+            <div class="audio-studio-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="fw-bold mb-0">
+                        <i class="fa-solid fa-microphone-lines text-success me-2"></i>AI Ovozli Mutolaa (TTS)
+                    </h6>
+                    <span id="ttsStatusBadge" class="tts-wave-badge">
+                        <i class="fa-solid fa-wave-square"></i> Tayyor
+                    </span>
+                </div>
+                <p class="small text-muted mb-3">
+                    Brauzerning sun'iy intellekt sintezatori yordamida kitob tavsifi va matnini ovozli tarzda tinglang.
+                </p>
+
+                <div class="d-flex gap-2 mb-3">
+                    <button type="button" id="btnTtsPlay" class="btn btn-success rounded-pill flex-grow-1 fw-semibold" onclick="startTtsReading()">
+                        <i class="fa-solid fa-play me-1"></i>Tinglashni boshlash
+                    </button>
+                    <button type="button" class="btn btn-outline-warning rounded-pill px-3" onclick="pauseResumeTts()" title="Pauza / Davom ettirish">
+                        <i class="fa-solid fa-pause"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger rounded-pill px-3" onclick="stopTtsReading()" title="To'xtatish">
+                        <i class="fa-solid fa-stop"></i>
+                    </button>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between">
+                    <span class="small text-muted fw-semibold">O'qish tezligi:</span>
+                    <div class="d-flex gap-1">
+                        <button type="button" class="speed-pill" onclick="setTtsRate(0.85, this)">0.85x</button>
+                        <button type="button" class="speed-pill active" onclick="setTtsRate(1.0, this)">1x</button>
+                        <button type="button" class="speed-pill" onclick="setTtsRate(1.25, this)">1.25x</button>
+                        <button type="button" class="speed-pill" onclick="setTtsRate(1.5, this)">1.5x</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Personal Reading Notes (Saved in LocalStorage) -->
+            <div class="audio-studio-card">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="fw-bold mb-0">
+                        <i class="fa-solid fa-note-sticky text-warning me-2"></i>Shaxsiy Konspekt va Qaydlar
+                    </h6>
+                    <small id="notesSaveIndicator" class="text-success fw-semibold" style="font-size: 0.75rem;">Avto-saqlash</small>
+                </div>
+                <textarea id="readerPersonalNotes" rows="6" class="form-control mb-2" placeholder="Kitobni o'qish davomida muhim iqtiboslar va fikrlarni shu yerga yozib boring..." oninput="savePersonalNotes()"></textarea>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">Brauzer xotirasida saqlanadi</small>
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="downloadNotesTxt()">
+                        <i class="fa-solid fa-file-arrow-down me-1"></i>.TXT yuklash
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const BOOK_ID = "{{ book.pk }}";
+    const BOOKMARK_KEY = "smartlib_bookmark_page_" + BOOK_ID;
+    const NOTES_KEY = "smartlib_reader_notes_" + BOOK_ID;
+    const AUDIO_TIME_KEY = "smartlib_audio_time_" + BOOK_ID;
+    let currentTtsRate = 1.0;
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Restore Bookmark Page
+        const savedPage = localStorage.getItem(BOOKMARK_KEY);
+        const pageInp = document.getElementById("bookmarkPageInput");
+        if (savedPage && pageInp) {
+            pageInp.value = savedPage;
+            const pdfFrame = document.getElementById("pdfFrame");
+            if (pdfFrame) {
+                const baseUrl = pdfFrame.getAttribute("src").split("#")[0];
+                pdfFrame.setAttribute("src", baseUrl + "#page=" + savedPage);
+            }
+        }
+
+        // Restore Notes
+        const savedNotes = localStorage.getItem(NOTES_KEY);
+        const notesArea = document.getElementById("readerPersonalNotes");
+        if (savedNotes && notesArea) {
+            notesArea.value = savedNotes;
+        }
+
+        // Restore Audio Position
+        const audioEl = document.getElementById("uploadedAudioPlayer");
+        if (audioEl) {
+            const savedTime = parseFloat(localStorage.getItem(AUDIO_TIME_KEY) || "0");
+            if (savedTime > 0) {
+                audioEl.currentTime = savedTime;
+            }
+            audioEl.addEventListener("timeupdate", function() {
+                localStorage.setItem(AUDIO_TIME_KEY, String(audioEl.currentTime));
+            });
+        }
+    });
+
+    function saveBookmarkPage() {
+        const pageInp = document.getElementById("bookmarkPageInput");
+        if (!pageInp) return;
+        const p = Math.max(1, parseInt(pageInp.value || "1", 10));
+        pageInp.value = p;
+        localStorage.setItem(BOOKMARK_KEY, String(p));
+        const pdfFrame = document.getElementById("pdfFrame");
+        if (pdfFrame) {
+            const baseUrl = pdfFrame.getAttribute("src").split("#")[0];
+            pdfFrame.setAttribute("src", baseUrl + "#page=" + p);
+        }
+        const badge = document.getElementById("bookmarkSavedBadge");
+        if (badge) {
+            badge.innerHTML = '<i class="fa-solid fa-check me-1"></i>' + p + '-bet saqlandi';
+        }
+    }
+
+    function changeBookmarkPage(delta) {
+        const pageInp = document.getElementById("bookmarkPageInput");
+        if (!pageInp) return;
+        pageInp.value = Math.max(1, parseInt(pageInp.value || "1", 10) + delta);
+        saveBookmarkPage();
+    }
+
+    function setReaderFilter(mode) {
+        const vp = document.getElementById("readerViewport");
+        if (!vp) return;
+        vp.classList.remove("filter-sepia", "filter-night");
+        if (mode === "sepia") vp.classList.add("filter-sepia");
+        if (mode === "night") vp.classList.add("filter-night");
+    }
+
+    function toggleReaderFullscreen() {
+        const vp = document.getElementById("readerViewport");
+        if (!vp) return;
+        if (!document.fullscreenElement) {
+            vp.requestFullscreen().catch(() => {});
+        } else {
+            document.exitFullscreen().catch(() => {});
+        }
+    }
+
+    function setAudioSpeed(rate, btn) {
+        const audioEl = document.getElementById("uploadedAudioPlayer");
+        if (audioEl) audioEl.playbackRate = rate;
+        if (btn && btn.parentElement) {
+            btn.parentElement.querySelectorAll(".speed-pill").forEach(el => el.classList.remove("active"));
+            btn.classList.add("active");
+        }
+    }
+
+    function setTtsRate(rate, btn) {
+        currentTtsRate = rate;
+        if (btn && btn.parentElement) {
+            btn.parentElement.querySelectorAll(".speed-pill").forEach(el => el.classList.remove("active"));
+            btn.classList.add("active");
+        }
+        if (window.speechSynthesis && window.speechSynthesis.speaking) {
+            startTtsReading();
+        }
+    }
+
+    function startTtsReading() {
+        if (!("speechSynthesis" in window)) {
+            alert("Brauzeringiz ovozli sintezatorni (Web Speech API) qo'llab-quvvatlamaydi.");
+            return;
+        }
+        window.speechSynthesis.cancel();
+        const textNode = document.getElementById("bookReadableText");
+        const fallbackText = "{{ book.title|escapejs }}. Muallif: {{ book.author|escapejs }}. {{ book.annotation|default:'SmartLib elektron kutubxonasi.'|escapejs }}";
+        const content = textNode ? textNode.innerText : fallbackText;
+        const utter = new SpeechSynthesisUtterance(content);
+        utter.rate = currentTtsRate;
+        const badge = document.getElementById("ttsStatusBadge");
+        utter.onstart = function() {
+            if (badge) badge.innerHTML = '<i class="fa-solid fa-volume-high"></i> O\'qilmoqda...';
+        };
+        utter.onend = function() {
+            if (badge) badge.innerHTML = '<i class="fa-solid fa-check"></i> Yakunlandi';
+        };
+        window.speechSynthesis.speak(utter);
+    }
+
+    function pauseResumeTts() {
+        if (!("speechSynthesis" in window)) return;
+        const badge = document.getElementById("ttsStatusBadge");
+        if (window.speechSynthesis.paused) {
+            window.speechSynthesis.resume();
+            if (badge) badge.innerHTML = '<i class="fa-solid fa-volume-high"></i> O\'qilmoqda...';
+        } else if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.pause();
+            if (badge) badge.innerHTML = '<i class="fa-solid fa-pause"></i> Pauza';
+        }
+    }
+
+    function stopTtsReading() {
+        if (!("speechSynthesis" in window)) return;
+        window.speechSynthesis.cancel();
+        const badge = document.getElementById("ttsStatusBadge");
+        if (badge) badge.innerHTML = '<i class="fa-solid fa-wave-square"></i> Tayyor';
+    }
+
+    function savePersonalNotes() {
+        const notesArea = document.getElementById("readerPersonalNotes");
+        if (!notesArea) return;
+        localStorage.setItem(NOTES_KEY, notesArea.value);
+        const ind = document.getElementById("notesSaveIndicator");
+        if (ind) ind.textContent = "Saqlandi ✓";
+    }
+
+    function downloadNotesTxt() {
+        const notesArea = document.getElementById("readerPersonalNotes");
+        const txt = (notesArea && notesArea.value) ? notesArea.value : "SmartLib konspekti: {{ book.title|escapejs }}";
+        const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "konspekt_kitob_" + BOOK_ID + ".txt";
+        a.click();
+    }
+</script>
+{% endblock %}

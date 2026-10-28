@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    .reg-card {
+        max-width: 740px;
+        margin: 1.8rem auto;
+        background: var(--bg-card);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: var(--shadow-soft);
+    }
+    @media (max-width: 767.98px) {
+        .reg-card {
+            margin: 1rem auto;
+            border-radius: 18px;
+        }
+        .reg-header-blue {
+            padding: 1.5rem 1rem !important;
+        }
+    }
+    .reg-header-blue {
+        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 45%, #2563eb 100%);
+        color: #ffffff !important;
+        text-align: center;
+        padding: 2.1rem 1.5rem;
+    }
+    .reg-header-blue * {
+        color: #ffffff !important;
+    }
+    .role-selector-box {
+        background-color: var(--bg-subtle);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .section-subtitle {
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        color: var(--text-main) !important;
+        text-transform: uppercase;
+        margin-bottom: 0.85rem;
+    }
+    .form-label-reg {
+        font-size: 0.84rem;
+        font-weight: 600;
+        color: var(--text-main) !important;
+        margin-bottom: 0.3rem;
+    }
+    .btn-reg-submit {
+        background-color: #3b5bdb;
+        color: #ffffff !important;
+        border: none;
+        border-radius: 50px;
+        padding: 0.85rem;
+        font-weight: 700;
+        font-size: 1rem;
+        width: 100%;
+        transition: opacity 0.2s;
+    }
+    .btn-reg-submit:disabled {
+        opacity: 0.7;
+        cursor: wait;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="reg-card">
+        <div class="reg-header-blue">
+            <h3 class="fw-bold mb-1">
+                <i class="fa-solid fa-user-plus me-2"></i>Ro'yxatdan o'tish
+            </h3>
+            <div class="small opacity-75">SmartLib tizimiga xush kelibsiz!</div>
+        </div>
+
+        <div class="p-4 p-md-5">
+            <form method="post" id="registerForm">
+                {% csrf_token %}
+
+                <!-- Role Switcher Box -->
+                <div class="role-selector-box">
+                    <label class="fw-bold text-primary small mb-2 d-block">Kim sifatida kirmoqchisiz?</label>
+                    <select name="role" id="roleSelect" class="form-select fw-bold mb-2">
+                        <option value="student" {% if form_data.role == 'student' %}selected{% endif %}>Talaba (Universitet)</option>
+                        <option value="pupil" {% if form_data.role == 'pupil' %}selected{% endif %}>O'quvchi (Maktab)</option>
+                        <option value="citizen" {% if form_data.role == 'citizen' %}selected{% endif %}>Mustaqil Kitobxon (Aholi)</option>
+                    </select>
+                    <small class="text-muted">Tanlovingizga qarab kerakli maydonlar ochiladi.</small>
+                </div>
+
+                <div class="section-subtitle">SHAXSIY MA'LUMOTLAR</div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label-reg">Ism</label>
+                        <input type="text" name="first_name" value="{{ form_data.first_name|default:'' }}" class="form-control" placeholder="First name" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-reg">Familiya</label>
+                        <input type="text" name="last_name" value="{{ form_data.last_name|default:'' }}" class="form-control" placeholder="Last name" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label-reg">Login (Username)</label>
+                    <input type="text" name="username" value="{{ form_data.username|default:'' }}" class="form-control" placeholder="Username" required>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label-reg">Telefon raqam</label>
+                        <input type="text" name="phone" value="{{ form_data.phone|default:'' }}" class="form-control" placeholder="Telefon raqam">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-reg">Email (Ixtiyoriy)</label>
+                        <input type="email" name="email" value="{{ form_data.email|default:'' }}" class="form-control" placeholder="Email address">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label-reg">Kutubxonani tanlang</label>
+                    <select name="library" class="form-select">
+                        <option value="">---------</option>
+                        {% for lib in libraries %}
+                            <option value="{{ lib.pk }}" {% if form_data.library == lib.pk|stringformat:"s" %}selected{% endif %}>{{ lib }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <hr class="opacity-25 my-4">
+
+                <!-- 1. Talaba (Universitet) Dynamic Block -->
+                <div id="block-student" class="role-block mb-4">
+                    <h6 class="fw-bold text-primary mb-3">
+                        <i class="fa-solid fa-graduation-cap me-2"></i>Talaba Ma'lumotlari
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label-reg">Student ID</label>
+                            <input type="text" name="student_id" value="{{ form_data.student_id|default:'' }}" class="form-control" placeholder="Student ID (Hemis)">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label-reg">Fakultet</label>
+                            <input type="text" name="faculty" value="{{ form_data.faculty|default:'' }}" class="form-control" placeholder="Fakultet">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label-reg">Guruh</label>
+                            <input type="text" name="group_name" value="{{ form_data.group_name|default:'' }}" class="form-control" placeholder="Guruh">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. O'quvchi (Maktab) Dynamic Block -->
+                <div id="block-pupil" class="role-block mb-4" style="display: none;">
+                    <h6 class="fw-bold text-success mb-3">
+                        <i class="fa-solid fa-school me-2"></i>O'quvchi Ma'lumotlari
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label-reg">Sinf (Masalan: 11)</label>
+                            <input type="text" name="grade" value="{{ form_data.grade|default:'' }}" class="form-control" placeholder="Sinf">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label-reg">Sinf Harfi (Masalan: A)</label>
+                            <input type="text" name="grade_letter" value="{{ form_data.grade_letter|default:'' }}" class="form-control" placeholder="Sinf harfi">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label-reg">Ota-ona telefoni</label>
+                            <input type="text" name="parent_phone" value="{{ form_data.parent_phone|default:'' }}" class="form-control" placeholder="Ota-ona telefoni">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Mustaqil Kitobxon (Aholi) Dynamic Block -->
+                <div id="block-citizen" class="role-block mb-4" style="display: none;">
+                    <h6 class="fw-bold text-warning mb-3">
+                        <i class="fa-solid fa-house me-2"></i>Yashash Manzili
+                    </h6>
+                    <div class="mb-3">
+                        <label class="form-label-reg">Mahalla Nomi</label>
+                        <input type="text" name="mahalla" value="{{ form_data.mahalla|default:'' }}" class="form-control" placeholder="Mahalla nomi">
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label-reg">Ko'cha</label>
+                            <input type="text" name="street" value="{{ form_data.street|default:'' }}" class="form-control" placeholder="Ko'cha">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label-reg">Uy raqami</label>
+                            <input type="text" name="house_number" value="{{ form_data.house_number|default:'' }}" class="form-control" placeholder="Uy raqami">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="form-label-reg">Kasbi / Ish joyi</label>
+                        <input type="text" name="occupation" value="{{ form_data.occupation|default:'' }}" class="form-control" placeholder="Kasbi / Ish joyi">
+                    </div>
+                </div>
+
+                <hr class="opacity-25 my-4">
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label-reg">Parol</label>
+                        <input type="password" name="password" class="form-control" placeholder="Parol" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-reg">Parolni tasdiqlang</label>
+                        <input type="password" name="password_confirm" class="form-control" placeholder="Parolni tasdiqlang" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-reg-submit" id="regSubmitBtn">Ro'yxatdan o'tish</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function() {
+        const selectEl = document.getElementById('roleSelect');
+        const blocks = {
+            student: document.getElementById('block-student'),
+            pupil: document.getElementById('block-pupil'),
+            citizen: document.getElementById('block-citizen'),
+        };
+
+        function updateBlocks() {
+            const val = selectEl.value;
+            Object.keys(blocks).forEach(k => {
+                blocks[k].style.display = (k === val) ? 'block' : 'none';
+            });
+        }
+
+        if (selectEl) {
+            selectEl.addEventListener('change', updateBlocks);
+            updateBlocks();
+        }
+
+        const regForm = document.getElementById('registerForm');
+        const submitBtn = document.getElementById('regSubmitBtn');
+        if (regForm && submitBtn) {
+            regForm.addEventListener('submit', function() {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-2"></i>Saqlanmoqda...';
+            });
+        }
+
+        // StudentBase (HEMIS / Passport ID) auto-lookup
+        const studentIdInput = document.querySelector('input[name="student_id"]');
+        if (studentIdInput) {
+            studentIdInput.addEventListener('blur', function() {
+                const val = studentIdInput.value.trim();
+                if (!val) return;
+                fetch(`/api/student-lookup/?q=${encodeURIComponent(val)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.found) {
+                            const fn = document.querySelector('input[name="first_name"]');
+                            const ln = document.querySelector('input[name="last_name"]');
+                            const gr = document.querySelector('input[name="group_name"]');
+                            const fc = document.querySelector('input[name="faculty"]');
+                            if (fn && !fn.value) fn.value = data.first_name;
+                            if (ln && !ln.value) ln.value = data.last_name;
+                            if (gr && !gr.value) gr.value = data.group;
+                            if (fc && !fc.value && data.faculty) fc.value = data.faculty;
+                        }
+                    })
+                    .catch(() => {});
+            });
+        }
+    })();
+</script>
+{% endblock %}

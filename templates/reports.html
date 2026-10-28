@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: var(--bg-card);
+        color: var(--text-main);
+        border-radius: 22px;
+        padding: 1.85rem 1.3rem;
+        text-align: center;
+        box-shadow: var(--shadow-soft);
+        border: 1px solid var(--border-color);
+        border-bottom-width: 4px;
+        height: 100%;
+        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-hover);
+    }
+    .stat-card.blue { border-bottom-color: #0d6efd; }
+    .stat-card.green { border-bottom-color: #198754; }
+    .stat-card.yellow { border-bottom-color: #ffc107; }
+    .stat-card.cyan { border-bottom-color: #0dcaf0; }
+
+    .stat-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    .stat-number {
+        font-size: 1.85rem;
+        font-weight: 800;
+        color: var(--text-main) !important;
+        margin-bottom: 0.15rem;
+    }
+    .stat-label {
+        color: var(--text-muted) !important;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .btn-pdf-download {
+        background-color: #dc3545;
+        color: #ffffff !important;
+        border-radius: 50px;
+        padding: 0.5rem 1.25rem;
+        font-weight: 600;
+        font-size: 0.88rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.25);
+    }
+    .btn-pdf-download * {
+        color: #ffffff !important;
+    }
+    .btn-pdf-download:hover {
+        background-color: #bb2d3b;
+    }
+
+    .read-count-badge {
+        background-color: #e7f1ff;
+        color: #0d6efd !important;
+        font-weight: 700;
+        font-size: 0.82rem;
+        padding: 0.35rem 0.9rem;
+        border-radius: 50px;
+        display: inline-block;
+    }
+    [data-theme="dark"] .read-count-badge {
+        background-color: rgba(59, 130, 246, 0.25);
+        color: #93c5fd !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-3">
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+        <h2 class="fw-bold text-primary mb-0 d-flex align-items-center gap-2">
+            <i class="fa-solid fa-chart-pie"></i> Kutubxona Hisoboti
+        </h2>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <a href="{% url 'reports_excel' %}" class="btn btn-success rounded-pill px-3 py-2 fw-semibold btn-sm text-white shadow-sm">
+                <i class="fa-solid fa-file-excel me-1"></i><span>Excel (.xlsx) yuklab olish</span>
+            </a>
+            <a href="{% url 'reports_pdf' %}" class="btn-pdf-download">
+                <i class="fa-solid fa-file-pdf"></i> PDF yuklab olish
+            </a>
+        </div>
+    </div>
+
+    <!-- Top Stat Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="stat-card blue">
+                <div class="stat-icon text-primary"><i class="fa-solid fa-book"></i></div>
+                <div class="stat-number">{{ total_books }}</div>
+                <div class="stat-label">Jami Kitoblar</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="stat-card green">
+                <div class="stat-icon text-success"><i class="fa-solid fa-layer-group"></i></div>
+                <div class="stat-number">{{ total_copies }}</div>
+                <div class="stat-label">Jami Nusxalar</div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="stat-card yellow">
+                <div class="stat-icon text-warning"><i class="fa-solid fa-hand-holding-heart"></i></div>
+                <div class="stat-number">{{ active_loans }}</div>
+                <div class="stat-label">O'qilmoqda</div>
+                {% if overdue_loans > 0 %}
+                <div class="mt-1">
+                    <span class="badge bg-danger rounded-pill" style="font-size: 0.72rem;">
+                        <span>Muddati o'tgan</span>: {{ overdue_loans }}
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="stat-card cyan">
+                <div class="stat-icon text-info"><i class="fa-solid fa-users"></i></div>
+                <div class="stat-number">{{ total_members }}</div>
+                <div class="stat-label">A'zolar soni</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Charts (Chart.js) -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-7">
+            <div class="smart-card p-4 h-100">
+                <h6 class="fw-bold mb-3" style="color: var(--text-main);">
+                    <i class="fa-solid fa-chart-column text-primary me-2"></i><span>Eng ko'p o'qilgan kitoblar (Top 5)</span>
+                </h6>
+                <canvas id="topBooksChart" height="170"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="smart-card p-4 h-100">
+                <h6 class="fw-bold mb-3" style="color: var(--text-main);">
+                    <i class="fa-solid fa-chart-pie text-success me-2"></i><span>Janrlar kesimida kitoblar</span>
+                </h6>
+                <canvas id="genresChart" height="170"></canvas>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!window.Chart) return;
+            const topLabels = {{ chart_top_labels_json|default:"[]"|safe }};
+            const topCounts = {{ chart_top_counts_json|default:"[]"|safe }};
+            const genreLabels = {{ chart_genre_labels_json|default:"[]"|safe }};
+            const genreCounts = {{ chart_genre_counts_json|default:"[]"|safe }};
+
+            const ctx1 = document.getElementById('topBooksChart');
+            if (ctx1 && topLabels.length > 0) {
+                new Chart(ctx1, {
+                    type: 'bar',
+                    data: {
+                        labels: topLabels,
+                        datasets: [{
+                            label: "O'qilgan marta",
+                            data: topCounts,
+                            backgroundColor: ['#3b5bdb', '#0d6efd', '#198754', '#f59f00', '#0dcaf0'],
+                            borderRadius: 8
+                        }]
+                    },
+                    options: { responsive: true, plugins: { legend: { display: false } } }
+                });
+            }
+            const ctx2 = document.getElementById('genresChart');
+            if (ctx2 && genreLabels.length > 0) {
+                new Chart(ctx2, {
+                    type: 'doughnut',
+                    data: {
+                        labels: genreLabels,
+                        datasets: [{
+                            data: genreCounts,
+                            backgroundColor: ['#3b5bdb', '#198754', '#f59f00', '#dc3545', '#0dcaf0', '#6f42c1']
+                        }]
+                    },
+                    options: { responsive: true }
+                });
+            }
+        });
+    </script>
+
+    <!-- Top 5 Books Table -->
+    <div class="smart-card p-4 mb-4">
+        <h5 class="fw-bold mb-4" style="color: var(--text-main);">Eng ko'p o'qilgan kitoblar (Top 5)</h5>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 45%; color: var(--text-main) !important;">Kitob nomi</th>
+                        <th style="width: 35%; color: var(--text-main) !important;">Muallif</th>
+                        <th style="width: 20%; color: var(--text-main) !important;">Marta o'qildi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in top_books %}
+                    <tr>
+                        <td class="fw-semibold" style="color: var(--text-main) !important;">{{ b.title }}</td>
+                        <td style="color: var(--text-muted) !important;">{{ b.author }}</td>
+                        <td>
+                            <span class="read-count-badge">
+                                {{ b.read_count }} marta
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-3">Hozircha o'qilgan kitoblar yo'q.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if faculty_stats %}
+    <div class="smart-card p-4 mb-4">
+        <h5 class="fw-bold mb-4" style="color: var(--text-main);">Fakultetlar kesimida kitobxonlik ko'rsatkichi</h5>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 70%; color: var(--text-main) !important;">Fakultet nomi</th>
+                        <th style="width: 30%; color: var(--text-main) !important;">O'qilgan kitoblar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fs in faculty_stats %}
+                    <tr>
+                        <td class="fw-semibold" style="color: var(--text-main) !important;">{{ fs.user__faculty }}</td>
+                        <td>
+                            <span class="read-count-badge">{{ fs.loan_count }} ta</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-3">
+        <div class="mb-1 fw-medium" style="color: var(--text-muted);">Hozircha ma'lumotlar yetarli emas.</div>
+        <small class="text-muted">Foydalanuvchilarga fakultet biriktirilganiga va ular kitob olganiga ishonch hosil qiling.</small>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

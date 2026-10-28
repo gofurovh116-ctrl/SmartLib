@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    .auth-card {
+        max-width: 450px;
+        margin: 2.2rem auto;
+        background: var(--bg-card);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: var(--shadow-soft);
+    }
+    @media (max-width: 767.98px) {
+        .auth-card {
+            margin: 1.2rem auto;
+            border-radius: 18px;
+        }
+        .auth-header-blue {
+            padding: 1.8rem 1.2rem !important;
+        }
+    }
+    .auth-header-blue {
+        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 45%, #2563eb 100%);
+        color: #ffffff !important;
+        text-align: center;
+        padding: 2.4rem 1.5rem;
+    }
+    .auth-header-blue * {
+        color: #ffffff !important;
+    }
+    .btn-auth-submit {
+        background-color: #3b5bdb;
+        color: #ffffff !important;
+        border: none;
+        border-radius: 50px;
+        padding: 0.85rem;
+        font-weight: 700;
+        font-size: 1.05rem;
+        width: 100%;
+        box-shadow: 0 6px 18px rgba(59, 91, 219, 0.3);
+    }
+    .btn-auth-submit:hover {
+        background-color: #364fc7;
+        color: #ffffff !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="auth-card">
+        <div class="auth-header-blue">
+            <h2 class="fw-bold mb-1">
+                <i class="fa-solid fa-right-to-bracket me-2"></i>Kirish
+            </h2>
+            <div class="opacity-75">SmartLib tizimi</div>
+        </div>
+        <div class="p-4 p-md-5">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next }}">
+                <div class="mb-3">
+                    <label class="fw-bold small mb-2" style="color: var(--text-main);">Login (Username)</label>
+                    <input type="text" name="username" class="form-control" placeholder="admin" required>
+                </div>
+                <div class="mb-4">
+                    <label class="fw-bold small mb-2" style="color: var(--text-main);">Parol</label>
+                    <input type="password" name="password" class="form-control" placeholder="••••" required>
+                </div>
+                <button type="submit" class="btn-auth-submit mb-4">Tizimga kirish</button>
+            </form>
+            <hr class="opacity-25">
+            <div class="text-center mt-3">
+                <div class="text-muted small mb-1">Hisobingiz yo'qmi?</div>
+                <a href="{% url 'register' %}" class="fw-bold text-primary text-decoration-none">Ro'yxatdan o'tish</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

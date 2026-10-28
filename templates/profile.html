@@ -1,0 +1,474 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    .profile-card {
+        background: var(--bg-card);
+        color: var(--text-main);
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: var(--shadow-soft);
+        border: 1px solid var(--border-color);
+    }
+    .profile-header-blue {
+        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #2563eb 100%);
+        padding: 2.6rem 1.5rem 2.1rem 1.5rem;
+        text-align: center;
+        color: #ffffff !important;
+        position: relative;
+    }
+    .profile-header-blue h4,
+    .profile-header-blue div {
+        color: #ffffff !important;
+    }
+    .profile-avatar-circle {
+        width: 114px;
+        height: 114px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+        color: #ffffff !important;
+        font-size: 2.8rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 4px solid rgba(255, 255, 255, 0.85);
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.25);
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+    .profile-avatar-circle img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .btn-edit-profile {
+        background-color: #3b5bdb;
+        color: #ffffff !important;
+        border-radius: 50px;
+        padding: 0.65rem 1.2rem;
+        font-weight: 600;
+        font-size: 0.92rem;
+        text-decoration: none;
+        display: block;
+        text-align: center;
+        margin-bottom: 0.75rem;
+    }
+    .btn-edit-profile * {
+        color: #ffffff !important;
+    }
+    .btn-logout-outline {
+        border: 1px solid #f43f5e;
+        color: #f43f5e !important;
+        background: transparent;
+        border-radius: 50px;
+        padding: 0.65rem 1.2rem;
+        font-weight: 600;
+        font-size: 0.92rem;
+        text-decoration: none;
+        display: block;
+        text-align: center;
+    }
+    .btn-logout-outline:hover {
+        background-color: #dc3545;
+        color: #ffffff !important;
+    }
+
+    .history-item {
+        background: var(--bg-card);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1rem 1.35rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.65rem;
+    }
+    .badge-yopilgan {
+        background-color: #e6f4ea;
+        color: #137333 !important;
+        font-weight: 600;
+        font-size: 0.78rem;
+        padding: 0.35rem 0.85rem;
+        border-radius: 50px;
+    }
+    [data-theme="dark"] .badge-yopilgan {
+        background-color: rgba(34, 197, 94, 0.2);
+        color: #86efac !important;
+    }
+    .badge-overdue {
+        background-color: #fce8e6;
+        color: #c5221f !important;
+        font-weight: 700;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.7rem;
+        border-radius: 50px;
+    }
+    [data-theme="dark"] .badge-overdue {
+        background-color: rgba(239, 68, 68, 0.25);
+        color: #fca5a5 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-3">
+    <div class="row g-4">
+        <!-- Left User Card & Annual Plan -->
+        <div class="col-lg-4">
+            <div class="profile-card mb-4">
+                <div class="profile-header-blue">
+                    <div class="profile-avatar-circle">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}">
+                        {% else %}
+                            {{ user.initials }}
+                        {% endif %}
+                    </div>
+                    <h4 class="fw-bold mb-1">{{ user.full_display_name }}</h4>
+                    <div class="opacity-75 small mb-2">@{{ user.username }}</div>
+                    {% if reader_rank %}
+                    <div class="d-inline-flex align-items-center gap-1 px-3 py-1 rounded-pill fw-bold small" style="background: rgba(255,255,255,0.2); color: #ffffff;">
+                        <i class="fa-solid {{ reader_rank.icon }}"></i>
+                        <span>{{ reader_rank.title }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Telefon</span>
+                        <span class="fw-bold" style="color: var(--text-main);">{{ user.phone|default:"Kiritilmagan" }}</span>
+                    </div>
+                    {% if user.faculty %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Fakultet</span>
+                        <span class="fw-bold" style="color: var(--text-main);">{{ user.faculty }}</span>
+                    </div>
+                    {% endif %}
+                    {% if user.group_name %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Guruh</span>
+                        <span class="fw-bold" style="color: var(--text-main);">{{ user.group_name }}</span>
+                    </div>
+                    {% endif %}
+                    {% if user.grade %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Sinf</span>
+                        <span class="fw-bold" style="color: var(--text-main);">{{ user.grade }}{% if user.grade_letter %}-{{ user.grade_letter }}{% endif %}</span>
+                    </div>
+                    {% endif %}
+                    {% if user.mahalla %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Mahalla</span>
+                        <span class="fw-bold" style="color: var(--text-main);">{{ user.mahalla }}</span>
+                    </div>
+                    {% endif %}
+                    {% if user.library %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Kutubxona</span>
+                        <span class="fw-bold text-end" style="color: var(--text-main); font-size: 0.88rem;">{{ user.library.name }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="mt-4">
+                        <a href="{% url 'profile_edit' %}" class="btn-edit-profile">
+                            <i class="fa-solid fa-user-pen me-2"></i>Tahrirlash
+                        </a>
+                        <a href="{% url 'reader_id_card_pdf' %}" class="btn btn-outline-primary rounded-pill w-100 fw-semibold mb-2 py-2" style="font-size: 0.86rem;">
+                            <i class="fa-solid fa-id-card me-2"></i><span>Elektron Guvohnoma (ID-Karta PDF)</span>
+                        </a>
+                        <a href="{% url 'reader_certificate_pdf' %}" class="btn btn-outline-warning rounded-pill w-100 fw-semibold mb-2 py-2" style="font-size: 0.86rem;">
+                            <i class="fa-solid fa-award me-2"></i><span>Faxriy Sertifikat (PDF)</span>
+                        </a>
+                        <form method="post" action="{% url 'logout' %}" class="m-0">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-logout-outline w-100" style="cursor: pointer;">
+                                <i class="fa-solid fa-right-from-bracket me-2"></i>Chiqish
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Yillik Reja Card -->
+            <div class="smart-card p-4 mb-4">
+                <h6 class="fw-bold text-success mb-3">
+                    <i class="fa-solid fa-bullseye me-2"></i>Yillik Reja
+                </h6>
+                <div class="progress mb-2" style="height: 10px; border-radius: 50px; background-color: var(--bg-subtle);">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: {{ progress_percent }}%;" aria-valuenow="{{ progress_percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <small class="text-muted">Siz {{ goal }} ta kitobdan {{ completed_count }} tasini o'qidingiz.</small>
+            </div>
+
+            <!-- XP Reyting & Intizom Ko'rsatkichi (Module 3) -->
+            {% if discipline %}
+            <div class="smart-card p-4 mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="fw-bold mb-0" style="color: var(--text-main);">
+                        <i class="fa-solid fa-bolt text-warning me-2"></i>XP Reyting va Intizom
+                    </h6>
+                    <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold">{{ discipline.xp }} XP</span>
+                </div>
+                <div class="d-flex justify-content-between small mb-1">
+                    <span class="text-muted">Kitobxonlik intizomi:</span>
+                    <span class="fw-bold {% if discipline.discipline_score >= 80 %}text-success{% elif discipline.discipline_score >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                        {{ discipline.discipline_score }}%
+                    </span>
+                </div>
+                <div class="progress mb-2" style="height: 8px; border-radius: 50px; background-color: var(--bg-subtle);">
+                    <div class="progress-bar {% if discipline.discipline_score >= 80 %}bg-success{% elif discipline.discipline_score >= 50 %}bg-warning{% else %}bg-danger{% endif %}" role="progressbar" style="width: {{ discipline.discipline_score }}%;"></div>
+                </div>
+                {% if discipline.penalty > 0 %}
+                <small class="text-danger d-block mt-1">
+                    <i class="fa-solid fa-triangle-exclamation me-1"></i>Kechikish jarimasi: <strong>-{{ discipline.penalty }} XP</strong> ({{ discipline.overdue_count }} ta kitob)
+                </small>
+                {% else %}
+                <small class="text-muted">Kitoblarni o'z vaqtida qaytarib +35 XP ball yig'ing!</small>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Telegram Bot Integratsiyasi (Module 1) -->
+            <div class="smart-card p-4">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <h6 class="fw-bold mb-0" style="color: #0088cc;">
+                        <i class="fa-brands fa-telegram me-2"></i>Telegram Xabarnoma
+                    </h6>
+                    {% if user.telegram_chat_id %}
+                    <span class="badge bg-success-subtle text-success border border-success rounded-pill">Ulangan</span>
+                    {% else %}
+                    <span class="badge bg-secondary rounded-pill">Ulanmagan</span>
+                    {% endif %}
+                </div>
+                {% if user.telegram_chat_id %}
+                <p class="small text-muted mb-3">
+                    Chat ID: <code class="fw-bold">{{ user.telegram_chat_id }}</code>. Tasdiqlash kodlari va muddat eslatmalari Telegramga yuboriladi.
+                </p>
+                <form method="post" action="{% url 'telegram_test_ping' %}" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-info rounded-pill w-100 fw-semibold">
+                        <i class="fa-solid fa-paper-plane me-1"></i>Sinov xabarini yuborish
+                    </button>
+                </form>
+                {% else %}
+                <p class="small text-muted mb-3">
+                    Kitob olish/topshirish 6-xonali kodlarini va muddat eslatmalarini Telegram orqali olish uchun Chat ID raqamingizni ulang.
+                </p>
+                <a href="{% url 'profile_edit' %}" class="btn btn-sm btn-outline-primary rounded-pill w-100 fw-semibold">
+                    <i class="fa-brands fa-telegram me-1"></i>Telegram ID ni ulash
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Active Loans, Reservations & History -->
+        <div class="col-lg-8">
+            {% if discipline and discipline.is_debtor %}
+            <div class="p-3 rounded-4 mb-4" style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.45);">
+                <div class="fw-bold text-danger mb-1">
+                    <i class="fa-solid fa-triangle-exclamation me-1"></i>Diqqat: Sizda topshirish muddati o'tgan kitob mavjud!
+                </div>
+                <div class="small" style="color: var(--text-main);">
+                    Iltimos, muddati o'tgan kitobni kutubxonaga topshiring. Qarzdorlik yopilmaguncha yangi kitobga buyurtma berish avtomatik bloklangan.
+                </div>
+            </div>
+            {% endif %}
+
+            <h5 class="fw-bold text-primary mb-3">
+                <i class="fa-solid fa-book-open-reader me-2"></i>Hozir sizda
+            </h5>
+
+            <div class="smart-card p-4 mb-4">
+                {% if active_loans %}
+                    {% for loan in active_loans %}
+                    <div class="py-3 {% if not forloop.last %}border-bottom{% endif %}">
+                        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2">
+                            <div>
+                                <div class="fw-bold d-flex align-items-center gap-2 flex-wrap" style="color: var(--text-main);">
+                                    <a href="{% url 'book_detail' loan.book_copy.book.pk %}" class="text-decoration-none" style="color: var(--text-main);">
+                                        {{ loan.book_copy.book.title }}
+                                    </a>
+                                    {% if loan.status == 'borrow_pending' %}
+                                        <span class="badge bg-warning text-dark"><i class="fa-solid fa-hourglass-half me-1"></i>Kutubxonachi tasdig'i kutilmoqda</span>
+                                    {% elif loan.status == 'return_pending' %}
+                                        <span class="badge bg-info text-dark"><i class="fa-solid fa-clock-rotate-left me-1"></i>Topshirish tasdig'i kutilmoqda</span>
+                                    {% else %}
+                                        <span class="badge bg-success-subtle text-success border border-success"><i class="fa-solid fa-book-open me-1"></i>Qo'lingizda</span>
+                                        {% if loan.is_overdue %}
+                                            <span class="badge-overdue">Muddati o'tgan ({{ loan.overdue_days }} kun | -{{ loan.penalty_points }} XP)</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                                <div class="small text-muted mt-1">
+                                    Inv: <span class="font-monospace fw-semibold">{{ loan.book_copy.inventory_number }}</span>
+                                    {% if loan.status == 'active' or loan.status == 'return_pending' %}
+                                    | Topshirish muddati: <strong>{{ loan.due_date|date:"d.m.Y H:i" }}</strong>
+                                    {% endif %}
+                                </div>
+
+                                {% if loan.status == 'borrow_pending' %}
+                                <div class="mt-2 p-2 rounded-3" style="background: rgba(245, 158, 11, 0.1); border: 1px dashed rgba(245, 158, 11, 0.5);">
+                                    <small class="d-block text-muted mb-1">Kutubxonachiga borib kitobni olish uchun ushbu kodni ayting:</small>
+                                    <span class="badge bg-warning text-dark font-monospace px-3 py-1 fs-6">
+                                        <i class="fa-solid fa-key me-1"></i>KOD: {{ loan.verification_code }}
+                                    </span>
+                                </div>
+                                {% elif loan.status == 'return_pending' %}
+                                <div class="mt-2 p-2 rounded-3" style="background: rgba(13, 202, 240, 0.1); border: 1px dashed rgba(13, 202, 240, 0.5);">
+                                    <small class="d-block text-muted mb-1">Kitobni kutubxonaga topshirayotganda ushbu kodni ko'rsating:</small>
+                                    <span class="badge bg-info text-dark font-monospace px-3 py-1 fs-6">
+                                        <i class="fa-solid fa-shield-halved me-1"></i>KOD: {{ loan.verification_code }}
+                                    </span>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mt-2 mt-md-0">
+                                {% if loan.status == 'borrow_pending' %}
+                                <form method="post" action="{% url 'return_book' loan.pk %}" class="m-0" onsubmit="return confirm('Kitob olish so\'rovini bekor qilmoqchimisiz?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold">
+                                        <i class="fa-solid fa-xmark me-1"></i>So'rovni bekor qilish
+                                    </button>
+                                </form>
+                                {% elif loan.status == 'return_pending' %}
+                                <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3 fw-semibold" disabled>
+                                    <i class="fa-solid fa-spinner fa-spin me-1"></i>Qabul qilinmoqda...
+                                </button>
+                                {% else %}
+                                <form method="post" action="{% url 'return_book' loan.pk %}" class="m-0" onsubmit="return confirm('Kitobni topshirishga so\'rov yuborilsinmi? Kutubxonachi tasdiqlashi uchun kod beriladi.');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold">
+                                        <i class="fa-solid fa-arrow-turn-down me-1"></i>Topshirish
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <div class="mb-2">
+                            <i class="fa-solid fa-circle-check text-success" style="font-size: 2.6rem;"></i>
+                        </div>
+                        <p class="text-muted mb-3">Hozir qo'lingizda kitob yo'q.</p>
+                        <a href="{% url 'home' %}" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold text-white" style="background-color: #3b5bdb; border: none;">
+                            Kitob olish
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if reservations %}
+            <h5 class="fw-bold text-warning mb-3">
+                <i class="fa-solid fa-clock me-2"></i>Navbatdagi kitoblar
+            </h5>
+            <div class="mb-4">
+                {% for res in reservations %}
+                <div class="history-item">
+                    <div>
+                        <div class="fw-bold" style="color: var(--text-main);">{{ res.book.title }}</div>
+                        <small class="text-muted">
+                            {{ res.created_at|date:"d.m.Y H:i" }} da navbatga yozilgan
+                        </small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        {% if res.book.available_copies_count > 0 %}
+                            <form method="post" action="{% url 'borrow_book' res.book.pk %}" class="m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 fw-semibold text-white">
+                                    <i class="fa-solid fa-hand-holding me-1"></i>Kitobni olish
+                                </button>
+                            </form>
+                        {% endif %}
+                        <form method="post" action="{% url 'cancel_reservation' res.pk %}" class="m-0">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                Bekor qilish
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if favorites %}
+            <h5 class="fw-bold text-danger mb-3">
+                <i class="fa-solid fa-heart me-2"></i><span>Sevimli kitoblar</span>
+            </h5>
+            <div class="mb-4">
+                {% for fav in favorites %}
+                <div class="history-item">
+                    <div>
+                        <a href="{% url 'book_detail' fav.book.pk %}" class="fw-bold text-decoration-none" style="color: var(--text-main);">
+                            {{ fav.book.title }}
+                        </a>
+                        <div><small class="text-muted">{{ fav.book.author }}</small></div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="{% url 'book_detail' fav.book.pk %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">Ko'rish</a>
+                        <form method="post" action="{% url 'toggle_favorite' fav.book.pk %}" class="m-0">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{% url 'profile' %}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Olib tashlash">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <h5 class="fw-bold mb-3" style="color: var(--text-main);">
+                <i class="fa-solid fa-clock-rotate-left me-2"></i>Tarix
+            </h5>
+
+            <div>
+                {% for item in loan_history %}
+                <div class="history-item">
+                    <div>
+                        <div class="fw-bold" style="color: var(--text-main);">{{ item.book_copy.book.title }}</div>
+                        <small class="text-muted">
+                            {{ item.returned_at|date:"d F Y, H:i" }} da qaytarildi
+                        </small>
+                    </div>
+                    <span class="badge-yopilgan">
+                        <i class="fa-solid fa-check me-1"></i>Yopilgan
+                    </span>
+                </div>
+                {% empty %}
+                <div class="smart-card p-4 text-center text-muted">
+                    Tarix bo'sh.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Telefondagi kitobxon uchun Jonli Sinxronizatsiya: kutubxonachi kompyuterdan tasdiqlashi bilan sahifa avtomatik yangilanadi
+    (function() {
+        let initialSig = null;
+        setInterval(function() {
+            fetch('/api/librarian-live-status/', { cache: 'no-store' })
+                .then(r => r.json())
+                .then(data => {
+                    if (initialSig === null) {
+                        initialSig = data.user_signature || "";
+                    } else if (typeof data.user_signature === 'string' && data.user_signature !== initialSig) {
+                        window.location.reload();
+                    }
+                })
+                .catch(() => {});
+        }, 4000);
+    })();
+</script>
+{% endblock %}

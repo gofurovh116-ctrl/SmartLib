@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    .edit-profile-card {
+        max-width: 620px;
+        margin: 1.5rem auto;
+        background: var(--bg-card);
+        color: var(--text-main);
+        border-radius: 18px;
+        padding: 2.5rem;
+        box-shadow: var(--shadow-soft);
+        border: 1px solid var(--border-color);
+    }
+    .form-label-sm {
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: var(--text-main) !important;
+        margin-bottom: 0.35rem;
+    }
+    .btn-save-pill {
+        background-color: #3b5bdb;
+        color: #ffffff !important;
+        border: none;
+        border-radius: 50px;
+        padding: 0.7rem 1.5rem;
+        font-weight: 600;
+        flex-grow: 1;
+    }
+    .btn-save-pill * {
+        color: #ffffff !important;
+    }
+    .btn-cancel-pill {
+        border: 1px solid var(--border-color);
+        color: var(--text-main) !important;
+        background: var(--bg-subtle);
+        border-radius: 50px;
+        padding: 0.7rem 1.4rem;
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .btn-cancel-pill:hover {
+        opacity: 0.85;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="edit-profile-card">
+        <h4 class="fw-bold text-primary text-center mb-4">
+            <i class="fa-solid fa-user-pen me-2"></i>Profilni Tahrirlash
+        </h4>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3 text-center">
+                <label class="form-label-sm d-block mb-2">Profil Rasmi</label>
+                <input type="file" name="profile_picture" class="form-control" accept="image/*">
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label-sm">Ism</label>
+                    <input type="text" name="first_name" value="{{ user.first_name }}" class="form-control" placeholder="First name">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label-sm">Familiya</label>
+                    <input type="text" name="last_name" value="{{ user.last_name }}" class="form-control" placeholder="Last name">
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label-sm">Telefon raqam</label>
+                    <input type="text" name="phone" value="{{ user.phone }}" class="form-control" placeholder="Telefon raqam">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label-sm">Email</label>
+                    <input type="email" name="email" value="{{ user.email }}" class="form-control" placeholder="Email address">
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label-sm">Fakultet</label>
+                    <input type="text" name="faculty" value="{{ user.faculty }}" class="form-control" placeholder="Masalan: Dasturiy injiniring">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label-sm">Guruh / Sinf</label>
+                    <input type="text" name="group_name" value="{{ user.group_name }}" class="form-control" placeholder="Masalan: 912-21">
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-8">
+                    <label class="form-label-sm">Kutubxona</label>
+                    <select name="library" class="form-select">
+                        <option value="">---------</option>
+                        {% for lib in libraries %}
+                            <option value="{{ lib.pk }}" {% if user.library_id == lib.pk %}selected{% endif %}>{{ lib }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label-sm">Yillik Reja (kitob)</label>
+                    <input type="number" name="annual_goal" value="{{ user.annual_goal|default:10 }}" min="1" max="500" class="form-control">
+                </div>
+            </div>
+
+            <div class="mb-4 p-3 rounded-4" style="background: var(--bg-subtle); border: 1px dashed var(--border-color);">
+                <label class="form-label-sm d-flex align-items-center gap-2">
+                    <i class="fa-brands fa-telegram text-info fs-5"></i>
+                    <span>Telegram Chat ID (Real-vaqt bildirishnomalar uchun)</span>
+                </label>
+                <input type="text" name="telegram_chat_id" value="{{ user.telegram_chat_id }}" class="form-control mb-1" placeholder="Masalan: 123456789">
+                <small class="text-muted d-block">
+                    Telegram orqali 6-xonali tasdiqlash kodlari va muddat eslatmalarini olish uchun Chat ID raqamingizni kiriting.
+                </small>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                <button type="submit" class="btn-save-pill">
+                    <i class="fa-solid fa-floppy-disk me-2"></i>Saqlash
+                </button>
+                <a href="{% url 'profile' %}" class="btn-cancel-pill">Bekor qilish</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

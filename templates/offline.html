@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Offline Rejim — SMARTLIB PWA{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="smart-card p-5 text-center mx-auto" style="max-width: 640px;">
+        <div class="mb-3">
+            <i class="fa-solid fa-wifi-slash text-warning" style="font-size: 4rem;"></i>
+        </div>
+        <h2 class="fw-bold mb-2">Siz hozir Offline rejimdasiz</h2>
+        <p class="text-muted mb-4">
+            Internet aloqasi uzilgan bo'lsa ham, SmartLib PWA ilovasi brauzer xotirasida saqlangan xatcho'plaringiz va shaxsiy konspektlaringizni ko'rsatishda davom etadi.
+        </p>
+
+        <div id="offlineSavedNotesBox" class="text-start p-3 rounded-4 mb-4" style="background: var(--bg-subtle); border: 1px solid var(--border-color);">
+            <h6 class="fw-bold mb-2"><i class="fa-solid fa-bookmark text-primary me-2"></i>Qurilmada saqlangan xatcho'p va konspektlar:</h6>
+            <div id="offlineNotesList" class="small text-muted">Yuklanmoqda...</div>
+        </div>
+
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-bold" onclick="window.location.reload()">
+                <i class="fa-solid fa-rotate-right me-1"></i>Qayta ulanish
+            </button>
+            <a href="/" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold">
+                Bosh sahifa (Kesh)
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const listEl = document.getElementById("offlineNotesList");
+        if (!listEl) return;
+        const items = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith("smartlib_bookmark_page_")) {
+                const bid = k.replace("smartlib_bookmark_page_", "");
+                items.push("📖 Kitob #" + bid + " — Xatcho'p: " + localStorage.getItem(k) + "-bet");
+            } else if (k && k.startsWith("smartlib_reader_notes_")) {
+                const bid = k.replace("smartlib_reader_notes_", "");
+                const val = localStorage.getItem(k);
+                if (val) items.push("📝 Kitob #" + bid + " konspekti: " + val.substring(0, 120));
+            }
+        }
+        listEl.innerHTML = items.length > 0 ? items.join("<br>") : "Hozircha saqlangan offline konspektlar yo'q.";
+    });
+</script>
+{% endblock %}
