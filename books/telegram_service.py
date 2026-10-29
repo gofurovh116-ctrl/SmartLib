@@ -55,6 +55,34 @@ def _dispatch_http(token, payload):
         return False
 
 
+def answer_telegram_callback(callback_query_id, text=None, show_alert=False):
+    """Telegram inline tugma bosilganda spinner yuklanishni to'xtatadi va bildirishnoma beradi."""
+    token = get_bot_token()
+    if not token or not callback_query_id:
+        return False
+    url = f"https://api.telegram.org/bot{token}/answerCallbackQuery"
+    payload = {'callback_query_id': str(callback_query_id)}
+    if text:
+        payload['text'] = text
+        payload['show_alert'] = bool(show_alert)
+    data = json.dumps(payload).encode('utf-8')
+    req = urllib.request.Request(
+        url,
+        data=data,
+        headers={'Content-Type': 'application/json'},
+        method='POST',
+    )
+    def _run():
+        try:
+            with urllib.request.urlopen(req, timeout=3.0) as resp:
+                return resp.status == 200
+        except Exception:
+            return False
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
+    return True
+
+
 def send_telegram_message(chat_id, text, reply_markup=None, parse_mode='HTML', async_send=True):
     """Defensive Telegram dispatcher.
     - Never raises an exception or blocks web requests.

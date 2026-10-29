@@ -225,14 +225,23 @@
         .nav-link-custom {
             color: var(--text-main) !important;
             font-weight: 600;
-            font-size: 0.92rem;
+            font-size: 0.88rem;
             text-decoration: none;
-            padding: 0.48rem 0.9rem;
+            padding: 0.38rem 0.65rem;
             border-radius: 50px;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            white-space: nowrap !important;
+            flex-shrink: 0;
+        }
+        @media (min-width: 1280px) {
+            .nav-link-custom {
+                font-size: 0.92rem;
+                padding: 0.42rem 0.82rem;
+                gap: 7px;
+            }
         }
 
         .nav-link-custom:hover,
@@ -246,13 +255,18 @@
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
             color: #ffffff !important;
             border-radius: 50px;
-            padding: 0.42rem 1.2rem;
-            font-size: 0.86rem;
+            padding: 0.38rem 0.95rem;
+            font-size: 0.84rem;
             font-weight: 700;
             text-decoration: none;
             border: 1px solid rgba(255, 255, 255, 0.12);
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
             transition: all 0.2s ease;
+            white-space: nowrap !important;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
         [data-theme="dark"] .btn-admin-pill {
             background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
@@ -286,12 +300,14 @@
             background: var(--bg-card);
             color: var(--text-main) !important;
             border-radius: 50px;
-            padding: 0.35rem 0.95rem;
-            font-size: 0.85rem;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.83rem;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
+            white-space: nowrap !important;
+            flex-shrink: 0;
         }
 
         .dropdown-menu {
@@ -489,9 +505,9 @@
 <body>
     <!-- Navbar -->
     <nav class="smart-navbar sticky-top">
-        <div class="container d-flex align-items-center justify-content-between">
-            <a href="{% url 'home' %}" class="brand-logo">
-                <svg width="32" height="32" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <div class="container-fluid px-3 px-xl-4 d-flex align-items-center justify-content-between">
+            <a href="{% url 'home' %}" class="brand-logo me-2 me-xl-3">
+                <svg width="30" height="30" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M6 8C6 6.89543 6.89543 6 8 6H16C17.1046 6 18 6.89543 18 8V28C18 29.1046 17.1046 30 16 30H8C6.89543 30 6 29.1046 6 28V8Z" fill="#3B5BDB"/>
                     <path d="M18 10C18 8.89543 18.8954 8 20 8H28C29.1046 8 30 8.89543 30 10V28C30 29.1046 29.1046 30 28 30H20C18.8954 30 18 29.1046 18 28V10Z" fill="#3BC9DB"/>
                     <circle cx="24" cy="5" r="2" fill="#3BC9DB"/>
@@ -501,33 +517,36 @@
             </a>
 
             <!-- Desktop Navigation (Screen >= 992px) -->
-            <div class="d-none d-lg-flex align-items-center gap-3">
-                <a href="{% url 'home' %}" class="nav-link-custom">Kutubxona</a>
+            <div class="d-none d-lg-flex align-items-center gap-1 gap-xl-2 flex-nowrap overflow-visible">
+                <a href="{% url 'home' %}" class="nav-link-custom">
+                    <i class="fa-solid fa-book-open text-primary"></i> <span>Kutubxona</span>
+                </a>
                 <a href="{% url 'reading_room' %}" class="nav-link-custom">
-                    <i class="fa-solid fa-cube text-primary"></i> <span>3D O'quv xonasi</span>
+                    <i class="fa-solid fa-cube text-primary"></i> <span class="d-none d-xl-inline">3D O'quv xonasi</span><span class="d-inline d-xl-none">3D Xona</span>
                 </a>
 
                 <button type="button" class="nav-link-custom border-0 bg-transparent" data-bs-toggle="modal" data-bs-target="#qrScannerModal" title="QR Skaner">
-                    <i class="fa-solid fa-qrcode text-primary"></i> <span>QR Skaner</span>
+                    <i class="fa-solid fa-qrcode text-primary"></i> <span class="d-none d-xl-inline">QR Skaner</span><span class="d-inline d-xl-none">QR</span>
                 </button>
 
                 {% if user.is_authenticated %}
                     <a href="{% url 'reports' %}" class="nav-link-custom fw-semibold">
-                        <i class="fa-solid fa-chart-pie"></i> <span>Hisobotlar</span>
+                        <i class="fa-solid fa-chart-pie text-success"></i> <span class="d-none d-xl-inline">Hisobotlar</span><span class="d-inline d-xl-none">Hisobot</span>
                     </a>
-                    <a href="{% url 'profile' %}" class="nav-link-custom">Mening profilim</a>
 
                     {% if is_librarian_or_admin %}
                     <a href="{% url 'librarian_desk' %}" class="nav-link-custom position-relative" title="Kutubxona Paneli">
-                        <i class="fa-solid fa-clipboard-check text-warning"></i> <span>Kutubxona Paneli</span>
+                        <i class="fa-solid fa-clipboard-check text-warning"></i> <span class="d-none d-xl-inline">Kutubxona Paneli</span><span class="d-inline d-xl-none">Panel</span>
                         {% if pending_librarian_count > 0 %}
-                        <span class="badge rounded-pill bg-danger ms-1" style="font-size: 0.7rem;">{{ pending_librarian_count }}</span>
+                        <span class="badge rounded-pill bg-danger ms-1" style="font-size: 0.68rem;">{{ pending_librarian_count }}</span>
                         {% endif %}
                     </a>
                     {% endif %}
 
                     {% if user.is_staff or user.is_superuser or user.status == 'admin' or user.status == 'librarian' %}
-                        <a href="/admin/" class="btn-admin-pill">Admin</a>
+                        <a href="/admin/" class="btn-admin-pill" title="Django Administrator Paneli">
+                            <i class="fa-solid fa-shield-halved text-warning"></i> <span>Admin</span>
+                        </a>
                     {% endif %}
 
                     <!-- Notifications Bell Dropdown -->
@@ -569,19 +588,17 @@
                             {% endfor %}
                         </div>
                     </div>
-
-                    <a href="{% url 'profile' %}" class="nav-link-custom fw-bold">
-                        <i class="fa-solid fa-circle-user text-primary"></i> <span>{{ user.username }}</span>
-                    </a>
-                {% else %}
-                    <a href="{% url 'login' %}" class="nav-link-custom">Kirish</a>
-                    <a href="{% url 'register' %}" class="btn-register-pill">A'zo bo'lish</a>
                 {% endif %}
 
-                <!-- Language Switcher Dropdown -->
+                <!-- Dark/Light Theme Toggle (Always visible) -->
+                <button type="button" class="theme-toggle-btn theme-toggle-action" title="Kunduzgi / Tungi rejim">
+                    <i class="fa-solid fa-moon theme-icon"></i>
+                </button>
+
+                <!-- Language Switcher Dropdown (Always visible) -->
                 <div class="dropdown">
-                    <button class="lang-dropdown-btn dropdown-toggle" id="langDropdownBtn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="text-muted fw-normal">UZ</span> <span>O'zbek</span>
+                    <button class="lang-dropdown-btn dropdown-toggle" id="langDropdownBtn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Tilni tanlash">
+                        <span class="fw-bold">UZ</span> <span class="d-none d-xl-inline text-muted">O'zbek</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow rounded-4 p-2">
                         <li>
@@ -605,15 +622,10 @@
                     </ul>
                 </div>
 
-                <!-- Dark/Light Theme Toggle -->
-                <button type="button" class="theme-toggle-btn theme-toggle-action" title="Kunduzgi / Tungi rejim">
-                    <i class="fa-solid fa-moon theme-icon"></i>
-                </button>
-
-                <!-- App Download Dropdown (Android APK, Windows PC, PWA) -->
+                <!-- App Download Dropdown (Always visible for Guest and Authenticated) -->
                 <div class="dropdown">
                     <button class="lang-dropdown-btn border-primary text-primary dropdown-toggle" id="appDownloadBtn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Telefon va kompyuter uchun ilovalar">
-                        <i class="fa-solid fa-download text-primary"></i> <span>Ilova</span>
+                        <i class="fa-solid fa-download text-primary"></i> <span class="d-none d-xl-inline">Ilova</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-4 p-2 border-0" style="min-width: 250px;">
                         <li class="px-3 py-1 text-muted small fw-bold text-uppercase border-bottom mb-2">SmartLib Ilovalari</li>
@@ -647,6 +659,16 @@
                         </li>
                     </ul>
                 </div>
+
+                {% if user.is_authenticated %}
+                    <!-- User Profile Button (Unique, Clean) -->
+                    <a href="{% url 'profile' %}" class="nav-link-custom fw-bold ms-1" style="background-color: rgba(37, 99, 235, 0.08); border: 1px solid var(--border-color);" title="Mening profilim">
+                        <i class="fa-solid fa-circle-user text-primary fs-5"></i> <span>{{ user.username }}</span>
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="nav-link-custom">Kirish</a>
+                    <a href="{% url 'register' %}" class="btn-register-pill">A'zo bo'lish</a>
+                {% endif %}
             </div>
 
             <!-- Mobile Controls Bar (Screen < 992px) -->
@@ -791,8 +813,6 @@
             </div>
         </div>
     </div>
-        </div>
-    </nav>
 
     <!-- Flash Messages -->
     <div class="container mt-3">

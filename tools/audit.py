@@ -486,6 +486,25 @@ if su:
     })
     r_tg_post = hit(anon, 'POST', '/api/telegram-webhook/', expect=(200,), data=tg_webhook_payload, content_type='application/json', label='telegram webhook post /kitob')
     record('telegram webhook post json ok', r_tg_post is not None and b'"ok": true' in r_tg_post.content.lower(), 'webhook fail')
+    # Callback query test (approve borrow via Telegram inline button)
+    pending_ln = Loan.objects.create(
+        user=su,
+        book_copy=BookCopy.objects.filter(is_available=True).first(),
+        status='borrow_pending',
+        verification_code='778899',
+    )
+    tg_cb_payload = json.dumps({
+        'update_id': 10001,
+        'callback_query': {
+            'id': 'cb_test_999',
+            'from': {'id': 9988776655, 'first_name': 'SuperAdmin'},
+            'data': f'approve_borrow:{pending_ln.pk}:778899'
+        }
+    })
+    r_cb_post = hit(anon, 'POST', '/api/telegram-webhook/', expect=(200,), data=tg_cb_payload, content_type='application/json', label='telegram webhook callback approve')
+    pending_ln.refresh_from_db()
+    record('telegram callback approved loan', pending_ln.status == 'active', f'status={pending_ln.status}')
+
     r_bkp = hit(ac, 'GET', '/librarian/backup/download/', expect=(200,), label='librarian backup download')
     record('backup download sql valid', r_bkp is not None and len(r_bkp.content) > 100, 'backup empty')
     try:

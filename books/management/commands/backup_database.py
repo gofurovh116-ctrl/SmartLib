@@ -25,31 +25,39 @@ class Command(BaseCommand):
         os.makedirs(backups_dir, exist_ok=True)
 
         now_str = datetime.now().strftime('%Y%m%d_%H%M%S')
+        db_engine = settings.DATABASES['default'].get('ENGINE', '')
         db_path = str(settings.DATABASES['default']['NAME'])
 
-        if not os.path.isfile(db_path):
-            self.stdout.write(self.style.WARNING(f"SQLite fayl topilmadi yoki tashqi PostgreSQL ishlatilmoqda: {db_path}"))
-            return
-
-        backup_file = os.path.join(backups_dir, f"smartlib_backup_{now_str}.sqlite3")
-
-        # Zero Data Loss: SQLite Online Backup API (jonli bazani bloklamasdan to'liq zaxira oladi)
-        try:
-            src = sqlite3.connect(db_path)
-            dst = sqlite3.connect(backup_file)
-            src.backup(dst)
-            dst.close()
-            src.close()
-            file_size_kb = round(os.path.getsize(backup_file) / 1024, 1)
-            self.stdout.write(self.style.SUCCESS(f"[OK] Baza zaxiralandi: {backup_file} ({file_size_kb} KB)"))
-        except Exception as exc:
-            self.stdout.write(self.style.ERROR(f"[ERROR] Zaxiralashda xatolik: {exc}"))
-            return
+        if 'sqlite' in db_engine and os.path.isfile(db_path):
+            backup_file = os.path.join(backups_dir, f"smartlib_backup_{now_str}.sqlite3")
+            # Zero Data Loss: SQLite Online Backup API (jonli bazani bloklamasdan to'liq zaxira oladi)
+            try:
+                src = sqlite3.connect(db_path)
+                dst = sqlite3.connect(backup_file)
+                src.backup(dst)
+                dst.close()
+                src.close()
+                file_size_kb = round(os.path.getsize(backup_file) / 1024, 1)
+                self.stdout.write(self.style.SUCCESS(f"[OK] Baza zaxiralandi: {backup_file} ({file_size_kb} KB)"))
+            except Exception as exc:
+                self.stdout.write(self.style.ERROR(f"[ERROR] Zaxiralashda xatolik: {exc}"))
+                return
+        else:
+            from django.core.management import call_command
+            backup_file = os.path.join(backups_dir, f"smartlib_backup_{now_str}.json")
+            try:
+                with open(backup_file, 'w', encoding='utf-8') as out_f:
+                    call_command('dumpdata', indent=2, stdout=out_f)
+                file_size_kb = round(os.path.getsize(backup_file) / 1024, 1)
+                self.stdout.write(self.style.SUCCESS(f"[OK] Baza to'liq zaxiralandi (JSON): {backup_file} ({file_size_kb} KB)"))
+            except Exception as exc:
+                self.stdout.write(self.style.ERROR(f"[ERROR] Zaxiralashda xatolik: {exc}"))
+                return
 
         # 14 kundan eski zaxiralarni avtomatik tozalash
         cutoff = datetime.now() - timedelta(days=14)
         for fname in os.listdir(backups_dir):
-            if fname.startswith("smartlib_backup_") and fname.endswith(".sqlite3"):
+            if fname.startswith("smartlib_backup_") and (fname.endswith(".sqlite3") or fname.endswith(".json") or fname.endswith(".sql")):
                 fpath = os.path.join(backups_dir, fname)
                 try:
                     mtime = datetime.fromtimestamp(os.path.getmtime(fpath))

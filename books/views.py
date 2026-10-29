@@ -31,6 +31,8 @@ from .telegram_service import (
     notify_reservation_available,
     notify_overdue_reminder,
     send_telegram_message,
+    answer_telegram_callback,
+    escape_html,
     get_bot_username,
 )
 
@@ -2704,6 +2706,77 @@ def telegram_webhook_view(request):
     except Exception:
         return JsonResponse({'ok': False, 'error': 'invalid_json'}, status=400)
 
+    # Callback query from inline buttons (e.g. approve/reject borrow by librarian)
+    cb = data.get('callback_query')
+    if cb:
+        cb_id = str(cb.get('id', '')).strip()
+        cb_user = cb.get('from', {})
+        cb_chat_id = str(cb_user.get('id', '')).strip()
+        cb_data = (cb.get('data') or '').strip()
+
+        # Find librarian user by telegram_chat_id
+        librarian = CustomUser.objects.filter(telegram_chat_id=cb_chat_id).first()
+        is_lib = librarian and (librarian.is_staff or librarian.is_superuser or librarian.status in ['librarian', 'admin'])
+
+        if not is_lib:
+            answer_telegram_callback(cb_id, "Sizda kutubxonachi huquqi mavjud emas!", show_alert=True)
+            return JsonResponse({'ok': True, 'ignored': 'unauthorized'})
+
+        if cb_data.startswith('approve_borrow:'):
+            parts = cb_data.split(':')
+            loan_pk = parts[1] if len(parts) > 1 else None
+            vcode = parts[2] if len(parts) > 2 else ''
+            loan = Loan.objects.filter(pk=loan_pk).select_related('book_copy__book', 'user').first()
+            if not loan:
+                answer_telegram_callback(cb_id, "Ijara arizasi topilmadi!", show_alert=True)
+                return JsonResponse({'ok': True})
+
+            if loan.status != 'borrow_pending':
+                answer_telegram_callback(cb_id, f"Ushbu ariza allaqachon ko'rib chiqilgan ({loan.get_status_display()})!", show_alert=True)
+                return JsonResponse({'ok': True})
+
+            if vcode and loan.verification_code != vcode:
+                answer_telegram_callback(cb_id, "Tasdiqlash kodi mos kelmadi!", show_alert=True)
+                return JsonResponse({'ok': True})
+
+            loan.status = 'active'
+            loan.issued_by = librarian
+            loan.borrowed_at = timezone.now()
+            loan.due_date = timezone.now() + timedelta(days=10)
+            loan.save()
+
+            notify_borrow_approved(loan)
+
+            answer_telegram_callback(cb_id, "Kitob berilishi muvaffaqiyatli tasdiqlandi!")
+            send_telegram_message(cb_chat_id, f"✅ <b>Tasdiqlandi!</b>\n«{escape_html(loan.book_copy.book.title)}» kitobi {escape_html(loan.user.full_display_name)}ga berildi (Qaytarish: {loan.due_date.strftime('%d.%m.%Y')}).")
+            return JsonResponse({'ok': True})
+
+        elif cb_data.startswith('reject_borrow:'):
+            parts = cb_data.split(':')
+            loan_pk = parts[1] if len(parts) > 1 else None
+            loan = Loan.objects.filter(pk=loan_pk).select_related('book_copy__book', 'user').first()
+            if not loan:
+                answer_telegram_callback(cb_id, "Ijara arizasi topilmadi!", show_alert=True)
+                return JsonResponse({'ok': True})
+
+            if loan.status != 'borrow_pending':
+                answer_telegram_callback(cb_id, f"Ushbu ariza allaqachon ko'rib chiqilgan ({loan.get_status_display()})!", show_alert=True)
+                return JsonResponse({'ok': True})
+
+            book_title = loan.book_copy.book.title
+            borrower = loan.user
+            loan.delete()
+
+            if getattr(borrower, 'telegram_chat_id', ''):
+                send_telegram_message(borrower.telegram_chat_id, f"❌ Sizning «{escape_html(book_title)}» kitobini olish so'rovingiz kutubxonachi tomonidan rad etildi.")
+
+            answer_telegram_callback(cb_id, "Ariza rad etildi.")
+            send_telegram_message(cb_chat_id, f"❌ Ariza rad etildi: «{escape_html(book_title)}» ({escape_html(borrower.full_display_name)}).")
+            return JsonResponse({'ok': True})
+
+        answer_telegram_callback(cb_id, "Noma'lum amal.")
+        return JsonResponse({'ok': True})
+
     msg = data.get('message') or data.get('edited_message')
     if not msg:
         return JsonResponse({'ok': True, 'ignored': 'no_message'})
@@ -2869,30 +2942,37 @@ def telegram_webhook_view(request):
 
 @login_required
 def librarian_backup_download_view(request):
-    """Module 8: Kutubxonachi / Admin uchun jonli SQLite bazaning 1-klik zaxirasini (.sql) yuklab olish."""
+    """Module 8: Kutubxonachi / Admin uchun jonli bazaning 1-klik zaxirasini yuklab olish (Zero Data Loss)."""
     if not _is_librarian_or_admin(request.user):
         messages.error(request, "Faqat kutubxonachi yoki administratorlar zaxira yuklab olishi mumkin!")
         return redirect('home')
 
+    db_engine = settings.DATABASES['default'].get('ENGINE', '')
     db_path = str(settings.DATABASES['default']['NAME'])
-    if not os.path.isfile(db_path):
-        raise Http404("SQLite fayl topilmadi yoki tashqi baza ishlatilmoqda.")
+    now_str = timezone.now().strftime('%Y%m%d_%H%M%S')
 
-    import sqlite3
-    buf = io.BytesIO()
-    src = sqlite3.connect(db_path)
-    mem_dst = sqlite3.connect(":memory:")
-    src.backup(mem_dst)
-    src.close()
+    if 'sqlite' in db_engine and os.path.isfile(db_path):
+        import sqlite3
+        buf = io.BytesIO()
+        src = sqlite3.connect(db_path)
+        mem_dst = sqlite3.connect(":memory:")
+        src.backup(mem_dst)
+        src.close()
+        for line in mem_dst.iterdump():
+            buf.write((line + '\n').encode('utf-8'))
+        mem_dst.close()
+        buf.seek(0)
+        filename = f"smartlib_backup_{now_str}.sql"
+        response = HttpResponse(buf.getvalue(), content_type='application/x-sql')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    else:
+        from django.core.management import call_command
+        buf = io.StringIO()
+        call_command('dumpdata', indent=2, stdout=buf)
+        filename = f"smartlib_backup_{now_str}.json"
+        response = HttpResponse(buf.getvalue().encode('utf-8'), content_type='application/json')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
 
-    for line in mem_dst.iterdump():
-        buf.write((line + '\n').encode('utf-8'))
-    mem_dst.close()
-    buf.seek(0)
-
-    filename = f"smartlib_backup_{timezone.now().strftime('%Y%m%d_%H%M%S')}.sql"
-    response = HttpResponse(buf.getvalue(), content_type='application/x-sql')
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
     log_audit(request, 'BACKUP_DOWNLOAD', filename, "Baza to'liq zaxira fayli yuklab olindi")
     return response
 
