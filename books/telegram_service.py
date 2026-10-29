@@ -1,3 +1,4 @@
+import html
 import json
 import os
 import threading
@@ -5,6 +6,11 @@ import urllib.request
 import urllib.error
 from django.conf import settings
 from django.utils import timezone
+
+
+def escape_html(text):
+    """Telegram HTML xabarlarida <, >, & kabi maxsus belgilarni xavfsiz escape qiladi."""
+    return html.escape(str(text or ''))
 
 
 def get_bot_token():
@@ -91,12 +97,18 @@ def send_telegram_message(chat_id, text, reply_markup=None, parse_mode='HTML', a
 def notify_borrow_request(loan, librarians=None):
     book = loan.book_copy.book
     user = loan.user
+    safe_title = escape_html(book.title)
+    safe_name = escape_html(user.full_display_name)
+    safe_username = escape_html(user.username)
+    safe_inv = escape_html(loan.book_copy.inventory_number)
+    safe_code = escape_html(loan.verification_code)
+
     if getattr(user, 'telegram_chat_id', ''):
         msg = (
             f"📚 <b>SmartLib — Kitob olish so'rovi</b>\n\n"
-            f"Kitob: <b>{book.title}</b>\n"
-            f"Inventar: <code>{loan.book_copy.inventory_number}</code>\n"
-            f"🔑 Tasdiqlash kodi: <b><code>{loan.verification_code}</code></b>\n\n"
+            f"Kitob: <b>{safe_title}</b>\n"
+            f"Inventar: <code>{safe_inv}</code>\n"
+            f"🔑 Tasdiqlash kodi: <b><code>{safe_code}</code></b>\n\n"
             f"Kutubxonachiga ushbu 6-xonali kodni ko'rsatib kitobni qabul qilib oling."
         )
         send_telegram_message(user.telegram_chat_id, msg)
@@ -106,9 +118,9 @@ def notify_borrow_request(loan, librarians=None):
             if getattr(lib_user, 'telegram_chat_id', '') and lib_user != user:
                 lib_msg = (
                     f"🛎 <b>Yangi kitob olish so'rovi!</b>\n\n"
-                    f"👤 Kitobxon: <b>{user.full_display_name}</b> (@{user.username})\n"
-                    f"📖 Kitob: <b>{book.title}</b> (<code>{loan.book_copy.inventory_number}</code>)\n"
-                    f"🔑 Tasdiqlash kodi: <b><code>{loan.verification_code}</code></b>"
+                    f"👤 Kitobxon: <b>{safe_name}</b> (@{safe_username})\n"
+                    f"📖 Kitob: <b>{safe_title}</b> (<code>{safe_inv}</code>)\n"
+                    f"🔑 Tasdiqlash kodi: <b><code>{safe_code}</code></b>"
                 )
                 reply_markup = {
                     'inline_keyboard': [[
@@ -124,11 +136,14 @@ def notify_borrow_approved(loan):
     if not getattr(user, 'telegram_chat_id', ''):
         return
     book = loan.book_copy.book
+    safe_title = escape_html(book.title)
+    safe_inv = escape_html(loan.book_copy.inventory_number)
+    issued_name = escape_html(loan.issued_by.full_display_name if loan.issued_by else 'Kutubxonachi')
     msg = (
         f"✅ <b>Kitob berilishi tasdiqlandi!</b>\n\n"
-        f"📖 Kitob: <b>{book.title}</b> (<code>{loan.book_copy.inventory_number}</code>)\n"
+        f"📖 Kitob: <b>{safe_title}</b> (<code>{safe_inv}</code>)\n"
         f"📅 Qaytarish muddati: <b>{loan.due_date.strftime('%d.%m.%Y')}</b>\n"
-        f"👨‍🏫 Bergan xodim: {loan.issued_by.full_display_name if loan.issued_by else 'Kutubxonachi'}\n\n"
+        f"👨‍🏫 Bergan xodim: {issued_name}\n\n"
         f"<i>Kitobni o'z vaqtida qaytarib +35 XP ball to'plang!</i>"
     )
     send_telegram_message(user.telegram_chat_id, msg)
@@ -139,9 +154,11 @@ def notify_return_approved(loan):
     if not getattr(user, 'telegram_chat_id', ''):
         return
     book = loan.book_copy.book
+    safe_title = escape_html(book.title)
+    safe_inv = escape_html(loan.book_copy.inventory_number)
     msg = (
         f"📥 <b>Kitob muvaffaqiyatli qabul qilindi!</b>\n\n"
-        f"📖 Kitob: <b>{book.title}</b> (<code>{loan.book_copy.inventory_number}</code>)\n"
+        f"📖 Kitob: <b>{safe_title}</b> (<code>{safe_inv}</code>)\n"
         f"🏆 Sizga <b>+25 XP</b> kitobxonlik bali qo'shildi!\n\n"
         f"SmartLib kutubxonasidan foydalanganingiz uchun rahmat!"
     )
@@ -151,9 +168,10 @@ def notify_return_approved(loan):
 def notify_reservation_available(user, book):
     if not getattr(user, 'telegram_chat_id', ''):
         return
+    safe_title = escape_html(book.title)
     msg = (
         f"🎉 <b>Navbatdagi kitob bo'shadi!</b>\n\n"
-        f"Siz navbatda kutayotgan <b>«{book.title}»</b> kitobi kutubxonaga qaytarildi.\n"
+        f"Siz navbatda kutayotgan <b>«{safe_title}»</b> kitobi kutubxonaga qaytarildi.\n"
         f"Hoziroq SmartLib tizimiga kirib buyurtma berishingiz mumkin!"
     )
     send_telegram_message(user.telegram_chat_id, msg)
@@ -162,10 +180,13 @@ def notify_reservation_available(user, book):
 def notify_overdue_reminder(loan):
     user = loan.user
     book = loan.book_copy.book
+    safe_name = escape_html(user.full_display_name)
+    safe_title = escape_html(book.title)
+    safe_inv = escape_html(loan.book_copy.inventory_number)
     msg = (
         f"🚨 <b>DIQQAT: Kitob topshirish muddati o'tgan!</b>\n\n"
-        f"👤 Kitobxon: <b>{user.full_display_name}</b>\n"
-        f"📖 Kitob: <b>{book.title}</b> (<code>{loan.book_copy.inventory_number}</code>)\n"
+        f"👤 Kitobxon: <b>{safe_name}</b>\n"
+        f"📖 Kitob: <b>{safe_title}</b> (<code>{safe_inv}</code>)\n"
         f"⏳ Kechikkan kunlar: <b>{loan.overdue_days} kun</b>\n"
         f"⚠️ Jarima bali: <b>-{loan.penalty_points} XP</b>\n\n"
         f"Iltimos, kitobni zudlik bilan kutubxonaga topshiring! Qarzdorlik yopilmaguncha yangi kitob olish cheklangan."

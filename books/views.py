@@ -1271,12 +1271,16 @@ def reports_pdf_view(request):
 
 
 def _build_xlsx_bytes(rows):
-    """Tashqi kutubxonasiz toza OpenXML (.xlsx) fayl generatsiya qiladi."""
+    """Tashqi kutubxonasiz toza OpenXML (.xlsx) fayl generatsiya qiladi (avtomatik ustun kengligi bilan)."""
+    col_widths = {}
     sheet_rows_xml = []
     for r_idx, row in enumerate(rows, start=1):
         cells_xml = []
         for c_idx, val in enumerate(row):
-            col_letter = chr(ord('A') + c_idx)
+            str_len = len(str(val if val is not None else ''))
+            col_widths[c_idx] = max(col_widths.get(c_idx, 10), min(50, str_len + 3))
+
+            col_letter = chr(ord('A') + c_idx) if c_idx < 26 else f"A{chr(ord('A') + c_idx - 26)}"
             cell_ref = f"{col_letter}{r_idx}"
             if isinstance(val, (int, float)) and not isinstance(val, bool):
                 cells_xml.append(f'<c r="{cell_ref}"><v>{val}</v></c>')
@@ -1285,9 +1289,16 @@ def _build_xlsx_bytes(rows):
                 cells_xml.append(f'<c r="{cell_ref}" t="inlineStr"><is><t>{safe_txt}</t></is></c>')
         sheet_rows_xml.append(f'<row r="{r_idx}">{"".join(cells_xml)}</row>')
 
+    cols_xml_parts = []
+    for c_idx in sorted(col_widths.keys()):
+        w = max(10, col_widths[c_idx])
+        cols_xml_parts.append(f'<col min="{c_idx+1}" max="{c_idx+1}" width="{w}" customWidth="1"/>')
+    cols_xml = f'<cols>{"".join(cols_xml_parts)}</cols>' if cols_xml_parts else ''
+
     worksheet_xml = (
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+        f'{cols_xml}'
         f'<sheetData>{"".join(sheet_rows_xml)}</sheetData>'
         '</worksheet>'
     )
@@ -2795,8 +2806,9 @@ def telegram_webhook_view(request):
             if active_loans:
                 for idx, al in enumerate(active_loans, start=1):
                     overdue = al.is_overdue
+                    safe_title = xml_escape(al.book_copy.book.title)
                     status_badge = f"🚨 <b>{al.overdue_days} kun kechikdi (-{al.penalty_points} XP)</b>" if overdue else f"Topshirish: {al.due_date.strftime('%d.%m.%Y')}"
-                    lines.append(f"{idx}. «{al.book_copy.book.title}» — {status_badge}")
+                    lines.append(f"{idx}. «{safe_title}» — {status_badge}")
             else:
                 lines.append("<i>Hozirda qo'lingizda kitob yo'q. Yangi kitob buyurtma qilish uchun saytga kiring.</i>")
 
@@ -2814,6 +2826,7 @@ def telegram_webhook_view(request):
         search_query = text
 
     if search_query:
+        safe_q = xml_escape(search_query)
         books = list(
             Book.objects.filter(
                 Q(title__icontains=search_query) |
@@ -2822,19 +2835,21 @@ def telegram_webhook_view(request):
             ).prefetch_related('copies')[:5]
         )
         if books:
-            lines = [f"🔍 <b>«{search_query}» bo'yicha topilgan kitoblar:</b>\n"]
+            lines = [f"🔍 <b>«{safe_q}» bo'yicha topilgan kitoblar:</b>\n"]
             for idx, b in enumerate(books, start=1):
                 avail = b.available_copies_count
                 status_icon = "🟢 Javonda bor" if avail > 0 else "🔴 Hozir band"
                 book_url = f"{public_url}/book/{b.pk}/"
+                safe_title = xml_escape(b.title)
+                safe_author = xml_escape(b.author)
                 lines.append(
-                    f"{idx}. <b><a href='{book_url}'>{b.title}</a></b>\n"
-                    f"   ✍️ {b.author} | {status_icon}: <b>{avail}/{b.total_copies} ta</b>\n"
+                    f"{idx}. <b><a href='{book_url}'>{safe_title}</a></b>\n"
+                    f"   ✍️ {safe_author} | {status_icon}: <b>{avail}/{b.total_copies} ta</b>\n"
                 )
             reply = "\n".join(lines)
         else:
             reply = (
-                f"😔 «{search_query}» bo'yicha kutubxonada kitob topilmadi.\n"
+                f"😔 «{safe_q}» bo'yicha kutubxonada kitob topilmadi.\n"
                 f"Boshqa so'z bilan qidirib ko'ring yoki: <code>/kitob &lt;nomi&gt;</code>"
             )
         send_telegram_message(chat_id, reply)

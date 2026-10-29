@@ -331,13 +331,22 @@
     function saveBookmarkPage() {
         const pageInp = document.getElementById("bookmarkPageInput");
         if (!pageInp) return;
-        const p = Math.max(1, parseInt(pageInp.value || "1", 10));
+        const maxPages = parseInt("{{ book.pages|default:500 }}", 10) || 500;
+        let p = parseInt(pageInp.value || "1", 10);
+        if (isNaN(p) || p < 1) p = 1;
+        if (p > maxPages) p = maxPages;
         pageInp.value = p;
         localStorage.setItem(BOOKMARK_KEY, String(p));
+
+        const pdfObject = document.getElementById("pdfObject");
+        if (pdfObject) {
+            const baseObjUrl = (pdfObject.getAttribute("data") || "").split("#")[0];
+            if (baseObjUrl) pdfObject.setAttribute("data", baseObjUrl + "#page=" + p);
+        }
         const pdfFrame = document.getElementById("pdfFrame");
         if (pdfFrame) {
-            const baseUrl = pdfFrame.getAttribute("src").split("#")[0];
-            pdfFrame.setAttribute("src", baseUrl + "#page=" + p);
+            const baseUrl = (pdfFrame.getAttribute("src") || "").split("#")[0];
+            if (baseUrl) pdfFrame.setAttribute("src", baseUrl + "#page=" + p);
         }
         const badge = document.getElementById("bookmarkSavedBadge");
         if (badge) {
@@ -363,10 +372,13 @@
     function toggleReaderFullscreen() {
         const vp = document.getElementById("readerViewport");
         if (!vp) return;
-        if (!document.fullscreenElement) {
-            vp.requestFullscreen().catch(() => {});
-        } else {
-            document.exitFullscreen().catch(() => {});
+        const requestFs = vp.requestFullscreen || vp.webkitRequestFullscreen || vp.msRequestFullscreen;
+        const exitFs = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+        const fsElement = document.fullscreenElement || document.webkitFullscreenElement;
+        if (!fsElement && requestFs) {
+            requestFs.call(vp);
+        } else if (exitFs) {
+            exitFs.call(document);
         }
     }
 
