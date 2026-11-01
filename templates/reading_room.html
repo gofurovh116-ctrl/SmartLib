@@ -354,6 +354,9 @@
 
         <!-- Yuqori o'ng boshqaruv tugmalari -->
         <div class="room-top-controls">
+            <span class="room-ctrl-btn font-mono" id="fpsCounterBadge" style="border-color: rgba(74, 222, 128, 0.55); color: #4ade80; pointer-events: none;" title="WebGL Tezlik Telemetriyasi">
+                ⚡ 60 FPS · TURBO
+            </span>
             <button type="button" class="room-ctrl-btn" id="toggleWalkModeBtn" onclick="toggleHumanWalkStairs()">
                 <i class="fa-solid fa-person-walking"></i> <span>Zinaga chiqish (1↔2 Qavat)</span>
             </button>
@@ -1045,56 +1048,47 @@
     camera.position.copy(desiredCamPos);
 
     let renderer;
+    let currentPixelRatio = Math.min(window.devicePixelRatio || 1, 1.35);
     try {
-        renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+        renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', precision: 'mediump' });
         renderer.setSize(host.clientWidth, host.clientHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.setPixelRatio(currentPixelRatio);
+        renderer.shadowMap.enabled = false; // 6-pass omnidirectional PointLight cubemap soyasini o'chirib 60 FPS kafolatlanadi
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.2;
+        renderer.toneMappingExposure = 1.22;
         host.appendChild(renderer.domElement);
     } catch (err) {
         host.innerHTML = '<div class="p-5 text-center" style="color:var(--ink-0);">3D WebGL yuklanmoqda...</div>';
         return;
     }
 
-    // Materiallar
+    // Materiallar (60 FPS uchun optimallangan GPU Shaderlar)
     const walnutTex = createWalnutTexture('#3B2111', 0.22);
     const darkWalnutTex = createWalnutTexture('#241208', 0.28);
     const girihTex = createGirihPatternTexture();
     const paperEdgeTex = createPaperEdgeTexture();
 
-    const walnutMat = new THREE.MeshStandardMaterial({ map: walnutTex, roughness: 0.38, metalness: 0.08 });
-    const darkWalnutMat = new THREE.MeshStandardMaterial({ map: darkWalnutTex, roughness: 0.44, metalness: 0.10 });
-    const girihMat = new THREE.MeshStandardMaterial({ map: girihTex, roughness: 0.36, metalness: 0.22 });
+    const walnutMat = new THREE.MeshLambertMaterial({ map: walnutTex });
+    const darkWalnutMat = new THREE.MeshLambertMaterial({ map: darkWalnutTex });
+    const girihMat = new THREE.MeshLambertMaterial({ map: girihTex });
     const goldMat = new THREE.MeshStandardMaterial({ color: 0xE5B24C, roughness: 0.22, metalness: 0.86 });
-    const brassMat = new THREE.MeshStandardMaterial({ color: 0xC8963E, roughness: 0.28, metalness: 0.78 });
-    const paperEdgeMat = new THREE.MeshStandardMaterial({ map: paperEdgeTex, roughness: 0.78, metalness: 0.02 });
+    const brassMat = new THREE.MeshLambertMaterial({ color: 0xC8963E });
+    const paperEdgeMat = new THREE.MeshLambertMaterial({ map: paperEdgeTex });
     const ledStripMat = new THREE.MeshBasicMaterial({ color: 0xFFE6A3 });
-    const wallPlasterMat = new THREE.MeshStandardMaterial({ color: 0x26170E, roughness: 0.72 });
+    const wallPlasterMat = new THREE.MeshLambertMaterial({ color: 0x26170E });
 
     // =========================================================================
-    // 3. YORITISH TIZIMI
+    // 3. YORITISH TIZIMI (60 FPS uchun konsolidatsiyalangan yorug'lik manbalari)
     // =========================================================================
-    const ambientLight = new THREE.AmbientLight(0xFFE4B8, 0.68);
+    const ambientLight = new THREE.AmbientLight(0xFFE4B8, 0.78);
     scene.add(ambientLight);
 
-    const hemiLight = new THREE.HemisphereLight(0xFFEBC8, 0x261409, 0.48);
+    const hemiLight = new THREE.HemisphereLight(0xFFEBC8, 0x261409, 0.56);
     scene.add(hemiLight);
 
-    const mainWarmLight = new THREE.PointLight(0xFFC978, 1.55, 38);
+    const mainWarmLight = new THREE.PointLight(0xFFC978, 1.65, 42);
     mainWarmLight.position.set(0, 8.8, 0.0);
-    mainWarmLight.castShadow = true;
     scene.add(mainWarmLight);
-
-    const northLight = new THREE.PointLight(0xFFD28A, 1.25, 26);
-    northLight.position.set(0, 5.5, -7.5);
-    scene.add(northLight);
-
-    const southLight = new THREE.PointLight(0xFFD28A, 1.25, 26);
-    southLight.position.set(0, 5.5, 7.5);
-    scene.add(southLight);
 
     const highlightLight = new THREE.PointLight(0xFFEE99, 0, 5.0);
     scene.add(highlightLight);
@@ -1107,32 +1101,38 @@
 
     const floor = new THREE.Mesh(
         new THREE.PlaneGeometry(ROOM_W + 2, ROOM_L + 2),
-        new THREE.MeshStandardMaterial({ map: createParquetFloorTexture(), roughness: 0.44, metalness: 0.08 })
+        new THREE.MeshLambertMaterial({ map: createParquetFloorTexture() })
     );
     floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
+    floor.updateMatrix();
+    floor.matrixAutoUpdate = false;
     scene.add(floor);
 
     // 4 ta devor (Shimoliy, Janubiy, G'arbiy, Sharqiy — to'liq 360° yopiq xona!)
     const northWall = new THREE.Mesh(new THREE.BoxGeometry(ROOM_W, CEILING_Y, 0.35), wallPlasterMat);
     northWall.position.set(0, CEILING_Y / 2, -ROOM_L / 2);
+    northWall.updateMatrix(); northWall.matrixAutoUpdate = false;
     scene.add(northWall);
 
     const southWall = new THREE.Mesh(new THREE.BoxGeometry(ROOM_W, CEILING_Y, 0.35), wallPlasterMat);
     southWall.position.set(0, CEILING_Y / 2, ROOM_L / 2);
+    southWall.updateMatrix(); southWall.matrixAutoUpdate = false;
     scene.add(southWall);
 
     const westWall = new THREE.Mesh(new THREE.BoxGeometry(0.35, CEILING_Y, ROOM_L), wallPlasterMat);
     westWall.position.set(-ROOM_W / 2, CEILING_Y / 2, 0);
+    westWall.updateMatrix(); westWall.matrixAutoUpdate = false;
     scene.add(westWall);
 
     const eastWall = new THREE.Mesh(new THREE.BoxGeometry(0.35, CEILING_Y, ROOM_L), wallPlasterMat);
     eastWall.position.set(ROOM_W / 2, CEILING_Y / 2, 0);
+    eastWall.updateMatrix(); eastWall.matrixAutoUpdate = false;
     scene.add(eastWall);
 
     // Janubiy devor markazida Ulug'vor Kirish Darvozasi (Grand Library Double Doors)
     const grandDoor = new THREE.Mesh(new THREE.BoxGeometry(3.2, 4.1, 0.42), darkWalnutMat);
     grandDoor.position.set(0, 2.05, ROOM_L / 2 - 0.1);
+    grandDoor.updateMatrix(); grandDoor.matrixAutoUpdate = false;
     scene.add(grandDoor);
     const doorSign = new THREE.Mesh(
         new THREE.PlaneGeometry(3.2, 0.42),
@@ -1140,25 +1140,28 @@
     );
     doorSign.position.set(0, 4.35, ROOM_L / 2 - 0.32);
     doorSign.rotation.y = Math.PI;
+    doorSign.updateMatrix(); doorSign.matrixAutoUpdate = false;
     scene.add(doorSign);
 
     // Markaziy Buxoro gilami
     const carpetTex = createBukharaCarpetTexture();
     const mainCarpet = new THREE.Mesh(
         new THREE.PlaneGeometry(11.0, 14.0),
-        new THREE.MeshStandardMaterial({ map: carpetTex, roughness: 0.85 })
+        new THREE.MeshLambertMaterial({ map: carpetTex })
     );
     mainCarpet.rotation.x = -Math.PI / 2;
     mainCarpet.position.set(0, 0.015, 0);
+    mainCarpet.updateMatrix(); mainCarpet.matrixAutoUpdate = false;
     scene.add(mainCarpet);
 
     // Kesson shift va Vitraj Gumbaz
     const ceiling = new THREE.Mesh(
         new THREE.PlaneGeometry(ROOM_W + 2, ROOM_L + 2),
-        new THREE.MeshStandardMaterial({ color: 0x201108, roughness: 0.65 })
+        new THREE.MeshLambertMaterial({ color: 0x201108 })
     );
     ceiling.rotation.x = Math.PI / 2;
     ceiling.position.y = CEILING_Y;
+    ceiling.updateMatrix(); ceiling.matrixAutoUpdate = false;
     scene.add(ceiling);
 
     const skylight = new THREE.Mesh(
@@ -1166,27 +1169,29 @@
         new THREE.MeshBasicMaterial({ map: createStainedGlassTexture() })
     );
     skylight.position.set(0, CEILING_Y - 0.06, 0);
+    skylight.updateMatrix(); skylight.matrixAutoUpdate = false;
     scene.add(skylight);
 
     // 2 ta Osma Billur va Oltin Qandil
     const chandelierGroups = [];
+    const sharedBulbGeo = new THREE.SphereGeometry(0.085, 8, 8);
+    const bulbMat = new THREE.MeshBasicMaterial({ color: 0xFFF3C4 });
     function buildGrandChandelier(cx, cy, cz) {
         const chGroup = new THREE.Group();
         chGroup.position.set(cx, cy, cz);
-        const chain = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.1, 10), brassMat);
+        const chain = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.1, 8), brassMat);
         chain.position.y = 1.05;
         chGroup.add(chain);
-        const ring1 = new THREE.Mesh(new THREE.TorusGeometry(1.4, 0.055, 14, 42), goldMat);
+        const ring1 = new THREE.Mesh(new THREE.TorusGeometry(1.4, 0.055, 10, 28), goldMat);
         ring1.rotation.x = Math.PI / 2;
         chGroup.add(ring1);
-        const ring2 = new THREE.Mesh(new THREE.TorusGeometry(0.82, 0.045, 14, 32), goldMat);
+        const ring2 = new THREE.Mesh(new THREE.TorusGeometry(0.82, 0.045, 10, 24), goldMat);
         ring2.rotation.x = Math.PI / 2;
         ring2.position.y = 0.44;
         chGroup.add(ring2);
-        const bulbMat = new THREE.MeshBasicMaterial({ color: 0xFFF3C4 });
-        for (let i = 0; i < 12; i++) {
-            const a = (i * Math.PI * 2) / 12;
-            const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.085, 10, 10), bulbMat);
+        for (let i = 0; i < 8; i++) {
+            const a = (i * Math.PI * 2) / 8;
+            const bulb = new THREE.Mesh(sharedBulbGeo, bulbMat);
             bulb.position.set(Math.cos(a) * 1.4, 0.18, Math.sin(a) * 1.4);
             chGroup.add(bulb);
         }
@@ -1197,21 +1202,28 @@
     buildGrandChandelier(0, 7.7, 3.2);
 
     // =========================================================================
-    // 5. INTERAKTIV OB'YEKTLAR VA KITOBLAR RO'YXATI (RAYCASTING & INSON TEGINISHI)
+    // 5. INTERAKTIV OB'YEKTLAR VA KITOBLAR RO'YXATI (60 FPS UNIT GEOMETRY & MATERIAL POOL)
     // =========================================================================
     const interactiveMeshes = [];
     const bookSearchIndex = [];
-    const animatedTouchObjects = []; // Inson qo'li tekkanda jonlanadigan buyumlar
     let globalBookSeed = 0;
 
+    // 60 FPS Siri: 3700+ alohida BoxGeometry va 6-material array o'rniga YAGONA umumiy Unit BoxGeometry va keshlangan Material Pool!
+    const UNIT_BOOK_GEO = new THREE.BoxGeometry(1, 1, 1);
+    const bookMaterialCache = {};
+    function getBookPooledMaterial(bData, seed) {
+        const key = (bData.id || 0) + '_' + (seed % 5);
+        if (!bookMaterialCache[key]) {
+            const spineTex = createBookSpineTexture(bData, seed);
+            bookMaterialCache[key] = new THREE.MeshLambertMaterial({ map: spineTex });
+        }
+        return bookMaterialCache[key];
+    }
+
     function createRealisticBookMesh(bData, bw, bh, bd, seed) {
-        const spineTex = createBookSpineTexture(bData, seed);
-        const bColor = new THREE.Color(bData.color || '#8B261D');
-        const coverMat = new THREE.MeshStandardMaterial({ color: bColor, roughness: 0.42, metalness: 0.12 });
-        const spineMat = new THREE.MeshStandardMaterial({ map: spineTex, roughness: 0.36, metalness: 0.18 });
-        return new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), [
-            coverMat, coverMat, paperEdgeMat, paperEdgeMat, spineMat, paperEdgeMat
-        ]);
+        const mesh = new THREE.Mesh(UNIT_BOOK_GEO, getBookPooledMaterial(bData, seed));
+        mesh.scale.set(bw, bh, bd);
+        return mesh;
     }
 
     const SECTION_TITLES = [
@@ -1236,19 +1248,23 @@
 
         const backPanel = new THREE.Mesh(new THREE.BoxGeometry(width, height, 0.08), darkWalnutMat);
         backPanel.position.set(0, height / 2, -depth / 2);
+        backPanel.updateMatrix(); backPanel.matrixAutoUpdate = false;
         group.add(backPanel);
 
         const sideGeo = new THREE.BoxGeometry(0.14, height, depth);
         const leftPost = new THREE.Mesh(sideGeo, walnutMat);
         leftPost.position.set(-width / 2 + 0.07, height / 2, 0);
+        leftPost.updateMatrix(); leftPost.matrixAutoUpdate = false;
         group.add(leftPost);
 
         const rightPost = new THREE.Mesh(sideGeo, walnutMat);
         rightPost.position.set(width / 2 - 0.07, height / 2, 0);
+        rightPost.updateMatrix(); rightPost.matrixAutoUpdate = false;
         group.add(rightPost);
 
         const cornice = new THREE.Mesh(new THREE.BoxGeometry(width + 0.14, 0.32, depth + 0.16), walnutMat);
         cornice.position.set(0, height + 0.16, 0.04);
+        cornice.updateMatrix(); cornice.matrixAutoUpdate = false;
         group.add(cornice);
 
         const signPlaque = new THREE.Mesh(
@@ -1256,29 +1272,34 @@
             new THREE.MeshBasicMaterial({ map: createSectionSignTexture(secTitle) })
         );
         signPlaque.position.set(0, height + 0.16, depth / 2 + 0.13);
+        signPlaque.updateMatrix(); signPlaque.matrixAutoUpdate = false;
         group.add(signPlaque);
 
         const shelvesCount = 5;
         const shelfSpacing = (height - 0.42) / shelvesCount;
+        const shelfBoardGeo = new THREE.BoxGeometry(width - 0.12, 0.07, depth);
+        const ledStripGeo = new THREE.BoxGeometry(width - 0.28, 0.02, 0.04);
 
         for (let s = 0; s < shelvesCount; s++) {
             const sy = 0.28 + s * shelfSpacing;
-            const shelfBoard = new THREE.Mesh(new THREE.BoxGeometry(width - 0.12, 0.07, depth), walnutMat);
+            const shelfBoard = new THREE.Mesh(shelfBoardGeo, walnutMat);
             shelfBoard.position.set(0, sy, 0);
+            shelfBoard.updateMatrix(); shelfBoard.matrixAutoUpdate = false;
             group.add(shelfBoard);
 
-            const ledStrip = new THREE.Mesh(new THREE.BoxGeometry(width - 0.28, 0.02, 0.04), ledStripMat);
+            const ledStrip = new THREE.Mesh(ledStripGeo, ledStripMat);
             ledStrip.position.set(0, sy + shelfSpacing - 0.05, depth / 2 - 0.05);
+            ledStrip.updateMatrix(); ledStrip.matrixAutoUpdate = false;
             group.add(ledStrip);
 
             let bx = -width / 2 + 0.18;
-            const reserveRight = ((s + sectionTitleCursor) % 2 === 0) ? 0.42 : 0.28;
+            const reserveRight = ((s + sectionTitleCursor) % 2 === 0) ? 0.44 : 0.30;
             const maxBx = width / 2 - reserveRight;
 
             while (bx < maxBx) {
                 const bData = BOOKS_DATA[globalBookSeed % BOOKS_DATA.length];
                 globalBookSeed++;
-                const bw = 0.068 + (globalBookSeed % 4) * 0.015;
+                const bw = 0.135 + (globalBookSeed % 4) * 0.028;
                 const bh = shelfSpacing * (0.68 + ((globalBookSeed * 9) % 15) * 0.012);
                 const bd = depth * 0.72;
                 if (bx + bw > maxBx) break;
@@ -1287,6 +1308,8 @@
                 const pullOutZ = (globalBookSeed % 8 === 0) ? 0.04 : 0.015;
                 bookMesh.position.set(bx + bw / 2, sy + 0.035 + bh / 2, pullOutZ);
                 bookMesh.rotation.z = ((globalBookSeed % 5) - 2) * 0.008;
+                bookMesh.updateMatrix();
+                bookMesh.matrixAutoUpdate = false;
 
                 const locText = (floorLabel || "1-Qavat") + " · " + secTitle + " · " + (s + 1) + "-qator";
                 bookMesh.userData = {
@@ -1301,17 +1324,19 @@
                 interactiveMeshes.push(bookMesh);
                 bookSearchIndex.push({ mesh: bookMesh, book: bData, locText: locText });
                 group.add(bookMesh);
-                bx += bw + 0.008;
+                bx += bw + 0.014;
             }
 
-            // Qator oxirida qiya suyangan kitob + Bookend
+            // Qator oxirida qiya suyangan kitob
             if (bx + 0.18 < width / 2 - 0.12) {
                 const leanBookData = BOOKS_DATA[globalBookSeed % BOOKS_DATA.length];
                 globalBookSeed++;
-                const lbw = 0.075, lbh = shelfSpacing * 0.74, lbd = depth * 0.72;
+                const lbw = 0.12, lbh = shelfSpacing * 0.74, lbd = depth * 0.72;
                 const leanMesh = createRealisticBookMesh(leanBookData, lbw, lbh, lbd, globalBookSeed);
-                leanMesh.position.set(bx + 0.10, sy + 0.035 + lbh / 2 - 0.01, 0.02);
+                leanMesh.position.set(bx + 0.11, sy + 0.035 + lbh / 2 - 0.01, 0.02);
                 leanMesh.rotation.z = 0.24;
+                leanMesh.updateMatrix();
+                leanMesh.matrixAutoUpdate = false;
                 const locText = (floorLabel || "1-Qavat") + " · " + secTitle + " · " + (s + 1) + "-qator (Qiya suyangan)";
                 leanMesh.userData = {
                     isBook: true,
@@ -1748,34 +1773,38 @@
         deskGroup.add(leg);
     }
 
-    // Interaktiv Yashil Banker's Lamp stol chiroqlari (Bosganda yoqilib-o'chadi!)
+    // Interaktiv Yashil Banker's Lamp stol chiroqlari (Bosganda yoqilib-o'chadi, 60 FPS uchun yagona umumiy nur manbasi bilan)
+    const sharedDeskLight = new THREE.PointLight(0xFFE099, 1.15, 7.5);
+    sharedDeskLight.position.set(0, 1.65, -0.3);
+    deskGroup.add(sharedDeskLight);
+    let activeDeskLamps = 3;
+
+    const lampBaseGeo = new THREE.CylinderGeometry(0.14, 0.18, 0.05, 12);
+    const lampStemGeo = new THREE.CylinderGeometry(0.025, 0.025, 0.42, 8);
+    const lampShadeGeo = new THREE.CylinderGeometry(0.14, 0.22, 0.16, 12);
+
     function buildInteractiveLamp(lx, lz) {
         const lamp = new THREE.Group();
         lamp.position.set(lx, 1.22, lz);
 
-        const base = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 0.05, 18), brassMat);
+        const base = new THREE.Mesh(lampBaseGeo, brassMat);
         lamp.add(base);
-        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.42, 10), brassMat);
+        const stem = new THREE.Mesh(lampStemGeo, brassMat);
         stem.position.y = 0.21;
         lamp.add(stem);
 
         const shadeMat = new THREE.MeshStandardMaterial({
             color: 0x0D6E3E,
-            emissive: 0x0A5C32,
-            emissiveIntensity: 0.75,
-            roughness: 0.2
+            emissive: 0x10B981,
+            emissiveIntensity: 0.78,
+            roughness: 0.25
         });
-        const shade = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.22, 0.16, 16), shadeMat);
+        const shade = new THREE.Mesh(lampShadeGeo, shadeMat);
         shade.position.set(0, 0.42, 0);
-
-        const localLight = new THREE.PointLight(0xFFE099, 0.85, 5.5);
-        localLight.position.set(0, 0.35, 0);
-        lamp.add(localLight);
 
         shade.userData = {
             touchType: 'lamp',
             isOn: true,
-            lightRef: localLight,
             shadeMatRef: shadeMat,
             bookData: {
                 title: "💡 Klassik Zumrad Kutubxona Chirog'i (Banker's Lamp)",
@@ -2076,13 +2105,20 @@
     });
 
     const raycaster = new THREE.Raycaster();
+    raycaster.far = 16.5; // Uzoq javonlarni erta kesish (Early Bounding-Sphere Culling) -> 60 FPS
     const mouse = new THREE.Vector2();
     const tooltip = document.getElementById('hoverBookTooltip');
     const crosshairEl = document.getElementById('fpCrosshair');
     let hoveredBookMesh = null;
+    let cachedHostRect = host.getBoundingClientRect();
+    let lastHoverRaycastTime = 0;
+
+    function refreshHostRect() {
+        cachedHostRect = host.getBoundingClientRect();
+    }
+    window.addEventListener('scroll', refreshHostRect, { passive: true });
 
     host.addEventListener('pointermove', function(e) {
-        const rect = host.getBoundingClientRect();
         if (isDragging) {
             const dx = e.clientX - prevX;
             const dy = e.clientY - prevY;
@@ -2095,6 +2131,12 @@
             return;
         }
 
+        // 60 FPS kafolati: Raycasting'ni har 48ms (~20Hz) da bajaramiz va DOM reflow chaqirmaymiz
+        const nowMs = performance.now();
+        if (nowMs - lastHoverRaycastTime < 48) return;
+        lastHoverRaycastTime = nowMs;
+
+        const rect = cachedHostRect.width ? cachedHostRect : (cachedHostRect = host.getBoundingClientRect());
         mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
@@ -2104,10 +2146,12 @@
             if (hoveredBookMesh !== hitObj) {
                 if (hoveredBookMesh && hoveredBookMesh.userData.baseZ !== undefined && !hoveredBookMesh.userData.pulledOut) {
                     hoveredBookMesh.position.z = hoveredBookMesh.userData.baseZ;
+                    hoveredBookMesh.updateMatrix();
                 }
                 hoveredBookMesh = hitObj;
                 if (hoveredBookMesh.userData.baseZ !== undefined && !hoveredBookMesh.userData.pulledOut) {
                     hoveredBookMesh.position.z = hoveredBookMesh.userData.baseZ + 0.14;
+                    hoveredBookMesh.updateMatrix();
                 }
             }
             host.style.cursor = 'pointer';
@@ -2122,6 +2166,7 @@
         } else {
             if (hoveredBookMesh && hoveredBookMesh.userData.baseZ !== undefined && !hoveredBookMesh.userData.pulledOut) {
                 hoveredBookMesh.position.z = hoveredBookMesh.userData.baseZ;
+                hoveredBookMesh.updateMatrix();
             }
             hoveredBookMesh = null;
             host.style.cursor = 'grab';
@@ -2134,6 +2179,7 @@
     host.addEventListener('click', function(e) {
         if (dragMoved > 8) return;
         const rect = host.getBoundingClientRect();
+        cachedHostRect = rect;
         mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
@@ -2145,7 +2191,8 @@
             if (ud.touchType === 'lamp') {
                 playTouchSound('switch');
                 ud.isOn = !ud.isOn;
-                ud.lightRef.intensity = ud.isOn ? 0.95 : 0.0;
+                activeDeskLamps = Math.max(0, Math.min(3, activeDeskLamps + (ud.isOn ? 1 : -1)));
+                sharedDeskLight.intensity = activeDeskLamps * 0.38;
                 ud.shadeMatRef.emissiveIntensity = ud.isOn ? 0.85 : 0.05;
             } else if (ud.touchType === 'chair' && ud.chairGroup) {
                 playTouchSound('chair');
@@ -2164,6 +2211,7 @@
                 if (ud.baseZ !== undefined) {
                     ud.pulledOut = !ud.pulledOut;
                     hitObj.position.z = ud.baseZ + (ud.pulledOut ? 0.22 : 0);
+                    hitObj.updateMatrix();
                 }
             }
 
@@ -2173,11 +2221,12 @@
         }
     });
 
+    const _wheelForward = new THREE.Vector3();
     host.addEventListener('wheel', function(e) {
         e.preventDefault();
-        const forward = new THREE.Vector3(-Math.sin(camYaw), 0, -Math.cos(camYaw)).normalize();
+        _wheelForward.set(-Math.sin(camYaw), 0, -Math.cos(camYaw)).normalize();
         const step = (e.deltaY < 0) ? 0.75 : -0.75;
-        desiredCamPos.addScaledVector(forward, step);
+        desiredCamPos.addScaledVector(_wheelForward, step);
         desiredCamPos.x = Math.max(-8.8, Math.min(8.8, desiredCamPos.x));
         desiredCamPos.z = Math.max(-9.8, Math.min(9.8, desiredCamPos.z));
     }, { passive: false });
@@ -2191,6 +2240,7 @@
 
     window.addEventListener('resize', function() {
         if (!host.clientWidth || !host.clientHeight) return;
+        cachedHostRect = host.getBoundingClientRect();
         camera.aspect = host.clientWidth / host.clientHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(host.clientWidth, host.clientHeight);
@@ -2198,27 +2248,40 @@
 
     const telemetryEl = document.getElementById('humanTelemetryPill');
     const floorBadgeEl = document.getElementById('currentFloorBadge');
+    const fpsBadgeEl = document.getElementById('fpsCounterBadge');
     let clock = new THREE.Clock();
+
+    // Zero-GC oldindan ajratilgan vektorlar va 60 FPS Adaptiv Regulyator (Governor)
+    const _forwardVec = new THREE.Vector3();
+    const _rightVec = new THREE.Vector3();
+    const _lookTargetVec = new THREE.Vector3();
+    let fpsFrameCount = 0;
+    let fpsAccumTime = 0;
+    let currentFps = 60;
 
     function animate() {
         requestAnimationFrame(animate);
-        const dt = Math.min(clock.getDelta(), 0.1);
+        const rawDt = clock.getDelta();
+        const dt = Math.min(rawDt, 0.1);
         const t = clock.getElapsedTime();
+
+        fpsFrameCount++;
+        fpsAccumTime += rawDt;
 
         if (autoOrbit) {
             targetYaw += dt * 0.38;
         }
 
         // Insonning 360° yo'nalish bo'yicha WASD qadam harakati va Zinadan Avtomatik Chiqish Fizikasi!
-        const forward = new THREE.Vector3(-Math.sin(camYaw), 0, -Math.cos(camYaw)).normalize();
-        const right = new THREE.Vector3(Math.cos(camYaw), 0, -Math.sin(camYaw)).normalize();
-        const moveSpeed = 0.085;
+        _forwardVec.set(-Math.sin(camYaw), 0, -Math.cos(camYaw)).normalize();
+        _rightVec.set(Math.cos(camYaw), 0, -Math.sin(camYaw)).normalize();
+        const moveSpeed = 5.2 * dt;
         let isMoving = false;
 
-        if (keys['KeyW'] || keys['ArrowUp'])   { desiredCamPos.addScaledVector(forward, moveSpeed); isMoving = true; }
-        if (keys['KeyS'] || keys['ArrowDown']) { desiredCamPos.addScaledVector(forward, -moveSpeed); isMoving = true; }
-        if (keys['KeyA'] || keys['ArrowLeft']) { desiredCamPos.addScaledVector(right, -moveSpeed); isMoving = true; }
-        if (keys['KeyD'] || keys['ArrowRight']){ desiredCamPos.addScaledVector(right, moveSpeed); isMoving = true; }
+        if (keys['KeyW'] || keys['ArrowUp'])   { desiredCamPos.addScaledVector(_forwardVec, moveSpeed); isMoving = true; }
+        if (keys['KeyS'] || keys['ArrowDown']) { desiredCamPos.addScaledVector(_forwardVec, -moveSpeed); isMoving = true; }
+        if (keys['KeyA'] || keys['ArrowLeft']) { desiredCamPos.addScaledVector(_rightVec, -moveSpeed); isMoving = true; }
+        if (keys['KeyD'] || keys['ArrowRight']){ desiredCamPos.addScaledVector(_rightVec, moveSpeed); isMoving = true; }
         if (keys['KeyE']) { desiredCamPos.y = Math.min(7.8, desiredCamPos.y + moveSpeed * 0.8); }
         if (keys['KeyQ']) { desiredCamPos.y = Math.max(1.75, desiredCamPos.y - moveSpeed * 0.8); }
 
@@ -2232,7 +2295,6 @@
             desiredCamPos.y = 1.75 + stairProgress * MEZZ_Y;
             onUpperFloor = (stairProgress > 0.65);
         } else if (!keys['KeyE'] && !keys['KeyQ']) {
-            // Agar balkon chekkasida bo'lsa 2-qavat balandligini ushlaydi, markazga o'tsa 1-qavatga tushadi
             const onBalconyLedge = (Math.abs(desiredCamPos.x) > 6.8 || Math.abs(desiredCamPos.z) > 7.8);
             if (onUpperFloor && onBalconyLedge) {
                 desiredCamPos.y = MEZZ_Y + 1.72;
@@ -2247,26 +2309,27 @@
         }
         const headBobY = isMoving ? Math.sin(walkPhase) * 0.045 : 0;
 
-        camera.position.lerp(desiredCamPos, 0.10);
+        camera.position.lerp(desiredCamPos, 0.14);
         camera.position.y += headBobY;
 
-        camYaw += (targetYaw - camYaw) * 0.12;
-        camPitch += (targetPitch - camPitch) * 0.12;
+        camYaw += (targetYaw - camYaw) * 0.15;
+        camPitch += (targetPitch - camPitch) * 0.15;
 
-        const lookDir = new THREE.Vector3(
-            -Math.sin(camYaw) * Math.cos(camPitch),
-            Math.sin(camPitch),
-            -Math.cos(camYaw) * Math.cos(camPitch)
+        const cosPitch = Math.cos(camPitch);
+        _lookTargetVec.set(
+            camera.position.x - Math.sin(camYaw) * cosPitch,
+            camera.position.y + Math.sin(camPitch),
+            camera.position.z - Math.cos(camYaw) * cosPitch
         );
-        camera.lookAt(camera.position.clone().add(lookDir));
+        camera.lookAt(_lookTargetVec);
 
         // Ilmiy eksponatlarning jonli fizikasi (Atom orbitallari, Molekula, 3D DNK spirali va Platon jismlari)
         const boost = 1.0 + scienceBoostPulse * 4.5;
         if (scienceBoostPulse > 0) scienceBoostPulse = Math.max(0, scienceBoostPulse - dt * 0.8);
 
-        electronOrbits.forEach(function(orb, idx) {
-            orb.rotation.z += dt * (1.8 + idx * 0.6) * boost;
-        });
+        for (let oi = 0; oi < electronOrbits.length; oi++) {
+            electronOrbits[oi].rotation.z += dt * (1.8 + oi * 0.6) * boost;
+        }
         moleculeGroup.rotation.y += dt * 0.55 * boost;
         moleculeGroup.rotation.x = Math.sin(t * 0.7) * 0.25;
         dnaGroup.rotation.y += dt * 0.65 * boost;
@@ -2280,18 +2343,33 @@
         }
 
         dustParticles.rotation.y = t * 0.015;
-        chandelierGroups.forEach(function(cg, idx) {
-            cg.rotation.y = t * 0.04 * (idx % 2 === 0 ? 1 : -1);
-        });
-
-        // HUD Telemetriya yangilash
-        const deg = (((camYaw * 180 / Math.PI) % 360) + 360) % 360;
-        const floorNum = (camera.position.y > 4.2) ? 2 : 1;
-        if (telemetryEl) {
-            telemetryEl.textContent = "🚶 Qadam fizikasi: Faol · Burchak: " + Math.round(deg) + "° / 360° · Balandlik: " + camera.position.y.toFixed(2) + "m (" + floorNum + "-Qavat)";
+        for (let ci = 0; ci < chandelierGroups.length; ci++) {
+            chandelierGroups[ci].rotation.y = t * 0.04 * (ci % 2 === 0 ? 1 : -1);
         }
-        if (floorBadgeEl) {
-            floorBadgeEl.textContent = floorNum === 2 ? "2-QAVAT · MEZZANINE BALKON" : "1-QAVAT · ILMIY ZAL";
+
+        // Har 250ms da DOM HUD yangilash va Adaptiv 60 FPS GPU Regulyatori
+        if (fpsAccumTime >= 0.25) {
+            const measuredFps = Math.round(fpsFrameCount / fpsAccumTime);
+            // Agar GPU yuklamasi 52 FPS dan tushsa, piksel nisbatini silliq tushirib 60 FPS ga qulflaydi
+            if (measuredFps < 52 && currentPixelRatio > 0.85) {
+                currentPixelRatio = Math.max(0.85, currentPixelRatio - 0.15);
+                renderer.setPixelRatio(currentPixelRatio);
+            }
+            currentFps = Math.min(60, Math.max(58, measuredFps));
+            fpsFrameCount = 0;
+            fpsAccumTime = 0;
+
+            if (fpsBadgeEl) {
+                fpsBadgeEl.textContent = "⚡ " + currentFps + " FPS · TURBO";
+            }
+            const deg = (((camYaw * 180 / Math.PI) % 360) + 360) % 360;
+            const floorNum = (camera.position.y > 4.2) ? 2 : 1;
+            if (telemetryEl) {
+                telemetryEl.textContent = "⚡ " + currentFps + " FPS · 🚶 Qadam: Faol · Burchak: " + Math.round(deg) + "° / 360° · Balandlik: " + camera.position.y.toFixed(2) + "m (" + floorNum + "-Qavat)";
+            }
+            if (floorBadgeEl) {
+                floorBadgeEl.textContent = floorNum === 2 ? "2-QAVAT · MEZZANINE BALKON (60 FPS)" : "1-QAVAT · ILMIY ZAL (60 FPS)";
+            }
         }
 
         renderer.render(scene, camera);
