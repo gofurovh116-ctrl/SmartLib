@@ -25,6 +25,7 @@ from django.db import transaction
 from users.models import CustomUser
 from books.models import Loan, Notification
 from books.telegram_service import get_bot_token, send_telegram_message, notify_borrow_approved
+from books.views import _get_user_tg_linking_code
 
 
 def _api_call(token, method, params=None):
@@ -47,34 +48,105 @@ def handle_message(msg):
         return
 
     if text.startswith('/start'):
-        parts = text.split(maxsplit=1)
+        parts = text.split()
         if len(parts) > 1:
-            username_arg = parts[1].strip().lstrip('@')
-            user = CustomUser.objects.filter(username__iexact=username_arg).first()
-            if user:
-                user.telegram_chat_id = chat_id
-                user.save(update_fields=['telegram_chat_id'])
+            raw_arg = parts[1].strip().lstrip('@')
+            if raw_arg.startswith('connect_'):
+                raw_arg = raw_arg[len('connect_'):]
+            if '_' in raw_arg:
+                r_user, r_code = raw_arg.rsplit('_', 1)
+                if r_code.isdigit() and len(r_code) == 6:
+                    target_username = r_user
+                    provided_code = r_code
+                elif CustomUser.objects.filter(username__iexact=raw_arg).exists():
+                    target_username = raw_arg
+                    provided_code = ''
+                else:
+                    target_username = r_user
+                    provided_code = r_code
+            else:
+                target_username = raw_arg
+                provided_code = ''
+            if not provided_code and len(parts) > 2:
+                provided_code = parts[2].strip()
+            user = CustomUser.objects.filter(username__iexact=target_username).first()
+            if not user:
                 send_telegram_message(
                     chat_id,
-                    f"✅ <b>Tabriklaymiz, {user.full_display_name}!</b>\n\n"
-                    f"Sizning SmartLib (@{user.username}) profilingiz Telegram botga muvaffaqiyatli ulandi.\n"
-                    f"🆔 Chat ID: <code>{chat_id}</code>\n\n"
-                    f"Buyruqlar:\n"
-                    f"• /mybooks — Qo'lingizdagi kitoblar va kodlar\n"
-                    f"• /xp — Kitobxonlik XP va intizom reytingi\n"
-                    f"• /id — Chat ID raqamingizni ko'rish",
+                    f"❌ <b>Xatolik:</b> «{target_username}» nomli kitobxon topilmadi.\n"
+                    f"Iltimos, SmartLib saytidagi profilingiz loginini tekshiring.",
                     async_send=False,
                 )
                 return
+            expected_code = _get_user_tg_linking_code(user)
+            if not provided_code or provided_code != expected_code:
+                send_telegram_message(
+                    chat_id,
+                    f"⚠️ <b>Xavfsizlik talabi:</b> @{user.username} hisobini ulash uchun tasdiqlash kodi zarur.\n\n"
+                    f"Iltimos, saytdagi profilingizdan (Profil -> Telegram) 6-xonali kodni oling yoki quyidagi buyruqni yuboring:\n"
+                    f"<code>/connect {user.username} &lt;tasdiqlash_kodi&gt;</code>\n\n"
+                    f"Yoki profilingizdagi Chat ID maydoniga <code>{chat_id}</code> raqamini kiriting.",
+                    async_send=False,
+                )
+                return
+            user.telegram_chat_id = chat_id
+            user.save(update_fields=['telegram_chat_id'])
+            send_telegram_message(
+                chat_id,
+                f"✅ <b>Tabriklaymiz, {user.full_display_name}!</b>\n\n"
+                f"Sizning SmartLib (@{user.username}) profilingiz Telegram botga muvaffaqiyatli ulandi.\n"
+                f"🆔 Chat ID: <code>{chat_id}</code>\n\n"
+                f"Buyruqlar:\n"
+                f"• /mybooks — Qo'lingizdagi kitoblar va kodlar\n"
+                f"• /xp — Kitobxonlik XP va intizom reytingi\n"
+                f"• /id — Chat ID raqamingizni ko'rish",
+                async_send=False,
+            )
+            return
         send_telegram_message(
             chat_id,
             f"👋 <b>SmartLib Rasmiy Botiga xush kelibsiz!</b>\n\n"
             f"Sizning Telegram Chat ID raqamingiz: <code>{chat_id}</code>\n\n"
-            f"📌 <b>Hisobni ulashning 2 xil usuli:</b>\n"
-            f"1) Shu yerdan: <code>/start login_nomingiz</code> deb yozing.\n"
-            f"2) SmartLib saytidagi <b>Profilni tahrirlash</b> sahifasiga <code>{chat_id}</code> raqamini kiriting.",
+            f"📌 <b>Hisobni ulash:</b>\n"
+            f"1) <code>/connect login_nomingiz tasdiqlash_kodi</code> deb yozing.\n"
+            f"2) Yoki SmartLib saytidagi <b>Profilni tahrirlash</b> sahifasiga <code>{chat_id}</code> raqamini kiriting.",
             async_send=False,
         )
+
+    elif text.startswith('/connect') or text.startswith('/ulanish'):
+        parts = text.split()
+        if len(parts) >= 3:
+            target_username = parts[1].lstrip('@').strip()
+            provided_code = parts[2].strip()
+            user = CustomUser.objects.filter(username__iexact=target_username).first()
+            if not user:
+                reply = f"❌ «{target_username}» nomli login topilmadi. Qaytadan tekshirib yozing."
+            elif provided_code != _get_user_tg_linking_code(user):
+                reply = (
+                    f"⛔ <b>Noto'g'ri tasdiqlash kodi!</b>\n\n"
+                    f"Xavfsizlik maqsadida hisobni ulash uchun SmartLib profilingizdagi 6-xonali kodni to'g'ri kiriting:\n"
+                    f"<code>/connect {user.username} &lt;tasdiqlash_kodi&gt;</code>"
+                )
+            else:
+                user.telegram_chat_id = chat_id
+                user.save(update_fields=['telegram_chat_id'])
+                reply = (
+                    f"✅ <b>SmartLib hisobi muvaffaqiyatli ulandi!</b>\n\n"
+                    f"Kitobxon: <b>{user.full_display_name}</b> (@{user.username})\n"
+                    f"Maqom: {user.get_role_display()}\n\n"
+                    f"Barcha xabarnomalar va kodlar shu chatga yuboriladi."
+                )
+        elif len(parts) == 2:
+            target_username = parts[1].lstrip('@').strip()
+            reply = (
+                f"⚠️ <b>Tasdiqlash kodi kiritilmadi!</b>\n\n"
+                f"Hisobni xavfsiz ulash uchun buyruq formati:\n"
+                f"<code>/connect {target_username} &lt;tasdiqlash_kodi&gt;</code>\n\n"
+                f"Tasdiqlash kodini SmartLib saytidagi shaxsiy profilingizdan olishingiz mumkin."
+            )
+        else:
+            reply = "Iltimos, login va tasdiqlash kodini yozing. Masalan: <code>/connect alisher 123456</code>"
+        send_telegram_message(chat_id, reply, async_send=False)
 
     elif text.startswith('/id'):
         send_telegram_message(
@@ -120,17 +192,21 @@ def handle_callback(token, cb):
     data = cb.get('data') or ''
     from_chat = str((cb.get('message') or {}).get('chat', {}).get('id', '')).strip()
     lib_user = CustomUser.objects.filter(telegram_chat_id=from_chat).first()
-    if not lib_user or not (lib_user.is_staff or lib_user.is_superuser or lib_user.status in ('librarian', 'admin')):
-        _api_call(token, 'answerCallbackQuery', {'callback_query_id': cb_id, 'text': 'Faqat kutubxonachilar tasdiqlashi mumkin!', 'show_alert': True})
+    if not lib_user or not lib_user.is_active or not (lib_user.is_staff or lib_user.is_superuser or lib_user.status in ('librarian', 'admin')):
+        _api_call(token, 'answerCallbackQuery', {'callback_query_id': cb_id, 'text': 'Faqat faol kutubxonachilar tasdiqlashi mumkin!', 'show_alert': True})
         return
 
     if data.startswith('approve_borrow:'):
         parts = data.split(':')
         loan_id = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
+        vcode = parts[2] if len(parts) > 2 else ''
         with transaction.atomic():
             loan = Loan.objects.select_related('book_copy__book', 'user').filter(pk=loan_id, is_returned=False, status='borrow_pending').first()
             if not loan:
-                _api_call(token, 'answerCallbackQuery', {'callback_query_id': cb_id, 'text': "So'rov allaqachon ko'rib chiqilgan.", 'show_alert': True})
+                _api_call(token, 'answerCallbackQuery', {'callback_query_id': cb_id, 'text': "So'rov allaqachon ko'rib chiqilgan yoki topilmadi.", 'show_alert': True})
+                return
+            if not vcode or (loan.verification_code and loan.verification_code != vcode):
+                _api_call(token, 'answerCallbackQuery', {'callback_query_id': cb_id, 'text': "Tasdiqlash kodi noto'g'ri yoki kiritilmadi!", 'show_alert': True})
                 return
             loan.status = 'active'
             loan.issued_by = lib_user

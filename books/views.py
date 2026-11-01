@@ -1,4 +1,6 @@
 import csv
+import hashlib
+import hmac
 import io
 import json
 import os
@@ -35,6 +37,27 @@ from .telegram_service import (
     escape_html,
     get_bot_username,
 )
+
+
+def _mask_phone(phone):
+    """Telefon raqamini PII talablariga muvofiq xavfsiz niqoblaydi (+998 90 *** ** 12)."""
+    if not phone:
+        return ""
+    digits = [c for c in phone if c.isdigit()]
+    if len(digits) >= 9:
+        return f"+{digits[0]}{digits[1]}{digits[2]} {digits[3]}{digits[4]} *** ** {digits[-2]}{digits[-1]}"
+    elif len(digits) >= 6:
+        return f"+{digits[0]}{digits[1]} *** {digits[-2]}{digits[-1]}"
+    return "***"
+
+
+def _get_user_tg_linking_code(user):
+    """Foydalanuvchining Telegram botga ulanishi uchun 6-xonali xavfsiz tasdiqlash kodi."""
+    if not user or not getattr(user, 'pk', None):
+        return ""
+    secret = f"{user.pk}:{getattr(user, 'password', '')[:16]}:{settings.SECRET_KEY}"
+    h = hmac.new(secret.encode('utf-8'), b"tg_account_link_salt", hashlib.sha256).hexdigest()
+    return str(int(h[:8], 16) % 900000 + 100000)
 
 
 def _safe_library_id(raw):
@@ -164,7 +187,7 @@ def _build_books_3d_json(books_iterable):
                 'read_url': '/',
             }
         ]
-    return json.dumps(items)
+    return json.dumps(items).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
 
 
 def reading_room_view(request):
@@ -654,8 +677,8 @@ def librarian_approve_borrow_view(request, loan_id):
             status='borrow_pending'
         )
         entered_code = request.POST.get('verification_code', '').strip()
-        if entered_code and entered_code != loan.verification_code:
-            messages.error(request, f"Noto'g'ri kod kiritildi! Kutilgan kod: {loan.verification_code}")
+        if not entered_code or entered_code != loan.verification_code:
+            messages.error(request, "Noto'g'ri yoki bo'sh tasdiqlash kodi kiritildi!")
             return redirect('librarian_desk')
 
         loan.status = 'active'
@@ -736,8 +759,8 @@ def librarian_approve_return_view(request, loan_id):
             is_returned=False
         )
         entered_code = request.POST.get('verification_code', '').strip()
-        if entered_code and loan.verification_code and entered_code != loan.verification_code:
-            messages.error(request, f"Noto'g'ri kod kiritildi! Kutilgan kod: {loan.verification_code}")
+        if not entered_code or (loan.verification_code and entered_code != loan.verification_code):
+            messages.error(request, "Noto'g'ri yoki bo'sh tasdiqlash kodi kiritildi!")
             return redirect('librarian_desk')
 
         loan.status = 'returned'
@@ -996,6 +1019,9 @@ def generate_stickers_pdf_response(copies_list, filename="smartlib_stickers_a4.p
 
 @login_required
 def book_stickers_pdf_view(request, pk):
+    if not _is_librarian_or_admin(request.user):
+        messages.error(request, "Faqat kutubxonachi yoki administratorlar stikerlarni chop etishi mumkin!")
+        return redirect('home')
     book = get_object_or_404(Book.objects.select_related('library'), pk=pk)
     copies = list(book.copies.select_related('book__library').order_by('id'))
     return generate_stickers_pdf_response(copies, filename=f"stikerlar_kitob_{book.pk}.pdf")
@@ -1033,15 +1059,24 @@ def rate_book_view(request, pk):
     rating = int(raw_rating) if raw_rating.isdigit() and 1 <= int(raw_rating) <= 5 else 5
     comment = request.POST.get('comment', '').strip()[:1000]
 
-    existing = Review.objects.filter(book=book, user=request.user).first()
-    if existing:
-        existing.rating = rating
-        # Zero Data Loss: bo'sh izoh yuborilsa, avvalgi izoh o'chib ketmaydi
-        if comment:
-            existing.comment = comment
-        existing.save()
-    else:
-        Review.objects.create(book=book, user=request.user, rating=rating, comment=comment)
+    try:
+        with transaction.atomic():
+            existing = Review.objects.select_for_update().filter(book=book, user=request.user).first()
+            if existing:
+                existing.rating = rating
+                # Zero Data Loss: bo'sh izoh yuborilsa, avvalgi izoh o'chib ketmaydi
+                if comment:
+                    existing.comment = comment
+                existing.save()
+            else:
+                Review.objects.create(book=book, user=request.user, rating=rating, comment=comment)
+    except IntegrityError:
+        existing = Review.objects.filter(book=book, user=request.user).first()
+        if existing:
+            existing.rating = rating
+            if comment:
+                existing.comment = comment
+            existing.save()
 
     messages.info(request, "Taqriz va bahoyingiz saqlandi!")
     return redirect('book_detail', pk=book.pk)
@@ -1054,12 +1089,16 @@ def toggle_favorite_view(request, pk):
     if blocked:
         return blocked
 
-    fav = Favorite.objects.filter(user=request.user, book=book).first()
-    if fav:
-        fav.delete()
-        messages.info(request, f"\"{book.title}\" sevimlilardan olib tashlandi.")
-    else:
-        Favorite.objects.create(user=request.user, book=book)
+    try:
+        with transaction.atomic():
+            fav = Favorite.objects.select_for_update().filter(user=request.user, book=book).first()
+            if fav:
+                fav.delete()
+                messages.info(request, f"\"{book.title}\" sevimlilardan olib tashlandi.")
+            else:
+                Favorite.objects.create(user=request.user, book=book)
+                messages.info(request, f"\"{book.title}\" sevimli kitoblarga qo'shildi!")
+    except IntegrityError:
         messages.info(request, f"\"{book.title}\" sevimli kitoblarga qo'shildi!")
 
     next_url = request.POST.get('next', '').strip()
@@ -1137,12 +1176,17 @@ def reports_view(request):
     for r in top_readers:
         r.rank_info = r.get_reader_rank(r.books_read_count)
 
-    overdue_list = list(
-        Loan.objects
-        .filter(is_returned=False, status__in=['active', 'return_pending'], due_date__lt=timezone.now())
-        .select_related('user', 'book_copy__book')
-        .order_by('due_date')[:50]
-    )
+    is_staff_or_lib = _is_librarian_or_admin(request.user)
+
+    if is_staff_or_lib:
+        overdue_list = list(
+            Loan.objects
+            .filter(is_returned=False, status__in=['active', 'return_pending'], due_date__lt=timezone.now())
+            .select_related('user', 'book_copy__book')
+            .order_by('due_date')[:50]
+        )
+    else:
+        overdue_list = []
 
     faculty_stats = list(
         Loan.objects
@@ -1159,6 +1203,14 @@ def reports_view(request):
         .order_by('-book_count')
     )
 
+    chart_top_labels = [b.title[:28] for b in top_books[:5]]
+    chart_top_counts = [b.read_count for b in top_books[:5]]
+    chart_genre_labels = [g.name for g in genre_stats]
+    chart_genre_counts = [g.book_count for g in genre_stats]
+
+    def _safe_json(data):
+        return json.dumps(data).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
+
     context = {
         'total_books': total_books,
         'total_copies': total_copies,
@@ -1170,10 +1222,15 @@ def reports_view(request):
         'overdue_list': overdue_list,
         'faculty_stats': faculty_stats,
         'genre_stats': genre_stats,
-        'chart_top_labels_json': json.dumps([b.title[:28] for b in top_books[:5]]),
-        'chart_top_counts_json': json.dumps([b.read_count for b in top_books[:5]]),
-        'chart_genre_labels_json': json.dumps([g.name for g in genre_stats]),
-        'chart_genre_counts_json': json.dumps([g.book_count for g in genre_stats]),
+        'is_librarian_or_admin': is_staff_or_lib,
+        'chart_top_labels': chart_top_labels,
+        'chart_top_counts': chart_top_counts,
+        'chart_genre_labels': chart_genre_labels,
+        'chart_genre_counts': chart_genre_counts,
+        'chart_top_labels_json': _safe_json(chart_top_labels),
+        'chart_top_counts_json': _safe_json(chart_top_counts),
+        'chart_genre_labels_json': _safe_json(chart_genre_labels),
+        'chart_genre_counts_json': _safe_json(chart_genre_counts),
     }
     return render(request, 'reports.html', context)
 
@@ -1429,11 +1486,14 @@ def reports_excel_view(request):
     if overdue_count > 0:
         for idx, o in enumerate(overdue_qs[:100], start=1):
             extra = o.user.faculty or (f"{o.user.grade}-{o.user.grade_letter}" if o.user.grade else "-")
+            phone_val = o.user.phone or "-"
+            if not _is_librarian_or_admin(request.user):
+                phone_val = _mask_phone(phone_val)
             rows.append([
                 idx,
                 o.user.full_display_name,
                 f"@{o.user.username}",
-                o.user.phone or "-",
+                phone_val,
                 extra,
                 o.book_copy.book.title,
                 o.book_copy.inventory_number,
@@ -1523,6 +1583,7 @@ def profile_view(request):
         'reader_rank': reader_rank,
         'discipline': discipline,
         'bot_username': get_bot_username(),
+        'telegram_link_code': _get_user_tg_linking_code(request.user),
     }
     return render(request, 'profile.html', context)
 
@@ -1799,7 +1860,12 @@ def profile_edit_view(request):
         messages.info(request, "Profil ma'lumotlari muvaffaqiyatli yangilandi!")
         return redirect('profile')
 
-    return render(request, 'profile_edit.html', {'user': user, 'libraries': libraries, 'bot_username': get_bot_username()})
+    return render(request, 'profile_edit.html', {
+        'user': user,
+        'libraries': libraries,
+        'bot_username': get_bot_username(),
+        'telegram_link_code': _get_user_tg_linking_code(user),
+    })
 
 
 @login_required
@@ -2171,6 +2237,9 @@ def librarian_quick_add_book_view(request):
 @login_required
 def librarian_import_template_view(request):
     """Ommaviy kitob yuklash uchun tayyor Excel (.xlsx) namuna shabloni."""
+    if not _is_librarian_or_admin(request.user):
+        messages.error(request, "Faqat kutubxonachi yoki administratorlar import shablonini olishi mumkin!")
+        return redirect('home')
     rows = [
         ["Kitob nomi", "Muallif", "Janr", "ISBN", "UO'K", "BBK", "Nashriyot", "Nashr yili", "Betlar", "Nusxalar soni", "Annotatsiya"],
         ["O'tkan kunlar", "Abdulla Qodiriy", "Badiiy adabiyot", "9789943231009", "821.512.133", "84(5O'zb)", "Sharq", 2024, 384, 5, "O'zbek romanchiligining durdonasi"],
@@ -2701,6 +2770,12 @@ def telegram_webhook_view(request):
     if request.method != 'POST':
         return HttpResponse("SmartLib Telegram Webhook Gateway faol.", content_type="text/plain")
 
+    secret_token = getattr(settings, 'TELEGRAM_BOT_WEBHOOK_SECRET', None) or os.environ.get('TELEGRAM_BOT_WEBHOOK_SECRET', '').strip()
+    if secret_token:
+        request_token = request.headers.get('X-Telegram-Bot-Api-Secret-Token') or request.META.get('HTTP_X_TELEGRAM_BOT_API_SECRET_TOKEN', '')
+        if request_token != secret_token:
+            return JsonResponse({'ok': False, 'error': 'invalid_secret_token'}, status=403)
+
     try:
         data = json.loads(request.body.decode('utf-8'))
     except Exception:
@@ -2716,7 +2791,7 @@ def telegram_webhook_view(request):
 
         # Find librarian user by telegram_chat_id
         librarian = CustomUser.objects.filter(telegram_chat_id=cb_chat_id).first()
-        is_lib = librarian and (librarian.is_staff or librarian.is_superuser or librarian.status in ['librarian', 'admin'])
+        is_lib = librarian and librarian.is_active and (librarian.is_staff or librarian.is_superuser or librarian.status in ['librarian', 'admin'])
 
         if not is_lib:
             answer_telegram_callback(cb_id, "Sizda kutubxonachi huquqi mavjud emas!", show_alert=True)
@@ -2726,24 +2801,25 @@ def telegram_webhook_view(request):
             parts = cb_data.split(':')
             loan_pk = parts[1] if len(parts) > 1 else None
             vcode = parts[2] if len(parts) > 2 else ''
-            loan = Loan.objects.filter(pk=loan_pk).select_related('book_copy__book', 'user').first()
-            if not loan:
-                answer_telegram_callback(cb_id, "Ijara arizasi topilmadi!", show_alert=True)
-                return JsonResponse({'ok': True})
+            with transaction.atomic():
+                loan = Loan.objects.select_for_update().filter(pk=loan_pk).select_related('book_copy__book', 'user').first()
+                if not loan:
+                    answer_telegram_callback(cb_id, "Ijara arizasi topilmadi!", show_alert=True)
+                    return JsonResponse({'ok': True})
 
-            if loan.status != 'borrow_pending':
-                answer_telegram_callback(cb_id, f"Ushbu ariza allaqachon ko'rib chiqilgan ({loan.get_status_display()})!", show_alert=True)
-                return JsonResponse({'ok': True})
+                if loan.status != 'borrow_pending':
+                    answer_telegram_callback(cb_id, f"Ushbu ariza allaqachon ko'rib chiqilgan ({loan.get_status_display()})!", show_alert=True)
+                    return JsonResponse({'ok': True})
 
-            if vcode and loan.verification_code != vcode:
-                answer_telegram_callback(cb_id, "Tasdiqlash kodi mos kelmadi!", show_alert=True)
-                return JsonResponse({'ok': True})
+                if not vcode or (loan.verification_code and loan.verification_code != vcode):
+                    answer_telegram_callback(cb_id, "Tasdiqlash kodi noto'g'ri yoki kiritilmadi!", show_alert=True)
+                    return JsonResponse({'ok': True})
 
-            loan.status = 'active'
-            loan.issued_by = librarian
-            loan.borrowed_at = timezone.now()
-            loan.due_date = timezone.now() + timedelta(days=10)
-            loan.save()
+                loan.status = 'active'
+                loan.issued_by = librarian
+                loan.borrowed_at = timezone.now()
+                loan.due_date = timezone.now() + timedelta(days=10)
+                loan.save()
 
             notify_borrow_approved(loan)
 
@@ -2754,18 +2830,19 @@ def telegram_webhook_view(request):
         elif cb_data.startswith('reject_borrow:'):
             parts = cb_data.split(':')
             loan_pk = parts[1] if len(parts) > 1 else None
-            loan = Loan.objects.filter(pk=loan_pk).select_related('book_copy__book', 'user').first()
-            if not loan:
-                answer_telegram_callback(cb_id, "Ijara arizasi topilmadi!", show_alert=True)
-                return JsonResponse({'ok': True})
+            with transaction.atomic():
+                loan = Loan.objects.select_for_update().filter(pk=loan_pk).select_related('book_copy__book', 'user').first()
+                if not loan:
+                    answer_telegram_callback(cb_id, "Ijara arizasi topilmadi!", show_alert=True)
+                    return JsonResponse({'ok': True})
 
-            if loan.status != 'borrow_pending':
-                answer_telegram_callback(cb_id, f"Ushbu ariza allaqachon ko'rib chiqilgan ({loan.get_status_display()})!", show_alert=True)
-                return JsonResponse({'ok': True})
+                if loan.status != 'borrow_pending':
+                    answer_telegram_callback(cb_id, f"Ushbu ariza allaqachon ko'rib chiqilgan ({loan.get_status_display()})!", show_alert=True)
+                    return JsonResponse({'ok': True})
 
-            book_title = loan.book_copy.book.title
-            borrower = loan.user
-            loan.delete()
+                book_title = loan.book_copy.book.title
+                borrower = loan.user
+                loan.delete()
 
             if getattr(borrower, 'telegram_chat_id', ''):
                 send_telegram_message(borrower.telegram_chat_id, f"❌ Sizning «{escape_html(book_title)}» kitobini olish so'rovingiz kutubxonachi tomonidan rad etildi.")
@@ -2794,9 +2871,35 @@ def telegram_webhook_view(request):
     if text.startswith('/start'):
         parts = text.split()
         if len(parts) > 1 and parts[1].startswith('connect_'):
-            target_username = parts[1][len('connect_'):].strip()
+            raw_arg = parts[1][len('connect_'):].strip()
+            if '_' in raw_arg:
+                r_user, r_code = raw_arg.rsplit('_', 1)
+                if r_code.isdigit() and len(r_code) == 6:
+                    target_username = r_user
+                    provided_code = r_code
+                elif CustomUser.objects.filter(username__iexact=raw_arg).exists():
+                    target_username = raw_arg
+                    provided_code = ''
+                else:
+                    target_username = r_user
+                    provided_code = r_code
+            else:
+                target_username = raw_arg
+                provided_code = ''
             user = CustomUser.objects.filter(username__iexact=target_username).first()
-            if user:
+            if not user:
+                reply = (
+                    f"❌ <b>Xatolik:</b> «{target_username}» nomli kitobxon topilmadi.\n"
+                    f"Iltimos, SmartLib saytidagi profilingiz loginini tekshiring."
+                )
+            elif not provided_code or provided_code != _get_user_tg_linking_code(user):
+                reply = (
+                    f"⚠️ <b>Xavfsizlik talabi:</b> @{user.username} hisobini ulash uchun tasdiqlash kodi talab qilinadi.\n\n"
+                    f"Iltimos, SmartLib profilingizdan olingan 6-xonali kod bilan buyruq yuboring:\n"
+                    f"<code>/connect {user.username} &lt;tasdiqlash_kodi&gt;</code>\n\n"
+                    f"Yoki saytdagi profil sozlamalarida Chat ID raqamingizni saqlang: <code>{chat_id}</code>"
+                )
+            else:
                 user.telegram_chat_id = chat_id
                 user.save(update_fields=['telegram_chat_id'])
                 reply = (
@@ -2808,11 +2911,6 @@ def telegram_webhook_view(request):
                     f"• Kutubxonachi tasdiqlari va XP ballar\n\n"
                     f"<i>Kitob qidirish uchun: <code>/kitob &lt;nomi&gt;</code></i>"
                 )
-            else:
-                reply = (
-                    f"❌ <b>Xatolik:</b> «{target_username}» nomli kitobxon topilmadi.\n"
-                    f"Iltimos, SmartLib saytidagi profilingiz loginini tekshiring."
-                )
         else:
             existing_user = CustomUser.objects.filter(telegram_chat_id=chat_id).first()
             user_greeting = f", {existing_user.full_display_name}" if existing_user else ""
@@ -2822,19 +2920,28 @@ def telegram_webhook_view(request):
                 f"<b>Buyruqlar:</b>\n"
                 f"🔍 <code>/kitob &lt;nomi&gt;</code> — Kitob qidirish va mavjudlik tekshiruvi\n"
                 f"👤 <code>/status</code> — Mening kitoblarim va qaytarish muddatlari\n"
-                f"🔗 <code>/connect &lt;login&gt;</code> — Saytdagi profilingizni ulash\n"
+                f"🔗 <code>/connect &lt;login&gt; &lt;kod&gt;</code> — Saytdagi profilingizni ulash\n"
                 f"🌐 <a href='{public_url}'>Saytga o'tish (SmartLib Online)</a>"
             )
         send_telegram_message(chat_id, reply)
         return JsonResponse({'ok': True})
 
-    # 2. /connect <username> yoki /ulanish <username>
+    # 2. /connect <username> <code_or_token> yoki /ulanish <username> <code_or_token>
     if text.startswith('/connect') or text.startswith('/ulanish'):
         parts = text.split()
-        if len(parts) > 1:
+        if len(parts) >= 3:
             target_username = parts[1].lstrip('@').strip()
+            provided_code = parts[2].strip()
             user = CustomUser.objects.filter(username__iexact=target_username).first()
-            if user:
+            if not user:
+                reply = f"❌ «{target_username}» nomli login topilmadi. Qaytadan tekshirib yozing."
+            elif provided_code != _get_user_tg_linking_code(user):
+                reply = (
+                    f"⛔ <b>Noto'g'ri tasdiqlash kodi!</b>\n\n"
+                    f"Xavfsizlik maqsadida hisobni ulash uchun SmartLib profilingizdagi 6-xonali kodni to'g'ri kiriting:\n"
+                    f"<code>/connect {user.username} &lt;tasdiqlash_kodi&gt;</code>"
+                )
+            else:
                 user.telegram_chat_id = chat_id
                 user.save(update_fields=['telegram_chat_id'])
                 reply = (
@@ -2843,10 +2950,16 @@ def telegram_webhook_view(request):
                     f"Maqom: {user.get_role_display()}\n\n"
                     f"Barcha xabarnomalar va kodlar shu chatga yuboriladi."
                 )
-            else:
-                reply = f"❌ «{target_username}» nomli login topilmadi. Qaytadan tekshirib yozing."
+        elif len(parts) == 2:
+            target_username = parts[1].lstrip('@').strip()
+            reply = (
+                f"⚠️ <b>Tasdiqlash kodi kiritilmadi!</b>\n\n"
+                f"Hisobni xavfsiz ulash uchun buyruq formati:\n"
+                f"<code>/connect {target_username} &lt;tasdiqlash_kodi&gt;</code>\n\n"
+                f"Tasdiqlash kodini SmartLib saytidagi shaxsiy profilingizdan (Profil -> Telegram) olishingiz yoki saytda Chat ID (<code>{chat_id}</code>) raqamingizni kiritishingiz mumkin."
+            )
         else:
-            reply = "Iltimos, profilingiz loginini yozing. Masalan: <code>/connect alisher</code>"
+            reply = "Iltimos, login va tasdiqlash kodini yozing. Masalan: <code>/connect alisher 123456</code>"
         send_telegram_message(chat_id, reply)
         return JsonResponse({'ok': True})
 

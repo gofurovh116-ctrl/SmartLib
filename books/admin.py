@@ -91,25 +91,29 @@ class LoanAdmin(admin.ModelAdmin):
 
     @admin.action(description="✅ Tanlangan so'rovlarni tasdiqlash (Kitobni berish)")
     def approve_borrow_action(self, request, queryset):
+        from django.db import transaction
         from django.utils import timezone
         from datetime import timedelta
-        for loan in queryset.filter(status='borrow_pending'):
-            loan.status = 'active'
-            loan.is_returned = False
-            loan.issued_by = request.user
-            loan.borrowed_at = timezone.now()
-            loan.due_date = timezone.now() + timedelta(days=10)
-            loan.save()
+        with transaction.atomic():
+            for loan in queryset.select_for_update().filter(status='borrow_pending'):
+                loan.status = 'active'
+                loan.is_returned = False
+                loan.issued_by = request.user
+                loan.borrowed_at = timezone.now()
+                loan.due_date = timezone.now() + timedelta(days=10)
+                loan.save()
 
     @admin.action(description="📥 Tanlangan kitoblarni qaytarib olishni tasdiqlash")
     def approve_return_action(self, request, queryset):
+        from django.db import transaction
         from django.utils import timezone
-        for loan in queryset.filter(is_returned=False):
-            loan.status = 'returned'
-            loan.is_returned = True
-            loan.received_by = request.user
-            loan.returned_at = timezone.now()
-            loan.save()
+        with transaction.atomic():
+            for loan in queryset.select_for_update().filter(is_returned=False):
+                loan.status = 'returned'
+                loan.is_returned = True
+                loan.received_by = request.user
+                loan.returned_at = timezone.now()
+                loan.save()
 
 
 @admin.register(Reservation)

@@ -6,15 +6,48 @@
 {% block extra_css %}
 <style>
     .reading-room-wrapper {
+        --seam: rgba(232, 176, 74, 0.38);
+        --ink-accent: #E8B04A;
+        --ink-0: #F8F1E5;
+        --ink-1: #D4C3A8;
+        --bg-2: rgba(40, 26, 16, 0.92);
+        --ok: #6FA876;
+        --font-sans: 'Plus Jakarta Sans', 'Poppins', sans-serif;
+        --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         position: relative;
         width: 100%;
         height: calc(100vh - 115px);
-        min-height: 640px;
+        min-height: 540px;
         background: #100905;
         border: 1px solid var(--seam);
-        border-radius: 2px;
+        border-radius: 16px;
         overflow: hidden;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85);
+    }
+    @media (max-width: 767.98px) {
+        .reading-room-wrapper {
+            height: calc(100vh - 95px);
+            min-height: 460px;
+        }
+        .uquv-xonasi-badge {
+            top: 12px !important;
+            left: 12px !important;
+            font-size: 1rem !important;
+            padding: 6px 12px !important;
+        }
+        .room-top-controls {
+            top: 56px !important;
+            left: 12px !important;
+            right: 12px !important;
+        }
+        .book-3d-drawer {
+            top: auto !important;
+            bottom: 72px !important;
+            right: 12px !important;
+            left: 12px !important;
+            width: auto !important;
+            max-width: none !important;
+        }
     }
     #readingRoomCanvasHost {
         width: 100%;

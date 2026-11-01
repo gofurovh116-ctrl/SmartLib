@@ -51,6 +51,19 @@
             --aurora-2: rgba(6, 182, 212, 0.10);
             --aurora-3: rgba(245, 158, 11, 0.07);
 
+            /* Unified SaaS & 3D Room Design Tokens */
+            --radius-lg: 16px;
+            --radius-xl: 22px;
+            --shadow-md: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
+            --seam: rgba(232, 176, 74, 0.38);
+            --ink-accent: #E8B04A;
+            --ink-0: #F8F1E5;
+            --ink-1: #D4C3A8;
+            --bg-2: rgba(40, 26, 16, 0.92);
+            --ok: #6FA876;
+            --font-sans: 'Plus Jakarta Sans', 'Poppins', sans-serif;
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
             /* Bootstrap override variables */
             --bs-body-color: #0f172a;
             --bs-body-bg: #f4f7fe;
@@ -80,12 +93,26 @@
             --aurora-1: rgba(99, 102, 241, 0.16);
             --aurora-2: rgba(6, 182, 212, 0.13);
             --aurora-3: rgba(236, 72, 153, 0.08);
+            --seam: rgba(232, 176, 74, 0.42);
+            --ink-accent: #E8B04A;
+            --ink-0: #F8F1E5;
+            --ink-1: #D4C3A8;
+            --bg-2: rgba(40, 26, 16, 0.92);
+            --ok: #6FA876;
 
             /* Bootstrap override variables */
             --bs-body-color: #f8fafc;
             --bs-body-bg: #070b14;
             --bs-secondary-color: #cbd5e1;
             --bs-border-color: #1e293b;
+        }
+
+        /* WCAG AA Warning Contrast Compliance in Light Mode */
+        [data-theme="light"] .text-warning {
+            color: #b45309 !important;
+        }
+        [data-theme="dark"] .text-warning {
+            color: #fbbf24 !important;
         }
 
         /* Custom Scrollbar */
@@ -235,6 +262,29 @@
             gap: 6px;
             white-space: nowrap !important;
             flex-shrink: 0;
+        }
+        @media (min-width: 992px) and (max-width: 1199.98px) {
+            .brand-logo {
+                font-size: 1.22rem;
+                gap: 6px;
+            }
+            .nav-link-custom {
+                font-size: 0.79rem;
+                padding: 0.3rem 0.48rem;
+                gap: 4px;
+            }
+            .btn-admin-pill {
+                padding: 0.3rem 0.62rem;
+                font-size: 0.78rem;
+            }
+            .lang-dropdown-btn {
+                padding: 0.3rem 0.55rem;
+                font-size: 0.78rem;
+            }
+            .theme-toggle-btn {
+                width: 34px;
+                height: 34px;
+            }
         }
         @media (min-width: 1280px) {
             .nav-link-custom {
@@ -800,9 +850,9 @@
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="small fw-bold text-muted">Til:</span>
                     <div class="btn-group btn-group-sm">
-                        <button type="button" class="btn btn-outline-primary btn-sm px-2.5 py-1" onclick="setLang('uz')">UZ</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm px-2.5 py-1" onclick="setLang('ru')">RU</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm px-2.5 py-1" onclick="setLang('en')">EN</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm px-2.5 py-1 lang-option active" data-lang="uz" onclick="setLang('uz')">UZ</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm px-2.5 py-1 lang-option" data-lang="ru" onclick="setLang('ru')">RU</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm px-2.5 py-1 lang-option" data-lang="en" onclick="setLang('en')">EN</button>
                     </div>
                 </div>
                 {% if user.is_authenticated %}

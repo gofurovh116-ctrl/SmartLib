@@ -1,3 +1,4 @@
+import hashlib
 import os
 import shutil
 import sqlite3
@@ -12,6 +13,9 @@ from django.utils import timezone
 class Command(BaseCommand):
     help = "SmartLib ma'lumotlar bazasini xavfsiz zaxira qilish (Zero Data Loss) va Telegramga yuborish."
 
+    MIN_BACKUPS_RETAINED = 10
+    RETENTION_DAYS = 14
+
     def add_arguments(self, parser):
         parser.add_argument(
             '--send-telegram',
@@ -19,52 +23,120 @@ class Command(BaseCommand):
             help="Zaxira faylini admin Telegram chatiga yuborish",
         )
 
+    @staticmethod
+    def _compute_sha256(file_path):
+        hasher = hashlib.sha256()
+        with open(file_path, 'rb') as f:
+            for chunk in iter(lambda: f.read(65536), b''):
+                hasher.update(chunk)
+        return hasher.hexdigest()
+
+    @classmethod
+    def _write_sha256_manifest(cls, backup_file):
+        digest = cls._compute_sha256(backup_file)
+        sha_file = f"{backup_file}.sha256"
+        filename = os.path.basename(backup_file)
+        with open(sha_file, 'w', encoding='utf-8') as sf:
+            sf.write(f"{digest}  {filename}\n")
+        return sha_file, digest
+
     def handle(self, *args, **options):
         base_dir = str(settings.BASE_DIR)
         backups_dir = os.path.join(base_dir, 'backups', 'database')
         os.makedirs(backups_dir, exist_ok=True)
 
-        now_str = datetime.now().strftime('%Y%m%d_%H%M%S')
+        # Collision-proof microsecond naming (eliminates 1-second overwrite hazard)
+        now_str = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
         db_engine = settings.DATABASES['default'].get('ENGINE', '')
         db_path = str(settings.DATABASES['default']['NAME'])
 
         if 'sqlite' in db_engine and os.path.isfile(db_path):
             backup_file = os.path.join(backups_dir, f"smartlib_backup_{now_str}.sqlite3")
-            # Zero Data Loss: SQLite Online Backup API (jonli bazani bloklamasdan to'liq zaxira oladi)
+            tmp_file = f"{backup_file}.tmp"
+            # Zero Data Loss: SQLite Online Backup API -> .tmp -> PRAGMA integrity_check -> atomic os.replace
+            src = None
+            dst = None
             try:
+                if os.path.exists(tmp_file):
+                    os.remove(tmp_file)
                 src = sqlite3.connect(db_path)
-                dst = sqlite3.connect(backup_file)
+                dst = sqlite3.connect(tmp_file)
                 src.backup(dst)
+                integrity_row = dst.execute("PRAGMA integrity_check;").fetchone()
+                integrity = integrity_row[0] if integrity_row else "failed"
+                if str(integrity).lower() != "ok":
+                    raise RuntimeError(f"Backup integrity check failed: {integrity}")
                 dst.close()
+                dst = None
                 src.close()
+                src = None
+
+                os.replace(tmp_file, backup_file)
+                self._write_sha256_manifest(backup_file)
+
                 file_size_kb = round(os.path.getsize(backup_file) / 1024, 1)
                 self.stdout.write(self.style.SUCCESS(f"[OK] Baza zaxiralandi: {backup_file} ({file_size_kb} KB)"))
             except Exception as exc:
+                for conn in (dst, src):
+                    if conn is not None:
+                        try:
+                            conn.close()
+                        except Exception:
+                            pass
+                if os.path.exists(tmp_file):
+                    try:
+                        os.remove(tmp_file)
+                    except Exception:
+                        pass
                 self.stdout.write(self.style.ERROR(f"[ERROR] Zaxiralashda xatolik: {exc}"))
                 return
         else:
             from django.core.management import call_command
             backup_file = os.path.join(backups_dir, f"smartlib_backup_{now_str}.json")
+            tmp_file = f"{backup_file}.tmp"
             try:
-                with open(backup_file, 'w', encoding='utf-8') as out_f:
+                with open(tmp_file, 'w', encoding='utf-8') as out_f:
                     call_command('dumpdata', indent=2, stdout=out_f)
+                os.replace(tmp_file, backup_file)
+                self._write_sha256_manifest(backup_file)
                 file_size_kb = round(os.path.getsize(backup_file) / 1024, 1)
                 self.stdout.write(self.style.SUCCESS(f"[OK] Baza to'liq zaxiralandi (JSON): {backup_file} ({file_size_kb} KB)"))
             except Exception as exc:
+                if os.path.exists(tmp_file):
+                    try:
+                        os.remove(tmp_file)
+                    except Exception:
+                        pass
                 self.stdout.write(self.style.ERROR(f"[ERROR] Zaxiralashda xatolik: {exc}"))
                 return
 
-        # 14 kundan eski zaxiralarni avtomatik tozalash
-        cutoff = datetime.now() - timedelta(days=14)
+        # Rotatsiya: eng kamida MIN_BACKUPS_RETAINED (10 ta) eng yangi zaxirani har doim saqlab qolish (Zero Data Loss)
+        cutoff = datetime.now() - timedelta(days=self.RETENTION_DAYS)
+        backup_candidates = []
         for fname in os.listdir(backups_dir):
-            if fname.startswith("smartlib_backup_") and (fname.endswith(".sqlite3") or fname.endswith(".json") or fname.endswith(".sql")):
+            if fname.startswith("smartlib_backup_") and (
+                fname.endswith(".sqlite3") or fname.endswith(".json") or fname.endswith(".sql")
+            ):
                 fpath = os.path.join(backups_dir, fname)
                 try:
-                    mtime = datetime.fromtimestamp(os.path.getmtime(fpath))
-                    if mtime < cutoff:
-                        os.remove(fpath)
+                    mtime = os.path.getmtime(fpath)
+                    backup_candidates.append((mtime, fpath))
                 except Exception:
                     pass
+
+        # Yangilaridan eskilariga qarab saralash
+        backup_candidates.sort(key=lambda item: item[0], reverse=True)
+        # Eng so'nggi 10 ta zaxiraga hech qachon tegilmaydi
+        old_candidates = backup_candidates[self.MIN_BACKUPS_RETAINED:]
+        for mtime_ts, fpath in old_candidates:
+            try:
+                if datetime.fromtimestamp(mtime_ts) < cutoff:
+                    os.remove(fpath)
+                    sha_companion = f"{fpath}.sha256"
+                    if os.path.exists(sha_companion):
+                        os.remove(sha_companion)
+            except Exception:
+                pass
 
         # Agar --send-telegram bayrog'i berilgan bo'lsa va bot token mavjud bo'lsa
         send_tg = options.get('send_telegram') or bool(os.environ.get('TELEGRAM_BACKUP_ON_RUN'))

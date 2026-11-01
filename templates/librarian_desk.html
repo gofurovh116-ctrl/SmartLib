@@ -187,11 +187,11 @@
         </div>
     </div>
 
-    <!-- Counters Row -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="desk-stat-card">
-                <div class="stat-icon-bubble stat-bubble-amber">
+    <!-- Counters Row (2x2 on mobile, 4x1 on desktop) -->
+    <div class="row g-2 g-md-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="desk-stat-card p-3">
+                <div class="stat-icon-bubble stat-bubble-amber flex-shrink-0">
                     <i class="fa-solid fa-hand-holding"></i>
                 </div>
                 <div>
@@ -200,9 +200,9 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="desk-stat-card">
-                <div class="stat-icon-bubble stat-bubble-blue">
+        <div class="col-6 col-md-3">
+            <div class="desk-stat-card p-3">
+                <div class="stat-icon-bubble stat-bubble-blue flex-shrink-0">
                     <i class="fa-solid fa-clock-rotate-left"></i>
                 </div>
                 <div>
@@ -211,9 +211,9 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="desk-stat-card">
-                <div class="stat-icon-bubble stat-bubble-green">
+        <div class="col-6 col-md-3">
+            <div class="desk-stat-card p-3">
+                <div class="stat-icon-bubble stat-bubble-green flex-shrink-0">
                     <i class="fa-solid fa-book-open-reader"></i>
                 </div>
                 <div>
@@ -222,9 +222,9 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="desk-stat-card">
-                <div class="stat-icon-bubble" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
+        <div class="col-6 col-md-3">
+            <div class="desk-stat-card p-3">
+                <div class="stat-icon-bubble flex-shrink-0" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
                 <div>
@@ -260,7 +260,7 @@
     </div>
 
     <!-- Tabs Navigation -->
-    <ul class="nav desk-nav-pills gap-2 mb-4" id="deskTabs" role="tablist">
+    <ul class="nav desk-nav-pills gap-2 mb-4 flex-nowrap flex-lg-wrap overflow-x-auto pb-2 pb-lg-0" id="deskTabs" role="tablist" style="white-space: nowrap;">
         <li class="nav-item" role="presentation">
             <button class="nav-link active position-relative" id="tab-borrows" data-bs-toggle="tab" data-bs-target="#content-borrows" type="button" role="tab">
                 <i class="fa-solid fa-hand-holding me-1"></i>Olish so'rovlari

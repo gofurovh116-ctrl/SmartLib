@@ -262,7 +262,7 @@
                     Kitob olish/topshirish kodlari va muddat eslatmalarini Telegram orqali olish uchun botga ulaning:
                 </p>
                 <div class="d-flex flex-column gap-2">
-                    <a href="https://t.me/{{ bot_username|default:'SmartLibUzBot' }}?start=connect_{{ user.username }}" target="_blank" class="btn btn-sm btn-primary rounded-pill w-100 fw-bold shadow-sm" style="background-color: #0088cc; border-color: #0088cc;">
+                    <a href="https://t.me/{{ bot_username|default:'SmartLibUzBot' }}?start=connect_{{ user.username }}_{{ telegram_link_code }}" target="_blank" class="btn btn-sm btn-primary rounded-pill w-100 fw-bold shadow-sm" style="background-color: #0088cc; border-color: #0088cc;">
                         <i class="fa-brands fa-telegram me-1"></i>1-Klikda Botga Ulash
                     </a>
                     <a href="{% url 'profile_edit' %}" class="btn btn-sm btn-outline-secondary rounded-pill w-100 fw-semibold" style="font-size: 0.78rem;">

@@ -21,6 +21,14 @@
         padding: 2.5rem;
         border-right: 1px solid var(--border-color);
     }
+    @media (max-width: 991.98px) {
+        .detail-left-panel {
+            min-height: 290px;
+            padding: 1.5rem 1rem;
+            border-right: none;
+            border-bottom: 1px solid var(--border-color);
+        }
+    }
     .no-image-icon {
         font-size: 6.5rem;
         background: linear-gradient(135deg, #4f46e5, #06b6d4);
@@ -33,8 +41,9 @@
         position: absolute;
         bottom: 18px;
         left: 18px;
-        background: #ffffff;
-        padding: 10px 10px 6px 10px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        padding: 8px 8px 5px 8px;
         border-radius: 12px;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
         text-align: center;
@@ -43,10 +52,13 @@
         width: 78px;
         height: 78px;
         display: block;
+        background: #ffffff;
+        padding: 3px;
+        border-radius: 6px;
     }
     .qr-box small {
         font-size: 0.68rem;
-        color: #0f172a !important;
+        color: var(--text-main) !important;
         font-weight: 600;
         display: block;
         margin-top: 3px;
@@ -213,7 +225,7 @@
                 </div>
 
                 <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap mb-2">
-                    <h1 class="fw-bold mb-0" style="font-size: 2.3rem; color: var(--text-main);">{{ book.title }}</h1>
+                    <h1 class="fw-bold mb-0" style="font-size: clamp(1.45rem, 3.5vw, 2.3rem); color: var(--text-main);">{{ book.title }}</h1>
                     {% if user.is_authenticated %}
                     <form method="post" action="{% url 'toggle_favorite' book.pk %}" class="m-0">
                         {% csrf_token %}
@@ -345,13 +357,13 @@
                         </button>
                     </form>
                 {% else %}
-                    <div class="d-flex align-items-center gap-3">
-                        <button type="button" class="btn-disabled-gray" disabled>
+                    <div class="d-flex align-items-center gap-2 gap-sm-3 flex-wrap">
+                        <button type="button" class="btn-disabled-gray flex-grow-1 flex-sm-grow-0" disabled>
                             <i class="fa-solid fa-ban"></i> Qolmadi
                         </button>
-                        <form method="post" action="{% url 'reserve_book' book.pk %}" class="m-0">
+                        <form method="post" action="{% url 'reserve_book' book.pk %}" class="m-0 flex-grow-1 flex-sm-grow-0">
                             {% csrf_token %}
-                            <button type="submit" class="btn-navbat" style="cursor: pointer;">
+                            <button type="submit" class="btn-navbat w-100" style="cursor: pointer;">
                                 <i class="fa-solid fa-clock"></i> {% if user_has_reservation %}Navbatdasiz{% else %}Navbat{% endif %}
                             </button>
                         </form>
