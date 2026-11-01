@@ -301,7 +301,7 @@
     .human-telemetry-pill {
         position: absolute;
         bottom: 60px;
-        left: 14px;
+        left: 156px;
         z-index: 19;
         background: rgba(18, 11, 6, 0.88);
         border: 1px solid var(--seam);
@@ -311,6 +311,129 @@
         padding: 5px 11px;
         border-radius: 8px;
         pointer-events: none;
+    }
+    /* Variant 5: 3D Interaktiv Mini-Xarita (Radar HUD) */
+    .room-minimap-wrap {
+        position: absolute;
+        bottom: 58px;
+        left: 14px;
+        z-index: 22;
+        width: 132px;
+        height: 132px;
+        background: rgba(12, 8, 5, 0.92);
+        border: 1px solid var(--ink-accent);
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.75);
+        overflow: hidden;
+        cursor: crosshair;
+    }
+    .room-minimap-label {
+        position: absolute;
+        bottom: 2px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-family: var(--font-mono);
+        font-size: 0.56rem;
+        color: var(--ink-accent);
+        pointer-events: none;
+        letter-spacing: 0.04em;
+    }
+    /* Variant 5: Mobil Virtual Joystik (D-Pad) */
+    .mobile-joystick-zone {
+        position: absolute;
+        bottom: 62px;
+        right: 14px;
+        z-index: 22;
+        display: none;
+        grid-template-columns: repeat(3, 36px);
+        grid-template-rows: repeat(2, 36px);
+        gap: 4px;
+    }
+    .joy-btn {
+        background: rgba(18, 11, 6, 0.88);
+        border: 1px solid var(--ink-accent);
+        color: var(--ink-0);
+        border-radius: 8px;
+        font-size: 0.82rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+    }
+    .joy-btn:active {
+        background: var(--ink-accent);
+        color: #120B07;
+    }
+    /* Variant 3: Ilmiy Tajriba Simulyatori (Sandbox Panel) */
+    .science-sandbox-panel {
+        background: rgba(15, 23, 42, 0.88);
+        border: 1px solid rgba(56, 189, 248, 0.45);
+        border-radius: 10px;
+        padding: 9px 11px;
+        margin-bottom: 10px;
+    }
+    .sandbox-react-btn {
+        background: rgba(56, 189, 248, 0.14);
+        border: 1px solid rgba(56, 189, 248, 0.4);
+        color: #e0f2fe;
+        border-radius: 6px;
+        font-size: 0.68rem;
+        padding: 4px 8px;
+        transition: all 0.15s ease;
+    }
+    .sandbox-react-btn:hover {
+        background: #38bdf8;
+        color: #09131e;
+    }
+    /* Variant 1: 3D Sahifalab Varaqlash va AI Ovozli Kitobxon Modali */
+    .book-3d-flip-modal {
+        position: absolute;
+        inset: 0;
+        z-index: 45;
+        background: rgba(8, 5, 3, 0.84);
+        backdrop-filter: blur(8px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+    }
+    .book-3d-flip-modal.active {
+        display: flex;
+    }
+    .flipbook-stage {
+        width: min(820px, 96vw);
+        background: linear-gradient(90deg, #2b170b 0%, #3d2210 48%, #1c0f07 50%, #3d2210 52%, #2b170b 100%);
+        border: 2px solid var(--ink-accent);
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 28px 70px rgba(0,0,0,0.92);
+        perspective: 1400px;
+    }
+    .flipbook-spread {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        min-height: 340px;
+        transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+        transform-style: preserve-3d;
+    }
+    .flipbook-spread.turning-next {
+        transform: rotateY(-12deg) scale(0.985);
+    }
+    .flipbook-spread.turning-prev {
+        transform: rotateY(12deg) scale(0.985);
+    }
+    .flipbook-page {
+        background: linear-gradient(135deg, #fbf0d4 0%, #edd6a4 100%);
+        color: #2c1909;
+        border-radius: 8px;
+        padding: 18px 20px;
+        box-shadow: inset 0 0 24px rgba(104, 62, 20, 0.25);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        font-family: Georgia, serif;
     }
     @media (max-width: 767.98px) {
         .reading-room-wrapper {
@@ -328,6 +451,9 @@
             width: auto !important; max-width: none !important;
         }
         .human-telemetry-pill { display: none; }
+        .room-minimap-wrap { width: 96px; height: 96px; bottom: 56px; left: 8px; }
+        .mobile-joystick-zone { display: grid; }
+        .flipbook-spread { grid-template-columns: 1fr; min-height: 260px; }
     }
 </style>
 {% endblock %}
@@ -357,6 +483,12 @@
             <span class="room-ctrl-btn font-mono" id="fpsCounterBadge" style="border-color: rgba(74, 222, 128, 0.55); color: #4ade80; pointer-events: none;" title="WebGL Tezlik Telemetriyasi">
                 ⚡ 60 FPS · TURBO
             </span>
+            <button type="button" class="room-ctrl-btn" id="togglePlanetariumBtn" onclick="togglePlanetariumDome()">
+                <i class="fa-solid fa-satellite"></i> <span>🌌 Ulug'bek Planetariysi</span>
+            </button>
+            <button type="button" class="room-ctrl-btn" id="toggleAmbienceBtn" onclick="toggleLibraryAmbience()">
+                <i class="fa-solid fa-volume-high"></i> <span>🔇 Akustika: O'chiq</span>
+            </button>
             <button type="button" class="room-ctrl-btn" id="toggleWalkModeBtn" onclick="toggleHumanWalkStairs()">
                 <i class="fa-solid fa-person-walking"></i> <span>Zinaga chiqish (1↔2 Qavat)</span>
             </button>
@@ -377,7 +509,7 @@
             </a>
         </div>
 
-        <!-- 3D Kitob va Ilmiy Eksponat Pasporti -->
+        <!-- 3D Kitob va Ilmiy Eksponat Pasporti + Interaktiv Tajriba Simulyatori -->
         <aside class="book-3d-drawer" id="book3dDrawer" aria-live="polite">
             <div class="d-flex justify-content-between align-items-start mb-1">
                 <span class="font-mono small text-uppercase" id="drawer3dBadge" style="color: var(--ink-accent); font-size: 0.68rem; letter-spacing: 0.08em;">
@@ -396,18 +528,107 @@
                 📍 Joylashuvi: Markaziy Zal · 1-Qavat · Sharqona Mehrob Lavhi
             </div>
             <div id="drawer3dFormulaBox" class="science-formula-box"></div>
-            <p class="small mb-3" id="drawer3dDesc" style="color: var(--ink-1); line-height: 1.45; font-size: 0.78rem;">
-                Har bir kitob, stol chirog'i, kreslo, zinapoya yoki Fizika, Kimyo, Biologiya va Geometriya eksponatiga bosing — u inson qo'li tekkandek jonli harakatga keladi!
+
+            <!-- Variant 3: Interaktiv 3D Laboratoriya Simulyatori Pulti -->
+            <div id="scienceSandboxPanel" class="science-sandbox-panel">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="font-mono" style="font-size: 0.68rem; color: #38bdf8; font-weight: 700;">🧪 3D TAJRIBA SIMULYATORI</span>
+                    <span class="font-mono" id="sandboxSpeedLabel" style="font-size: 0.66rem; color: #fde047;">Tezlik: 1.0x</span>
+                </div>
+                <input type="range" id="sandboxSpeedSlider" class="form-range mb-1" min="0.2" max="5.0" step="0.2" value="1.0" oninput="setSandboxSpeed(this.value)">
+                <div class="d-flex flex-wrap gap-1 mt-1">
+                    <button type="button" class="sandbox-react-btn" onclick="triggerScienceExperiment('h2o')">💧 2H₂+O₂ Sintez</button>
+                    <button type="button" class="sandbox-react-btn" onclick="triggerScienceExperiment('quantum')">⚛️ Kvant Sakrash</button>
+                    <button type="button" class="sandbox-react-btn" onclick="triggerScienceExperiment('dna')">🧬 DNK Replikatsiya</button>
+                    <button type="button" class="sandbox-react-btn" onclick="triggerScienceExperiment('golden')">📐 Oltin Nisbat φ</button>
+                </div>
+                <div id="sandboxExperimentResult" class="font-mono mt-1" style="font-size: 0.66rem; color: #4ade80; display: none;"></div>
+            </div>
+
+            <p class="small mb-2" id="drawer3dDesc" style="color: var(--ink-1); line-height: 1.42; font-size: 0.76rem;">
+                Har bir kitob, stol chirog'i, kreslo, AI Gologramma yoki Fizika, Kimyo, Biologiya va Geometriya eksponatiga bosing!
             </p>
             <div class="d-grid gap-1.5" id="drawer3dActionButtons">
-                <a href="/" id="drawer3dReadLink" class="btn btn-sm fw-bold" style="background: var(--ink-accent); color: #120B07; border-radius: 8px; padding: 8px 12px;">
-                    📖 Elektron o'qish va AI Audio →
-                </a>
-                <a href="/" id="drawer3dDetailLink" class="btn btn-sm" style="background: var(--bg-2); border: 1px solid var(--seam); color: var(--ink-0); border-radius: 8px; padding: 7px 12px;">
-                    🔍 Kitob pasporti va Ijara
-                </a>
+                <button type="button" onclick="open3dPageFlipModal()" class="btn btn-sm fw-bold" style="background: linear-gradient(90deg, #E8B04A, #F59E0B); color: #120B07; border-radius: 8px; padding: 7px 12px;">
+                    📖 3D Varaqlab O'qish va AI Ovoz (TTS)
+                </button>
+                <div class="d-flex gap-1">
+                    <a href="/" id="drawer3dReadLink" class="btn btn-sm fw-bold flex-fill" style="background: rgba(232,176,74,0.18); border: 1px solid var(--ink-accent); color: var(--ink-0); border-radius: 8px; padding: 6px 10px;">
+                        📄 To'liq Matn →
+                    </a>
+                    <a href="/" id="drawer3dDetailLink" class="btn btn-sm flex-fill" style="background: var(--bg-2); border: 1px solid var(--seam); color: var(--ink-0); border-radius: 8px; padding: 6px 10px;">
+                        🔍 Pasport va Ijara
+                    </a>
+                </div>
             </div>
         </aside>
+
+        <!-- Variant 1: 3D Sahifalab Varaqlash va AI Ovozli Kitobxon Modali -->
+        <div class="book-3d-flip-modal" id="book3dFlipModal" role="dialog" aria-modal="true">
+            <div class="flipbook-stage">
+                <div class="d-flex justify-content-between align-items-center mb-2 text-white">
+                    <div>
+                        <span class="badge font-mono" style="background: var(--ink-accent); color: #120B07;">📖 3D INTERAKTIV MUTOLAA STOLI</span>
+                        <strong class="ms-2 font-display" id="flipModalBookTitle">O'tkan kunlar</strong>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <button type="button" class="room-ctrl-btn" id="ttsSpeakBtn" onclick="toggleBookTtsSpeech()">
+                            <i class="fa-solid fa-headphones"></i> <span>🔊 AI Ovozli O'qish</span>
+                        </button>
+                        <button type="button" class="btn-close btn-close-white" onclick="close3dPageFlipModal()" aria-label="Yopish"></button>
+                    </div>
+                </div>
+                <div class="flipbook-spread" id="flipbookSpread">
+                    <div class="flipbook-page">
+                        <div>
+                            <div class="small text-uppercase fw-bold mb-1" style="color: #8b4513; font-size: 0.7rem;" id="flipPageLeftHeader">I BOB · MUQADDIMA</div>
+                            <h5 class="fw-bold mb-2" id="flipPageLeftTitle">Asar Pasporti va Mazmuni</h5>
+                            <p style="font-size: 0.88rem; line-height: 1.6;" id="flipPageLeftBody"></p>
+                        </div>
+                        <div class="d-flex justify-content-between small border-top pt-2" style="border-color: rgba(139,69,19,0.25) !important;">
+                            <span>SmartLib Fondi</span>
+                            <strong id="flipPageNumLeft">1-bet</strong>
+                        </div>
+                    </div>
+                    <div class="flipbook-page">
+                        <div>
+                            <div class="small text-uppercase fw-bold mb-1" style="color: #8b4513; font-size: 0.7rem;" id="flipPageRightHeader">ILMIY VA BADIIY TAHLIL</div>
+                            <h5 class="fw-bold mb-2" id="flipPageRightTitle">Asosiy G'oya va Formulalar</h5>
+                            <div style="font-size: 0.86rem; line-height: 1.6;" id="flipPageRightBody"></div>
+                        </div>
+                        <div class="d-flex justify-content-between small border-top pt-2" style="border-color: rgba(139,69,19,0.25) !important;">
+                            <span>360° Virtual Kutubxona</span>
+                            <strong id="flipPageNumRight">2-bet</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <button type="button" class="room-ctrl-btn" onclick="turnFlipbookPage(-1)">
+                        ◀ Oldingi varaq
+                    </button>
+                    <span class="font-mono small text-white-50" id="flipPageIndicator">Varaq: 1 / 4 · Varaqlash uchun tugmani bosing</span>
+                    <button type="button" class="room-ctrl-btn" onclick="turnFlipbookPage(1)">
+                        Keyingi varaq ▶
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Variant 5: 3D Mini-Xarita Radar (Bosganda teleport qiladi!) -->
+        <div class="room-minimap-wrap" id="roomMinimapWrap" title="Xona Radari — Istalgan nuqtaga bosib teleport qiling!">
+            <canvas id="roomMinimapCanvas" width="132" height="132"></canvas>
+            <div class="room-minimap-label">🗺️ 360° RADAR (BOSING)</div>
+        </div>
+
+        <!-- Variant 5: Mobil Virtual Joystik -->
+        <div class="mobile-joystick-zone" id="mobileJoystickZone">
+            <div></div>
+            <button type="button" class="joy-btn" onpointerdown="setTouchMoveKey('KeyW', true)" onpointerup="setTouchMoveKey('KeyW', false)">▲</button>
+            <button type="button" class="joy-btn" onclick="toggleHumanWalkStairs()" title="1↔2 Qavat">🪜</button>
+            <button type="button" class="joy-btn" onpointerdown="setTouchMoveKey('KeyA', true)" onpointerup="setTouchMoveKey('KeyA', false)">◄</button>
+            <button type="button" class="joy-btn" onpointerdown="setTouchMoveKey('KeyS', true)" onpointerup="setTouchMoveKey('KeyS', false)">▼</button>
+            <button type="button" class="joy-btn" onpointerdown="setTouchMoveKey('KeyD', true)" onpointerup="setTouchMoveKey('KeyD', false)">►</button>
+        </div>
 
         <!-- Inson harakati telemetriyasi -->
         <div class="human-telemetry-pill" id="humanTelemetryPill">
@@ -416,10 +637,10 @@
 
         <!-- Yo'riqnoma -->
         <div class="room-hint-pill d-none d-md-block">
-            🖱️ Tortish: 360° qarash · Bosish: Buyumga tegish (Kitob, Chiroq, Kreslo, Atom, DNK, Mendeleyev, Geometriya) · ⌨️ WASD: Yurish va Zinadan chiqish
+            🖱️ Tortish: 360° qarash · Bosish: Buyumga tegish · 🗺️ Radar: Teleport · ⌨️ WASD: Yurish va Zinadan chiqish
         </div>
 
-        <!-- Kamera va Fan Laboratoriyalari Pulti (10 ta zona) -->
+        <!-- Kamera va Fan Laboratoriyalari Pulti (11 ta zona) -->
         <div class="room-camera-dock" role="toolbar" aria-label="3D Xona va Ilmiy Burchaklar">
             <button type="button" class="cam-preset-btn active" data-cam-preset="overview" onclick="setRoomCameraPreset('overview', this)">
                 🏛️ 360° Markaziy Zal
@@ -436,6 +657,9 @@
             <button type="button" class="cam-preset-btn" data-cam-preset="geometry" onclick="setRoomCameraPreset('geometry', this)">
                 📐 Geometriya (Platon & Formulalar)
             </button>
+            <button type="button" class="cam-preset-btn" data-cam-preset="planetarium" onclick="setRoomCameraPreset('planetarium', this)">
+                🌌 Ulug'bek Gumbazi (Kosmos)
+            </button>
             <button type="button" class="cam-preset-btn" data-cam-preset="stairs" onclick="setRoomCameraPreset('stairs', this)">
                 🪜 Zinapoya va 2-Qavat Balkon
             </button>
@@ -446,7 +670,7 @@
                 📖 Mutolaa Stoli
             </button>
             <button type="button" class="cam-preset-btn" data-cam-preset="librarian" onclick="setRoomCameraPreset('librarian', this)">
-                🛎️ Kutubxonachi Peshtaxtasi
+                🤖 AI Kutubxonachi Gologrammasi
             </button>
         </div>
 
@@ -537,12 +761,210 @@
         } catch (e) {}
     }
 
+    let currentSelectedBook = BOOKS_DATA[0];
+    let currentSelectedBadge = "🕌 MEHROB SHOH ASARI (LAVH)";
+    let currentSelectedLoc = "1-Qavat · Sharqona Mehrob Vitrina Lavhi";
+    let currentSelectedFormula = "";
+    let flipCurrentSpreadIdx = 0;
+
+    // =========================================================================
+    // VARIANT 6: BINAURAL KUTUBXONA AKUSTIKASI (Procedural WebAudio Ambience)
+    // =========================================================================
+    let ambienceMode = 0; // 0: O'chiq, 1: Yomg'ir & Zal, 2: Sharqona Meditatsiya, 3: Kvant Fokus 432Hz
+    let ambienceNodes = [];
+    function stopAmbienceNodes() {
+        ambienceNodes.forEach(function(n) {
+            try { if (n.stop) n.stop(); if (n.disconnect) n.disconnect(); } catch (e) {}
+        });
+        ambienceNodes = [];
+    }
+    window.toggleLibraryAmbience = function() {
+        ambienceMode = (ambienceMode + 1) % 4;
+        stopAmbienceNodes();
+        const btn = document.getElementById('toggleAmbienceBtn');
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        if (!audioCtx) audioCtx = new AC();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        if (ambienceMode === 0) {
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i> <span>🔇 Akustika: O\'chiq</span>';
+            return;
+        }
+        if (ambienceMode === 1) {
+            // Sokin yomg'ir va kutubxona akustikasi (Filtered Pink Noise)
+            const bufSize = audioCtx.sampleRate * 2;
+            const noiseBuf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+            const out = noiseBuf.getChannelData(0);
+            let b0 = 0, b1 = 0, b2 = 0;
+            for (let i = 0; i < bufSize; i++) {
+                const white = Math.random() * 2 - 1;
+                b0 = 0.997 * b0 + white * 0.029;
+                b1 = 0.985 * b1 + white * 0.032;
+                b2 = 0.950 * b2 + white * 0.048;
+                out[i] = (b0 + b1 + b2) * 0.18;
+            }
+            const src = audioCtx.createBufferSource();
+            src.buffer = noiseBuf;
+            src.loop = true;
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 620;
+            const gain = audioCtx.createGain();
+            gain.gain.value = 0.08;
+            src.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
+            src.start();
+            ambienceNodes.push(src, filter, gain);
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-cloud-rain"></i> <span>🌧️ Akustika: Sokin Yomg\'ir</span>';
+        } else if (ambienceMode === 2) {
+            // Sharqona Sokin Meditatsiya (Garmonik akkord: 220Hz + 330Hz)
+            [220, 329.63, 440].forEach(function(freq, idx) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                gain.gain.value = 0.016 / (idx + 1);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                ambienceNodes.push(osc, gain);
+            });
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-music"></i> <span>🎶 Akustika: Sharqona Sokinlik</span>';
+        } else if (ambienceMode === 3) {
+            // Kvant Fokus (432Hz + 440Hz Binaural Alpha-to'lqin)
+            [432, 438].forEach(function(freq) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                gain.gain.value = 0.018;
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                ambienceNodes.push(osc, gain);
+            });
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-atom"></i> <span>⚛️ Akustika: Kvant 432Hz</span>';
+        }
+    };
+
+    // =========================================================================
+    // VARIANT 1: 3D SAHIFALAB VARAQLASH VA AI OVOZLI MUTOLAA (TTS)
+    // =========================================================================
+    function renderFlipbookPages() {
+        const b = currentSelectedBook || BOOKS_DATA[0];
+        const totalSpreads = 4;
+        const idx = ((flipCurrentSpreadIdx % totalSpreads) + totalSpreads) % totalSpreads;
+        flipCurrentSpreadIdx = idx;
+
+        document.getElementById('flipModalBookTitle').textContent = b.title + " — " + (b.author || "SmartLib");
+        document.getElementById('flipPageNumLeft').textContent = (idx * 2 + 1) + "-bet";
+        document.getElementById('flipPageNumRight').textContent = (idx * 2 + 2) + "-bet";
+        document.getElementById('flipPageIndicator').textContent = "Varaq: " + (idx + 1) + " / " + totalSpreads + " · 3D Sahifani varaqlash";
+
+        const spreads = [
+            {
+                lHead: "I BOB · ASAR PASPORTI VA ANNOTATSIYA",
+                lTitle: b.title,
+                lBody: (b.annotation || "SmartLib oltin fondidagi nodir asar.") + "\n\nMuallif: " + (b.author || "Noma'lum") + " · Janr: " + (b.genre || "Ilmiy-badiiy") + " · Nashriyot: " + (b.publisher || "Sharq Nashriyoti") + ".",
+                rHead: "JOYLASHUV VA ILMIY FORMULALAR",
+                rTitle: currentSelectedBadge || "Kutubxona Fondi",
+                rBody: (currentSelectedFormula ? currentSelectedFormula : "<b>Bibliografik ko'rsatkichlar:</b><br>• UO'K: " + (b.udc || "821.512.133") + "<br>• Hajmi: " + (b.pages || 320) + " bet<br>• Nashr yili: " + (b.year || 2024) + "-yil<br>• Joylashuv: " + currentSelectedLoc)
+            },
+            {
+                lHead: "II BOB · MAZMUN VA KONSEPSIYA",
+                lTitle: "Asarning Ilmiy va Ma'rifiy Ahamiyati",
+                lBody: "«" + b.title + "» asari o'quvchini chuqur mushohada yuritishga, tarixiy va tabiiy qonuniyatlarni anglashga chorlaydi. SmartLib 3D kutubxonasida ushbu kitob Fizika, Kimyo, Biologiya va Geometriya pavilonlari bilan uzviy bog'langan.",
+                rHead: "FIZIKA VA KIMYO INTEGRATSIYASI",
+                rTitle: "Tabiatning Fundamental Qonunlari",
+                rBody: "<b>Bog'liq Ilmiy Qonuniyatlar:</b><br>• Energiya saqlanish qonuni: E = m·c²<br>• Ideal gaz va termodinamika: P·V = n·R·T<br>• Kvant holat tenglamasi: iℏ ∂Ψ/∂t = ĤΨ"
+            },
+            {
+                lHead: "III BOB · BIOLOGIYA VA GEOMETRIYA UYG'UNLIGI",
+                lTitle: "Oltin Kesim (φ = 1.618) va Hayot Kodi",
+                lBody: "Tabiatdagi har bir tirik hujayra (DNK qo'sh spirali: A=T, G≡C) hamda me'moriy obidalarimizdagi Girix naqshlari Oltin Kesim (φ ≈ 1.618034) va Platon ko'pyoqliklari (V - E + F = 2) asosida qurilgan.",
+                rHead: "MIRZO ULUG'BEK MEROSI",
+                rTitle: "«Ziji jadidi Ko'ragoniy» va Koinot",
+                rBody: "<b>Astronomik aniqlik:</b><br>• Yulduz yili: 365 kun, 6 soat, 10 daqiqa, 8 soniya<br>• Eyler ayniyati: e^(iπ) + 1 = 0<br>• Butun olam tortishish qonuni: F = G·(m₁m₂)/r²"
+            },
+            {
+                lHead: "IV BOB · XULOSA VA ELEKTRON MUTOLAA",
+                lTitle: "To'liq Elektron Nusxa va Ijara",
+                lBody: "Asarning to'liq matnini o'qish yoki kutubxonadan fiziki nusxasini ijaraga olish uchun pastdagi «To'liq Matn» yoki «Pasport va Ijara» tugmalaridan foydalanishingiz mumkin.",
+                rHead: "AI AUDIO KUTUBXONACHI",
+                rTitle: "Ovozli Mutolaa Rejimi",
+                rBody: "Yuqoridagi <b>«🔊 AI Ovozli O'qish»</b> tugmasini bossangiz, sun'iy intellekt sintezatori ushbu sahifadagi matn va ilmiy xulosalarni ovoz chiqarib o'qib beradi."
+            }
+        ];
+
+        const cur = spreads[idx];
+        document.getElementById('flipPageLeftHeader').textContent = cur.lHead;
+        document.getElementById('flipPageLeftTitle').textContent = cur.lTitle;
+        document.getElementById('flipPageLeftBody').textContent = cur.lBody;
+        document.getElementById('flipPageRightHeader').textContent = cur.rHead;
+        document.getElementById('flipPageRightTitle').textContent = cur.rTitle;
+        document.getElementById('flipPageRightBody').innerHTML = cur.rBody;
+    }
+
+    window.open3dPageFlipModal = function() {
+        playTouchSound('book');
+        flipCurrentSpreadIdx = 0;
+        renderFlipbookPages();
+        const modal = document.getElementById('book3dFlipModal');
+        if (modal) modal.classList.add('active');
+    };
+
+    window.close3dPageFlipModal = function() {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        const modal = document.getElementById('book3dFlipModal');
+        if (modal) modal.classList.remove('active');
+    };
+
+    window.turnFlipbookPage = function(dir) {
+        playTouchSound('book');
+        const spreadEl = document.getElementById('flipbookSpread');
+        if (spreadEl) {
+            spreadEl.classList.remove('turning-next', 'turning-prev');
+            spreadEl.classList.add(dir > 0 ? 'turning-next' : 'turning-prev');
+            setTimeout(function() {
+                spreadEl.classList.remove('turning-next', 'turning-prev');
+            }, 340);
+        }
+        flipCurrentSpreadIdx += dir;
+        renderFlipbookPages();
+    };
+
+    window.toggleBookTtsSpeech = function() {
+        if (!('speechSynthesis' in window)) return;
+        const btn = document.getElementById('ttsSpeakBtn');
+        if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.cancel();
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-headphones"></i> <span>🔊 AI Ovozli O\'qish</span>';
+            return;
+        }
+        const b = currentSelectedBook || BOOKS_DATA[0];
+        const textToRead = b.title + ". Muallif: " + (b.author || "") + ". " + (b.annotation || "") + " Ushbu asar SmartLib 360 gradusli ilmiy kutubxonasida joylashgan.";
+        const utter = new SpeechSynthesisUtterance(textToRead);
+        utter.rate = 0.98;
+        utter.pitch = 1.02;
+        utter.onend = function() {
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-headphones"></i> <span>🔊 AI Ovozli O\'qish</span>';
+        };
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-stop"></i> <span>⏹️ O\'qishni To\'xtatish</span>';
+        window.speechSynthesis.speak(utter);
+    };
+
     // Drawer yangilash funksiyasi (Kitoblar VA Ilmiy Eksponatlar uchun)
     window.open3dBookDrawer = function(book, badgeLabel, shelfLocationText, formulaHtml) {
         const drawer = document.getElementById('book3dDrawer');
         if (!drawer || !book) return;
+        currentSelectedBook = book;
+        currentSelectedBadge = badgeLabel || "📚 JAVONDAGI 3D KITOB";
+        currentSelectedLoc = shelfLocationText || badgeLabel || "Markaziy Kutubxona Fondi";
+        currentSelectedFormula = formulaHtml || "";
         drawer.classList.remove('hidden');
-        document.getElementById('drawer3dBadge').textContent = badgeLabel || "📚 JAVONDAGI 3D KITOB";
+        document.getElementById('drawer3dBadge').textContent = currentSelectedBadge;
         document.getElementById('drawer3dTitle').textContent = book.title;
         document.getElementById('drawer3dAuthor').textContent = book.author + (book.isbn ? (" · ISBN: " + book.isbn) : "");
         document.getElementById('drawer3dGenre').textContent = book.genre || "Adabiyot";
@@ -556,7 +978,7 @@
         }
         const locEl = document.getElementById('drawer3dShelfLoc');
         if (locEl) {
-            locEl.textContent = "📍 Joylashuvi: " + (shelfLocationText || badgeLabel || "Markaziy Kutubxona Fondi");
+            locEl.textContent = "📍 Joylashuvi: " + currentSelectedLoc;
         }
         const formulaBox = document.getElementById('drawer3dFormulaBox');
         if (formulaBox) {
@@ -1027,17 +1449,18 @@
 
     const camera = new THREE.PerspectiveCamera(52, host.clientWidth / host.clientHeight, 0.1, 160);
 
-    // 9 ta Rakurs: 360° Markaziy Zal, Fizika, Kimyo, Biologiya, Geometriya, Zinapoya/2-Qavat, Mehrob, Stol, Kutubxonachi
+    // 10 ta Rakurs: 360° Markaziy Zal, Fizika, Kimyo, Biologiya, Geometriya, Planetariy, Zinapoya/2-Qavat, Mehrob, Stol, AI Kutubxonachi
     const CAM_PRESETS = {
-        overview:  { pos: new THREE.Vector3(0.0, 2.2, 8.8),   yaw: 0.0,    pitch: 0.02 },
-        physics:   { pos: new THREE.Vector3(-3.8, 2.0, -3.2), yaw: 0.55,   pitch: 0.04 },
-        chemistry: { pos: new THREE.Vector3(3.8, 2.0, -3.2),  yaw: -0.55,  pitch: 0.04 },
-        biology:   { pos: new THREE.Vector3(-4.0, 2.0, 5.2),  yaw: 1.35,   pitch: 0.02 },
-        geometry:  { pos: new THREE.Vector3(4.0, 2.0, 5.2),   yaw: -1.35,  pitch: 0.02 },
-        stairs:    { pos: new THREE.Vector3(-5.8, 6.2, 5.2),  yaw: -0.45,  pitch: -0.14 },
-        mihrab:    { pos: new THREE.Vector3(-3.5, 2.1, 0.0),  yaw: 1.57,   pitch: 0.05 },
-        desk:      { pos: new THREE.Vector3(0.0, 2.2, 4.8),   yaw: 0.0,    pitch: -0.15 },
-        librarian: { pos: new THREE.Vector3(3.6, 2.0, 1.2),   yaw: -1.57,  pitch: 0.0 }
+        overview:    { pos: new THREE.Vector3(0.0, 2.2, 8.8),   yaw: 0.0,    pitch: 0.02 },
+        physics:     { pos: new THREE.Vector3(-3.8, 2.0, -3.2), yaw: 0.55,   pitch: 0.04 },
+        chemistry:   { pos: new THREE.Vector3(3.8, 2.0, -3.2),  yaw: -0.55,  pitch: 0.04 },
+        biology:     { pos: new THREE.Vector3(-4.0, 2.0, 5.2),  yaw: 1.35,   pitch: 0.02 },
+        geometry:    { pos: new THREE.Vector3(4.0, 2.0, 5.2),   yaw: -1.35,  pitch: 0.02 },
+        planetarium: { pos: new THREE.Vector3(0.0, 2.2, 3.2),   yaw: 0.0,    pitch: 0.88 },
+        stairs:      { pos: new THREE.Vector3(-5.8, 6.2, 5.2),  yaw: -0.45,  pitch: -0.14 },
+        mihrab:      { pos: new THREE.Vector3(-3.5, 2.1, 0.0),  yaw: 1.57,   pitch: 0.05 },
+        desk:        { pos: new THREE.Vector3(0.0, 2.2, 4.8),   yaw: 0.0,    pitch: -0.15 },
+        librarian:   { pos: new THREE.Vector3(3.6, 2.0, 0.5),   yaw: -1.57,  pitch: 0.02 }
     };
 
     let desiredCamPos = CAM_PRESETS.overview.pos.clone();
@@ -1909,7 +2332,7 @@
     scene.add(deskGroup);
 
     // =========================================================================
-    // 9. KUTUBXONACHI QABUL PESHTAXTASI (Sharqiy Qanot: x = +6.2, z = 0)
+    // 9. KUTUBXONACHI QABUL PESHTAXTASI VA VARIANT 2: 3D AI ALLOMA GOLOGRAMMASI + LAZER YO'L KO'RSATKICH
     // =========================================================================
     const receptionGroup = new THREE.Group();
     receptionGroup.position.set(6.4, 0, 0.0);
@@ -1921,11 +2344,232 @@
 
     const recSign = new THREE.Mesh(
         new THREE.PlaneGeometry(2.5, 0.36),
-        new THREE.MeshBasicMaterial({ map: createSectionSignTexture("🛎️ KUTUBXONACHI · QABUL & AXBOROT") })
+        new THREE.MeshBasicMaterial({ map: createSectionSignTexture("🤖 AI KUTUBXONACHI · AL-XORAZMIY GOLOGRAMMASI") })
     );
     recSign.position.set(0, 0.7, 0.52);
     receptionGroup.add(recSign);
+
+    // 3D AI Alloma Gologramma Proyektor va Levitatsiya Avatari
+    const aiHoloGroup = new THREE.Group();
+    aiHoloGroup.position.set(0, 1.15, 0);
+
+    const holoBaseRing = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.45, 0.52, 0.06, 20),
+        new THREE.MeshBasicMaterial({ color: 0x38BDF8 })
+    );
+    aiHoloGroup.add(holoBaseRing);
+
+    const holoMat = new THREE.MeshBasicMaterial({ color: 0x38BDF8, wireframe: true, transparent: true, opacity: 0.82 });
+    const holoCoreMat = new THREE.MeshBasicMaterial({ color: 0x7DD3FC, transparent: true, opacity: 0.55 });
+
+    const holoTorso = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.78, 12), holoMat);
+    holoTorso.position.y = 0.52;
+    aiHoloGroup.add(holoTorso);
+
+    const holoHead = new THREE.Mesh(new THREE.OctahedronGeometry(0.19, 1), holoCoreMat);
+    holoHead.position.y = 1.12;
+    aiHoloGroup.add(holoHead);
+
+    const holoDataRing = new THREE.Mesh(new THREE.TorusGeometry(0.52, 0.015, 8, 28), new THREE.MeshBasicMaterial({ color: 0xFACC15 }));
+    holoDataRing.position.y = 0.72;
+    holoDataRing.rotation.x = Math.PI / 3;
+    aiHoloGroup.add(holoDataRing);
+
+    const aiLibrarianUserData = {
+        isBook: true,
+        touchType: 'science',
+        bookData: {
+            title: "🤖 Al-Xorazmiy & Ibn Sino — 3D AI Kutubxonachi Gologrammasi",
+            author: "SmartLib Sun'iy Intellekt Yo'loshchisi",
+            genre: "AI Gologramma & Lazer Naviqator",
+            metaText: "Lazerli 3D Yo'l Ko'rsatkich · Ovozli Mutolaa (TTS)",
+            annotation: "Salom, ilm izlovchi! Men SmartLib 3D kutubxonasining AI Gologramma yo'lboshchisiman. Qidiruvdan istalgan kitob yoki ilmiy formulani tanlang — men sizga o'sha javongacha LAZERLI NUR YO'LAK chizib beraman va «3D Varaqlab O'qish» rejimida ovozli o'qib beraman!",
+            read_url: "/?q=algoritm", detail_url: "/"
+        },
+        badge: "🤖 3D AI KUTUBXONACHI GOLOGRAMMASI",
+        shelfLoc: "1-Qavat · Sharqiy Qanot · AI Axborot Markazi",
+        formulaHtml: "<b>AI Gologramma Imkoniyatlari:</b><br>• 🎯 Kitobgacha 3D Lazerli Yo'l Ko'rsatkich<br>• 🔊 O'zbek/Ingliz/Rus tilida AI Ovozli O'qish (TTS)<br>• 🧪 4 ta Ilmiy Laboratoriya Simulyatori Boshqaruvi"
+    };
+    holoTorso.userData = aiLibrarianUserData;
+    holoHead.userData = aiLibrarianUserData;
+    interactiveMeshes.push(holoTorso, holoHead);
+    bookSearchIndex.push({ mesh: holoHead, book: aiLibrarianUserData.bookData, locText: aiLibrarianUserData.shelfLoc });
+    receptionGroup.add(aiHoloGroup);
     scene.add(receptionGroup);
+
+    // 3D Lazerli Yo'l Ko'rsatkich (AI Gologrammadan -> Tanlangan Kitob/Eksponatgacha nurlanuvchi chiziq)
+    const laserPoints = [new THREE.Vector3(6.0, 2.0, 0.0), new THREE.Vector3(0.0, 1.5, 0.0)];
+    const laserGeo = new THREE.BufferGeometry().setFromPoints(laserPoints);
+    const laserPathLine = new THREE.Line(
+        laserGeo,
+        new THREE.LineBasicMaterial({ color: 0x38BDF8, linewidth: 2, transparent: true, opacity: 0.85 })
+    );
+    laserPathLine.visible = false;
+    scene.add(laserPathLine);
+    let currentLaserTargetPos = new THREE.Vector3(0, 1.3, 0);
+
+    function updateLaserPathTo(worldTargetVec) {
+        currentLaserTargetPos.copy(worldTargetVec);
+        const posArr = laserPathLine.geometry.attributes.position.array;
+        posArr[0] = 6.1; posArr[1] = 2.15; posArr[2] = 0.0;
+        posArr[3] = worldTargetVec.x; posArr[4] = worldTargetVec.y; posArr[5] = worldTargetVec.z;
+        laserPathLine.geometry.attributes.position.needsUpdate = true;
+        laserPathLine.visible = true;
+    }
+
+    // =========================================================================
+    // VARIANT 4 & 6: MIRZO ULUG'BEK 3D PLANETARIY GUMBAZI + VOLUMETRIC GOD-RAY NURLARI
+    // =========================================================================
+    const planetariumGroup = new THREE.Group();
+    planetariumGroup.position.set(0, 8.85, 0);
+
+    // Markaziy Quyosh va Sayyoralar (Merkuriy, Venera, Yer, Mars, Yupiter, Saturn halqasi bilan)
+    const sunMesh = new THREE.Mesh(
+        new THREE.SphereGeometry(0.42, 16, 16),
+        new THREE.MeshBasicMaterial({ color: 0xFACC15 })
+    );
+    const planetariumUserData = {
+        isBook: true,
+        touchType: 'science',
+        bookData: {
+            title: "🌌 Mirzo Ulug'bek Rasadxonasi va 3D Quyosh Tizimi Planetariysi",
+            author: "Mirzo Ulug'bek · Ali Qushchi · Al-Farg'oniy · Kopernik",
+            genre: "Astronomiya Gumbazi",
+            metaText: "Quyosh va 6 Sayyora Orbitasi · Ziji Jadidi Ko'ragoniy",
+            annotation: "Mirzo Ulug'bekning Samarqand rasadxonasida tuzilgan «Ziji jadidi Ko'ragoniy» katalogi asosidagi 3D osmon gumbazi. Quyosh atrofida Kepler qonunlari bo'yicha aylanuvchi sayyoralar va yulduz turkumlari.",
+            read_url: "/?q=astronomiya", detail_url: "/"
+        },
+        badge: "🌌 MIRZO ULUG'BEK 3D PLANETARIY GUMBAZI",
+        shelfLoc: "Shift Gumbazi · 9.0m Balandlik · Astronomiya Rasadxonasi",
+        formulaHtml: "<b>Kepler va Astrofizika Qonunlari:</b><br>• Kepler III qonuni: T₁² / T₂² = a₁³ / a₂³<br>• Birinchi kosmik tezlik: v₁ = √(G·M / R) ≈ 7.9 km/s<br>• Ulug'bek yulduz yili: 365 kun 6 soat 10 daqiqa 8 soniya"
+    };
+    sunMesh.userData = planetariumUserData;
+    interactiveMeshes.push(sunMesh);
+    bookSearchIndex.push({ mesh: sunMesh, book: planetariumUserData.bookData, locText: planetariumUserData.shelfLoc });
+    planetariumGroup.add(sunMesh);
+
+    const planetConfigs = [
+        { r: 0.85, size: 0.07, color: 0x94A3B8, speed: 1.9 },
+        { r: 1.25, size: 0.10, color: 0xFBBF24, speed: 1.4 },
+        { r: 1.72, size: 0.12, color: 0x38BDF8, speed: 1.05 },
+        { r: 2.20, size: 0.09, color: 0xEF4444, speed: 0.82 },
+        { r: 2.75, size: 0.20, color: 0xD97706, speed: 0.52 },
+        { r: 3.35, size: 0.17, color: 0xFDE047, speed: 0.36, hasRing: true }
+    ];
+    const planetPivots = [];
+    planetConfigs.forEach(function(pc, idx) {
+        const orbitLine = new THREE.Mesh(
+            new THREE.RingGeometry(pc.r - 0.012, pc.r + 0.012, 36),
+            new THREE.MeshBasicMaterial({ color: 0x475569, side: THREE.DoubleSide, transparent: true, opacity: 0.45 })
+        );
+        orbitLine.rotation.x = Math.PI / 2;
+        planetariumGroup.add(orbitLine);
+
+        const pivot = new THREE.Group();
+        pivot.rotation.y = idx * 1.1;
+        const pMesh = new THREE.Mesh(
+            new THREE.SphereGeometry(pc.size, 12, 12),
+            new THREE.MeshBasicMaterial({ color: pc.color })
+        );
+        pMesh.position.set(pc.r, 0, 0);
+        pMesh.userData = planetariumUserData;
+        interactiveMeshes.push(pMesh);
+        if (pc.hasRing) {
+            const sRing = new THREE.Mesh(
+                new THREE.RingGeometry(pc.size * 1.4, pc.size * 2.2, 18),
+                new THREE.MeshBasicMaterial({ color: 0xEAB308, side: THREE.DoubleSide })
+            );
+            sRing.rotation.x = Math.PI / 2.4;
+            pMesh.add(sRing);
+        }
+        pivot.add(pMesh);
+        pivot.userData = { speed: pc.speed };
+        planetariumGroup.add(pivot);
+        planetPivots.push(pivot);
+    });
+    scene.add(planetariumGroup);
+
+    // Volumetric God-Ray Yorug'lik Ustunlari (Vitraj Gumbazdan tushuvchi oltin nur)
+    const godRayMat = new THREE.MeshBasicMaterial({
+        color: 0xFFE49E,
+        transparent: true,
+        opacity: 0.055,
+        side: THREE.DoubleSide,
+        depthWrite: false
+    });
+    const godRayCone = new THREE.Mesh(new THREE.ConeGeometry(4.2, 8.8, 16, 1, true), godRayMat);
+    godRayCone.position.set(0, 5.2, 0.2);
+    godRayCone.updateMatrix(); godRayCone.matrixAutoUpdate = false;
+    scene.add(godRayCone);
+
+    let planetariumNightActive = false;
+    window.togglePlanetariumDome = function() {
+        planetariumNightActive = !planetariumNightActive;
+        playTouchSound('science');
+        const btn = document.getElementById('togglePlanetariumBtn');
+        if (btn) btn.classList.toggle('active', planetariumNightActive);
+        if (planetariumNightActive) {
+            scene.background.setHex(0x050814);
+            scene.fog.color.setHex(0x050814);
+            ambientLight.intensity = 0.45;
+            window.setRoomCameraPreset('planetarium');
+            window.open3dBookDrawer(planetariumUserData.bookData, planetariumUserData.badge, planetariumUserData.shelfLoc, planetariumUserData.formulaHtml);
+        } else {
+            scene.background.setHex(0x110905);
+            scene.fog.color.setHex(0x110905);
+            ambientLight.intensity = 0.78;
+            window.setRoomCameraPreset('overview');
+        }
+    };
+
+    // =========================================================================
+    // VARIANT 3: 3D ILMIY TAJRIBA SIMULYATORI (Kimyoviy va Kvant Reaksiya To'lqini)
+    // =========================================================================
+    let sandboxSpeedMultiplier = 1.0;
+    const reactionRingMesh = new THREE.Mesh(
+        new THREE.RingGeometry(0.2, 0.45, 28),
+        new THREE.MeshBasicMaterial({ color: 0x38BDF8, side: THREE.DoubleSide, transparent: true, opacity: 0.0 })
+    );
+    reactionRingMesh.rotation.x = -Math.PI / 2;
+    reactionRingMesh.position.set(0, 1.5, 0);
+    scene.add(reactionRingMesh);
+    let reactionPulseAlpha = 0;
+
+    window.setSandboxSpeed = function(val) {
+        sandboxSpeedMultiplier = parseFloat(val) || 1.0;
+        const lbl = document.getElementById('sandboxSpeedLabel');
+        if (lbl) lbl.textContent = "Tezlik: " + sandboxSpeedMultiplier.toFixed(1) + "x";
+    };
+
+    window.triggerScienceExperiment = function(expType) {
+        playTouchSound('science');
+        scienceBoostPulse = 1.35;
+        reactionPulseAlpha = 1.0;
+        const resEl = document.getElementById('sandboxExperimentResult');
+        if (resEl) resEl.style.display = 'block';
+
+        if (expType === 'h2o') {
+            reactionRingMesh.position.set(4.2, 2.05, -6.2);
+            reactionRingMesh.material.color.setHex(0x22C55E);
+            window.setRoomCameraPreset('chemistry');
+            if (resEl) resEl.innerHTML = "✅ <b>Reaksiya:</b> 2H₂ + O₂ → 2H₂O + 572 kJ (Ekzotermik sintez!)";
+        } else if (expType === 'quantum') {
+            reactionRingMesh.position.set(-4.2, 2.1, -6.2);
+            reactionRingMesh.material.color.setHex(0x38BDF8);
+            window.setRoomCameraPreset('physics');
+            if (resEl) resEl.innerHTML = "⚡ <b>Kvant Sakrash:</b> ΔE = h·ν = E₂ - E₁ (Foton nurlanishi!)";
+        } else if (expType === 'dna') {
+            reactionRingMesh.position.set(-4.2, 2.1, 5.2);
+            reactionRingMesh.material.color.setHex(0xF472B6);
+            window.setRoomCameraPreset('biology');
+            if (resEl) resEl.innerHTML = "🧬 <b>DNK Polimeraza:</b> A=T (2H bog') va G≡C (3H bog') nusxalandi!";
+        } else if (expType === 'golden') {
+            reactionRingMesh.position.set(4.2, 2.15, 5.2);
+            reactionRingMesh.material.color.setHex(0xFACC15);
+            window.setRoomCameraPreset('geometry');
+            if (resEl) resEl.innerHTML = "📐 <b>Oltin Nisbat:</b> φ = (1+√5)/2 ≈ 1.61803 · Eyler: V-E+F = 2";
+        }
+    };
 
     // Havodagi oltin chang zarralari
     const dustCount = 240;
@@ -1949,7 +2593,7 @@
     }
 
     // =========================================================================
-    // 10. QIDIRUV VA 3D PARVOZ (Kitoblar + Fizika/Kimyo/Biologiya/Geometriya)
+    // 10. QIDIRUV VA 3D PARVOZ (Kitoblar + Fizika/Kimyo/Biologiya/Geometriya + Lazer Yo'lak)
     // =========================================================================
     window.flyToBookMesh = function(entry) {
         if (!entry || !entry.mesh) return;
@@ -1971,6 +2615,7 @@
         highlightLight.position.copy(targetWorldPos).addScaledVector(forward, 0.7);
         highlightLight.intensity = 2.6;
 
+        updateLaserPathTo(targetWorldPos);
         playTouchSound('science');
         const ud = entry.mesh.userData || {};
         window.open3dBookDrawer(entry.book, ud.badge, entry.locText, ud.formulaHtml);
@@ -2027,7 +2672,7 @@
     }
 
     // =========================================================================
-    // 11. 360° ERKIN HARAKAT, ZINADAN CHIQISH FIZIKASI VA INSON TEGINISH REAKSIYASI
+    // 11. 360° ERKIN HARAKAT, MINI-XARITA RADAR, ZINADAN CHIQISH VA INSON TEGINISH REAKSIYASI
     // =========================================================================
     let isDragging = false;
     let prevX = 0, prevY = 0;
@@ -2037,6 +2682,76 @@
     let walkPhase = 0;
     let onUpperFloor = false;
     let scienceBoostPulse = 0;
+
+    // Variant 5: 3D Mini-Xarita Radar Chizish va Bosganda Teleport Qilish
+    const minimapCanvas = document.getElementById('roomMinimapCanvas');
+    const minimapCtx = minimapCanvas ? minimapCanvas.getContext('2d') : null;
+    if (minimapCanvas) {
+        minimapCanvas.addEventListener('click', function(e) {
+            const rect = minimapCanvas.getBoundingClientRect();
+            const nx = (e.clientX - rect.left) / rect.width;
+            const nz = (e.clientY - rect.top) / rect.height;
+            desiredCamPos.x = (nx - 0.5) * 17.0;
+            desiredCamPos.z = (nz - 0.5) * 19.0;
+            playTouchSound('switch');
+        });
+    }
+
+    function drawMinimapRadar() {
+        if (!minimapCtx) return;
+        const w = 132, h = 132;
+        minimapCtx.clearRect(0, 0, w, h);
+        minimapCtx.fillStyle = '#0c0805';
+        minimapCtx.fillRect(0, 0, w, h);
+
+        // Xona chegarasi
+        minimapCtx.strokeStyle = 'rgba(232, 176, 74, 0.55)';
+        minimapCtx.lineWidth = 2;
+        minimapCtx.strokeRect(8, 8, w - 16, h - 16);
+
+        // Markaziy Mutolaa Stoli
+        minimapCtx.fillStyle = 'rgba(180, 110, 45, 0.65)';
+        minimapCtx.fillRect(46, 58, 40, 14);
+
+        // 4 ta Ilmiy Pavilyon nuqtalari (Fizika, Kimyo, Biologiya, Geometriya) va AI Gologramma
+        const landmarks = [
+            { x: -4.2, z: -6.2, c: '#38bdf8' }, // Fizika
+            { x:  4.2, z: -6.2, c: '#22c55e' }, // Kimyo
+            { x: -4.2, z:  5.2, c: '#f472b6' }, // Biologiya
+            { x:  4.2, z:  5.2, c: '#facc15' }, // Geometriya
+            { x:  6.4, z:  0.0, c: '#7dd3fc' }  // AI Kutubxonachi
+        ];
+        for (let i = 0; i < landmarks.length; i++) {
+            const lm = landmarks[i];
+            const mx = w / 2 + (lm.x / 10.5) * (w / 2 - 10);
+            const mz = h / 2 + (lm.z / 11.5) * (h / 2 - 10);
+            minimapCtx.fillStyle = lm.c;
+            minimapCtx.beginPath();
+            minimapCtx.arc(mx, mz, 4, 0, Math.PI * 2);
+            minimapCtx.fill();
+        }
+
+        // Foydalanuvchi pozitsiyasi va 360° Qarash Konusi (FOV)
+        const ux = w / 2 + (camera.position.x / 10.5) * (w / 2 - 10);
+        const uz = h / 2 + (camera.position.z / 11.5) * (h / 2 - 10);
+
+        minimapCtx.save();
+        minimapCtx.translate(ux, uz);
+        minimapCtx.rotate(-camYaw);
+        minimapCtx.fillStyle = 'rgba(74, 222, 128, 0.28)';
+        minimapCtx.beginPath();
+        minimapCtx.moveTo(0, 0);
+        minimapCtx.lineTo(-12, -22);
+        minimapCtx.lineTo(12, -22);
+        minimapCtx.closePath();
+        minimapCtx.fill();
+
+        minimapCtx.fillStyle = '#4ade80';
+        minimapCtx.beginPath();
+        minimapCtx.arc(0, 0, 4.5, 0, Math.PI * 2);
+        minimapCtx.fill();
+        minimapCtx.restore();
+    }
 
     window.setRoomCameraPreset = function(presetName, btnEl) {
         const p = CAM_PRESETS[presetName] || CAM_PRESETS.overview;
@@ -2176,6 +2891,7 @@
     });
 
     // HAR BIR DETALGA TEKKANDA INSON HARAKATIGA O'XSHASH FIZIK REAKSIYA!
+    const _clickedWorldPos = new THREE.Vector3();
     host.addEventListener('click', function(e) {
         if (dragMoved > 8) return;
         const rect = host.getBoundingClientRect();
@@ -2187,6 +2903,9 @@
         if (hits.length > 0) {
             const hitObj = hits[0].object;
             const ud = hitObj.userData || {};
+
+            hitObj.getWorldPosition(_clickedWorldPos);
+            updateLaserPathTo(_clickedWorldPos);
 
             if (ud.touchType === 'lamp') {
                 playTouchSound('switch');
@@ -2232,6 +2951,9 @@
     }, { passive: false });
 
     const keys = {};
+    window.setTouchMoveKey = function(code, state) {
+        keys[code] = !!state;
+    };
     window.addEventListener('keydown', function(e) {
         if (document.activeElement === searchInputEl) return;
         keys[e.code] = true;
@@ -2323,8 +3045,8 @@
         );
         camera.lookAt(_lookTargetVec);
 
-        // Ilmiy eksponatlarning jonli fizikasi (Atom orbitallari, Molekula, 3D DNK spirali va Platon jismlari)
-        const boost = 1.0 + scienceBoostPulse * 4.5;
+        // Ilmiy eksponatlarning jonli fizikasi (Sandbox Speed Multiplier + Kvant Impulsi)
+        const boost = sandboxSpeedMultiplier * (1.0 + scienceBoostPulse * 4.5);
         if (scienceBoostPulse > 0) scienceBoostPulse = Math.max(0, scienceBoostPulse - dt * 0.8);
 
         for (let oi = 0; oi < electronOrbits.length; oi++) {
@@ -2337,6 +3059,24 @@
         icosaSolid.rotation.x += dt * 0.35 * boost;
         outerWire.rotation.y -= dt * 0.35 * boost;
 
+        // AI Gologramma va Mirzo Ulug'bek Planetariysi animatsiyasi
+        holoHead.rotation.y = t * 1.4;
+        holoDataRing.rotation.z = -t * 1.8;
+        aiHoloGroup.position.y = 1.15 + Math.sin(t * 2.5) * 0.06;
+
+        for (let pi = 0; pi < planetPivots.length; pi++) {
+            planetPivots[pi].rotation.y += dt * planetPivots[pi].userData.speed * sandboxSpeedMultiplier;
+        }
+
+        if (reactionPulseAlpha > 0.01) {
+            reactionPulseAlpha = Math.max(0, reactionPulseAlpha - dt * 0.9);
+            const sc = 1.0 + (1.0 - reactionPulseAlpha) * 4.5;
+            reactionRingMesh.scale.set(sc, sc, 1);
+            reactionRingMesh.material.opacity = reactionPulseAlpha;
+        } else {
+            reactionRingMesh.material.opacity = 0;
+        }
+
         if (globeSphere.userData.spinVel > 0.001) {
             globeSphere.rotation.y += globeSphere.userData.spinVel;
             globeSphere.userData.spinVel *= 0.96;
@@ -2347,10 +3087,9 @@
             chandelierGroups[ci].rotation.y = t * 0.04 * (ci % 2 === 0 ? 1 : -1);
         }
 
-        // Har 250ms da DOM HUD yangilash va Adaptiv 60 FPS GPU Regulyatori
+        // Har 250ms da DOM HUD, Mini-Xarita Radar va Adaptiv 60 FPS GPU Regulyatorini yangilash
         if (fpsAccumTime >= 0.25) {
             const measuredFps = Math.round(fpsFrameCount / fpsAccumTime);
-            // Agar GPU yuklamasi 52 FPS dan tushsa, piksel nisbatini silliq tushirib 60 FPS ga qulflaydi
             if (measuredFps < 52 && currentPixelRatio > 0.85) {
                 currentPixelRatio = Math.max(0.85, currentPixelRatio - 0.15);
                 renderer.setPixelRatio(currentPixelRatio);
@@ -2370,10 +3109,12 @@
             if (floorBadgeEl) {
                 floorBadgeEl.textContent = floorNum === 2 ? "2-QAVAT · MEZZANINE BALKON (60 FPS)" : "1-QAVAT · ILMIY ZAL (60 FPS)";
             }
+            drawMinimapRadar();
         }
 
         renderer.render(scene, camera);
     }
+    drawMinimapRadar();
     animate();
 })();
 </script>
