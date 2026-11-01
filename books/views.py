@@ -149,6 +149,7 @@ def _build_books_3d_json(books_iterable):
     spine_palette = [
         '#8B261D', '#2D5A43', '#8C5A2B', '#234567', '#5E2B4E',
         '#7A3E1D', '#1F4B3F', '#6B4423', '#3A284B', '#923C24',
+        '#1B3B5A', '#6E1E2A', '#3B4D2B', '#7C4D1E', '#2C3E50',
     ]
     items = []
     for idx, b in enumerate(books_iterable):
@@ -160,8 +161,11 @@ def _build_books_3d_json(books_iterable):
             'author': b.author,
             'genre': b.genre.name if b.genre else "Adabiyot",
             'isbn': b.isbn or f"978-9943-{b.pk:04d}-1",
+            'udc': getattr(b, 'udc', '') or f"821.{idx + 10}",
+            'publisher': getattr(b, 'publisher', '') or "Toshkent Nashriyoti",
             'pages': b.pages or 320,
             'year': b.published_year or 2024,
+            'rating': getattr(b, 'average_rating', 5.0) or 5.0,
             'available': avail,
             'total': tot,
             'annotation': (b.annotation or "SmartLib elektron va bosma fondidagi nodir asar.")[:180],
@@ -177,8 +181,11 @@ def _build_books_3d_json(books_iterable):
                 'author': "Abdulla Qodiriy",
                 'genre': "O'zbek klassikasi",
                 'isbn': "978-9943-2310-0-9",
+                'udc': "821.512.133",
+                'publisher': "Sharq Nashriyoti",
                 'pages': 384,
                 'year': 2024,
+                'rating': 5.0,
                 'available': 5,
                 'total': 5,
                 'annotation': "O'zbek romanchiligining asoschisi Abdulla Qodiriyning o'lmas tarixiy-badiiy shoh asari.",
@@ -191,7 +198,7 @@ def _build_books_3d_json(books_iterable):
 
 
 def reading_room_view(request):
-    books_qs = list(Book.objects.select_related('genre', 'library').prefetch_related('copies', 'reviews').all()[:36])
+    books_qs = list(Book.objects.select_related('genre', 'library').prefetch_related('copies', 'reviews').all()[:60])
     return render(request, 'reading_room.html', {
         'books': books_qs,
         'books_3d_json': _build_books_3d_json(books_qs),

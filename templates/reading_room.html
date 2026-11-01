@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}3D O'quv xonasi (Ўқув хонаси) — SmartLib Virtual Kutubxona{% endblock %}
+{% block title %}3D O'quv xonasi (Ўқув хонаси) — SmartLib Haqiqiy Virtual Kutubxona{% endblock %}
 
 {% block extra_css %}
 <style>
     .reading-room-wrapper {
-        --seam: rgba(232, 176, 74, 0.38);
+        --seam: rgba(232, 176, 74, 0.42);
         --ink-accent: #E8B04A;
         --ink-0: #F8F1E5;
         --ink-1: #D4C3A8;
@@ -16,38 +16,13 @@
         --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         position: relative;
         width: 100%;
-        height: calc(100vh - 115px);
-        min-height: 540px;
-        background: #100905;
+        height: calc(100vh - 110px);
+        min-height: 620px;
+        background: #0d0704;
         border: 1px solid var(--seam);
-        border-radius: 16px;
+        border-radius: 18px;
         overflow: hidden;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85);
-    }
-    @media (max-width: 767.98px) {
-        .reading-room-wrapper {
-            height: calc(100vh - 95px);
-            min-height: 460px;
-        }
-        .uquv-xonasi-badge {
-            top: 12px !important;
-            left: 12px !important;
-            font-size: 1rem !important;
-            padding: 6px 12px !important;
-        }
-        .room-top-controls {
-            top: 56px !important;
-            left: 12px !important;
-            right: 12px !important;
-        }
-        .book-3d-drawer {
-            top: auto !important;
-            bottom: 72px !important;
-            right: 12px !important;
-            left: 12px !important;
-            width: auto !important;
-            max-width: none !important;
-        }
+        box-shadow: 0 24px 68px rgba(0, 0, 0, 0.88);
     }
     #readingRoomCanvasHost {
         width: 100%;
@@ -58,21 +33,29 @@
     #readingRoomCanvasHost:active {
         cursor: grabbing;
     }
-    /* Asl rasmdagi "Ўқув хонаси" yorlig'i */
-    .uquv-xonasi-badge {
+    /* Burchak yorlig'i va 3D Qidiruv paneli */
+    .room-hud-left {
         position: absolute;
-        top: 18px;
-        left: 18px;
-        z-index: 20;
-        background: rgba(232, 234, 236, 0.92);
-        color: #111111 !important;
-        padding: 8px 20px;
-        border-radius: 10px;
+        top: 16px;
+        left: 16px;
+        z-index: 22;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 390px;
+    }
+    .uquv-xonasi-badge {
+        background: rgba(20, 12, 7, 0.90);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--seam);
+        color: var(--ink-0) !important;
+        padding: 8px 16px;
+        border-radius: 12px;
         font-family: var(--font-sans);
         font-weight: 800;
-        font-size: 1.35rem;
+        font-size: 1.15rem;
         letter-spacing: -0.01em;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65);
         display: inline-flex;
         align-items: center;
         gap: 10px;
@@ -80,36 +63,82 @@
     }
     .uquv-xonasi-badge small {
         font-family: var(--font-mono);
-        font-size: 0.68rem;
+        font-size: 0.65rem;
         font-weight: 700;
-        background: #281A10;
+        background: rgba(232, 176, 74, 0.18);
+        border: 1px solid rgba(232, 176, 74, 0.45);
         color: #E8B04A !important;
         padding: 3px 8px;
-        border-radius: 4px;
+        border-radius: 6px;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.06em;
+    }
+    .room-search-box {
+        background: rgba(20, 12, 7, 0.88);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--seam);
+        border-radius: 10px;
+        padding: 6px 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+    }
+    .room-search-input {
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--ink-0) !important;
+        font-size: 0.8rem;
+        width: 100%;
+        font-family: var(--font-sans);
+    }
+    .room-search-input::placeholder {
+        color: rgba(212, 195, 168, 0.65);
+    }
+    .room-search-results {
+        background: rgba(18, 11, 7, 0.96);
+        backdrop-filter: blur(14px);
+        border: 1px solid var(--ink-accent);
+        border-radius: 10px;
+        max-height: 210px;
+        overflow-y: auto;
+        display: none;
+        box-shadow: 0 14px 34px rgba(0, 0, 0, 0.8);
+    }
+    .room-search-item {
+        padding: 8px 12px;
+        border-bottom: 1px solid rgba(232, 176, 74, 0.16);
+        cursor: pointer;
+        transition: background 0.15s;
+        color: var(--ink-0);
+        font-size: 0.78rem;
+    }
+    .room-search-item:hover {
+        background: rgba(232, 176, 74, 0.22);
     }
 
     /* Yuqori o'ng boshqaruv pulti */
     .room-top-controls {
         position: absolute;
-        top: 18px;
-        right: 18px;
+        top: 16px;
+        right: 16px;
         z-index: 20;
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
+        gap: 7px;
+        justify-content: flex-end;
     }
     .room-ctrl-btn {
-        background: rgba(24, 15, 9, 0.86);
+        background: rgba(24, 15, 9, 0.88);
         backdrop-filter: blur(10px);
         border: 1px solid rgba(232, 176, 74, 0.42);
         color: var(--ink-0) !important;
         font-family: var(--font-mono);
-        font-size: 0.74rem;
+        font-size: 0.73rem;
         font-weight: 600;
-        padding: 8px 13px;
-        border-radius: 2px;
+        padding: 7px 12px;
+        border-radius: 8px;
         cursor: pointer;
         transition: all 160ms ease;
         display: inline-flex;
@@ -131,35 +160,36 @@
     /* Pastki kamera rakurslari paneli */
     .room-camera-dock {
         position: absolute;
-        bottom: 18px;
+        bottom: 14px;
         left: 50%;
         transform: translateX(-50%);
         z-index: 20;
-        background: rgba(20, 12, 7, 0.90);
-        backdrop-filter: blur(12px);
+        background: rgba(18, 11, 7, 0.92);
+        backdrop-filter: blur(14px);
         border: 1px solid rgba(232, 176, 74, 0.45);
-        border-radius: 2px;
-        padding: 8px 10px;
+        border-radius: 12px;
+        padding: 7px 10px;
         display: flex;
         align-items: center;
         gap: 6px;
-        flex-wrap: wrap;
-        justify-content: center;
+        flex-wrap: nowrap;
+        overflow-x: auto;
         max-width: 96%;
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.78);
     }
     .cam-preset-btn {
-        background: rgba(40, 26, 16, 0.85);
+        background: rgba(40, 26, 16, 0.88);
         border: 1px solid var(--seam);
         color: var(--ink-1) !important;
         font-family: var(--font-sans);
-        font-size: 0.8rem;
+        font-size: 0.76rem;
         font-weight: 600;
-        padding: 7px 13px;
-        border-radius: 2px;
+        padding: 6px 11px;
+        border-radius: 8px;
         cursor: pointer;
         transition: all 150ms ease;
         white-space: nowrap;
+        flex-shrink: 0;
     }
     .cam-preset-btn:hover,
     .cam-preset-btn.active {
@@ -172,18 +202,18 @@
     /* 3D Kitob Pasporti (Kitob ustiga bosilganda chiqadigan suzuvchi oyna) */
     .book-3d-drawer {
         position: absolute;
-        top: 78px;
-        right: 18px;
-        width: 340px;
-        max-width: calc(100% - 36px);
+        top: 68px;
+        right: 16px;
+        width: 345px;
+        max-width: calc(100% - 32px);
         z-index: 25;
-        background: rgba(26, 16, 10, 0.95);
-        backdrop-filter: blur(14px);
+        background: rgba(22, 13, 8, 0.95);
+        backdrop-filter: blur(16px);
         border: 1px solid var(--ink-accent);
         border-top: 4px solid var(--ink-accent);
-        border-radius: 2px;
-        padding: 20px;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+        border-radius: 12px;
+        padding: 18px;
+        box-shadow: 0 22px 54px rgba(0, 0, 0, 0.88);
         transition: transform 240ms ease, opacity 240ms ease;
     }
     .book-3d-drawer.hidden {
@@ -193,15 +223,15 @@
     }
     .room-hint-pill {
         position: absolute;
-        bottom: 76px;
+        bottom: 66px;
         left: 50%;
         transform: translateX(-50%);
         z-index: 18;
-        background: rgba(18, 11, 7, 0.82);
-        border: 1px solid rgba(232, 176, 74, 0.32);
+        background: rgba(18, 11, 7, 0.86);
+        border: 1px solid rgba(232, 176, 74, 0.35);
         color: var(--ink-1);
         font-family: var(--font-mono);
-        font-size: 0.72rem;
+        font-size: 0.7rem;
         padding: 5px 14px;
         border-radius: 999px;
         pointer-events: none;
@@ -211,15 +241,46 @@
         position: absolute;
         z-index: 30;
         pointer-events: none;
-        background: rgba(18, 11, 7, 0.94);
+        background: rgba(16, 10, 6, 0.96);
         border: 1px solid var(--ink-accent);
         color: var(--ink-0);
-        padding: 6px 11px;
-        border-radius: 2px;
+        padding: 7px 12px;
+        border-radius: 8px;
         font-size: 0.78rem;
         font-weight: 600;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.65);
+        box-shadow: 0 8px 22px rgba(0,0,0,0.75);
         display: none;
+        max-width: 310px;
+    }
+    @media (max-width: 767.98px) {
+        .reading-room-wrapper {
+            height: calc(100vh - 95px);
+            min-height: 480px;
+        }
+        .room-hud-left {
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            max-width: none;
+        }
+        .uquv-xonasi-badge {
+            font-size: 0.95rem !important;
+            padding: 6px 12px !important;
+        }
+        .room-top-controls {
+            top: 98px !important;
+            left: 10px !important;
+            right: 10px !important;
+            justify-content: flex-start;
+        }
+        .book-3d-drawer {
+            top: auto !important;
+            bottom: 64px !important;
+            right: 10px !important;
+            left: 10px !important;
+            width: auto !important;
+            max-width: none !important;
+        }
     }
 </style>
 {% endblock %}
@@ -227,76 +288,97 @@
 {% block content %}
 <div class="container-fluid px-3 px-lg-4">
     <div class="reading-room-wrapper" id="readingRoomContainer">
-        <!-- Asl rasmdagi "Ўқув хонаси" burchak yorlig'i -->
-        <div class="uquv-xonasi-badge">
-            <span>Ўқув хонаси</span>
-            <small>REAL-TIME 3D WEBGL</small>
+        <!-- Chap yuqori HUD: Unvon + 3D Kitob Qidiruv -->
+        <div class="room-hud-left">
+            <div class="uquv-xonasi-badge">
+                <span>🏛️ Ўқув хонаси</span>
+                <small>2-QAVATLI REALISTIK 3D ZAL</small>
+            </div>
+            <div class="room-search-box">
+                <i class="fa-solid fa-magnifying-glass" style="color: var(--ink-accent); font-size: 0.82rem;"></i>
+                <input type="text" id="search3dBookInput" class="room-search-input" placeholder="3D javondan kitob qidirish va uchib borish..." autocomplete="off">
+                <span class="badge font-mono" id="total3dBooksBadge" style="background: rgba(232,176,74,0.16); color: var(--ink-accent); font-size: 0.68rem;">3D</span>
+            </div>
+            <div id="search3dResults" class="room-search-results"></div>
         </div>
 
         <!-- Yuqori o'ng boshqaruv tugmalari -->
         <div class="room-top-controls">
             <button type="button" class="room-ctrl-btn" id="toggleAutoOrbitBtn" onclick="toggleRoomAutoOrbit()">
-                <i class="fa-solid fa-Compass"></i> <span>Kino rejimi (Avto-aylanish)</span>
+                <i class="fa-solid fa-compass"></i> <span>Kino rejimi (360°)</span>
             </button>
             <button type="button" class="room-ctrl-btn" id="toggleWarmLightBtn" onclick="toggleRoomLighting()">
-                <i class="fa-solid fa-lightbulb"></i> <span>Chiroqlar: Kechki Oltin</span>
+                <i class="fa-solid fa-lightbulb"></i> <span>Yoritish: Kechki Oltin</span>
+            </button>
+            <button type="button" class="room-ctrl-btn" onclick="focusRandomBookIn3D()">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> <span>Tasodifiy kitob</span>
             </button>
             <button type="button" class="room-ctrl-btn" onclick="toggleFullscreenRoom()">
                 <i class="fa-solid fa-expand"></i> <span>To'liq ekran</span>
             </button>
             <a href="{% url 'home' %}" class="room-ctrl-btn">
-                <i class="fa-solid fa-table-cells-large"></i> <span>Katalogga qaytish</span>
+                <i class="fa-solid fa-table-cells-large"></i> <span>Katalog</span>
             </a>
         </div>
 
         <!-- 3D Kitob Pasporti (Javondagi yoki stoldagi kitob bosilganda ochiladi) -->
         <aside class="book-3d-drawer" id="book3dDrawer" aria-live="polite">
             <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="font-mono small text-uppercase" id="drawer3dBadge" style="color: var(--ink-accent); font-size: 0.7rem; letter-spacing: 0.1em;">
+                <span class="font-mono small text-uppercase" id="drawer3dBadge" style="color: var(--ink-accent); font-size: 0.7rem; letter-spacing: 0.08em;">
                     🕌 TANLANGAN 3D EKSPONAT
                 </span>
                 <button type="button" class="btn-close btn-close-white btn-sm" onclick="close3dDrawer()" aria-label="Yopish"></button>
             </div>
-            <h4 class="font-display fw-bold mb-1" id="drawer3dTitle" style="color: var(--ink-0); font-size: 1.25rem;">O'tkan kunlar</h4>
+            <h4 class="font-display fw-bold mb-1" id="drawer3dTitle" style="color: var(--ink-0); font-size: 1.22rem;">O'tkan kunlar</h4>
             <div class="small mb-2" id="drawer3dAuthor" style="color: var(--ink-1);">Abdulla Qodiriy</div>
-            <div class="d-flex flex-wrap gap-2 mb-3">
+            <div class="d-flex flex-wrap gap-1.5 mb-2">
                 <span class="badge font-mono" id="drawer3dGenre" style="background: var(--bg-2); border: 1px solid var(--seam); color: var(--ink-accent);">O'zbek klassikasi</span>
                 <span class="badge font-mono" id="drawer3dAvail" style="background: rgba(111,168,118,0.18); border: 1px solid var(--ok); color: var(--ok);">Mavjud: 5 nusxa</span>
+                <span class="badge font-mono" id="drawer3dMeta" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: var(--ink-1);">384 bet · UO'K 821</span>
             </div>
-            <p class="small mb-3" id="drawer3dDesc" style="color: var(--ink-1); line-height: 1.5;">
+            <div class="small mb-2 py-1 px-2 rounded" id="drawer3dShelfLoc" style="background: rgba(232,176,74,0.10); border-left: 3px solid var(--ink-accent); color: var(--ink-0); font-size: 0.74rem;">
+                📍 Joylashuvi: Markaziy Zal · 1-Qavat · Sharqona Mehrob Lavhi
+            </div>
+            <p class="small mb-3" id="drawer3dDesc" style="color: var(--ink-1); line-height: 1.48; font-size: 0.8rem;">
                 Javondagi yoki mutolaa stolidagi istalgan kitob ustiga bosing — uni 3D o'quv zalidan turib elektron varoqlab o'qishingiz yoki buyurtma qilishingiz mumkin.
             </p>
             <div class="d-grid gap-2">
-                <a href="/" id="drawer3dReadLink" class="btn btn-sm fw-bold" style="background: var(--ink-accent); color: #120B07; border-radius: 2px; padding: 9px 14px;">
+                <a href="/" id="drawer3dReadLink" class="btn btn-sm fw-bold" style="background: var(--ink-accent); color: #120B07; border-radius: 8px; padding: 9px 14px;">
                     📖 Elektron o'qish va AI Audio →
                 </a>
-                <a href="/" id="drawer3dDetailLink" class="btn btn-sm" style="background: var(--bg-2); border: 1px solid var(--seam); color: var(--ink-0); border-radius: 2px; padding: 8px 14px;">
+                <a href="/" id="drawer3dDetailLink" class="btn btn-sm" style="background: var(--bg-2); border: 1px solid var(--seam); color: var(--ink-0); border-radius: 8px; padding: 8px 14px;">
                     🔍 Kitob pasporti va Ijara
                 </a>
             </div>
         </aside>
 
-        <!-- Sichqoncha yo'riqnomasi -->
+        <!-- Sichqoncha va Klaviatura yo'riqnomasi -->
         <div class="room-hint-pill d-none d-md-block">
-            🖱️ Chap tugma: 360° aylantirish · G'ildirak: Yaqinlashtirish · Kitob ustiga bosing: Mutolaa · ⌨️ WASD: Yurish
+            🖱️ Tortish: 360° qarash · G'ildirak: Yaqinlashtirish · Kitobni bosing: Pasport va Mutolaa · ⌨️ WASD: Yurish · Q/E: 1–2 Qavatga ko'tarilish
         </div>
 
-        <!-- Kamera Rakurslari Pulti -->
+        <!-- Kamera Rakurslari Pulti (7 ta realistik zona) -->
         <div class="room-camera-dock" role="toolbar" aria-label="3D Xona Kamera Rakurslari">
             <button type="button" class="cam-preset-btn active" data-cam-preset="overview" onclick="setRoomCameraPreset('overview', this)">
-                📷 Asl rasm rakursi (Umumiy zal)
+                🏛️ Umumiy Ulug'vor Zal
             </button>
             <button type="button" class="cam-preset-btn" data-cam-preset="mihrab" onclick="setRoomCameraPreset('mihrab', this)">
                 🕌 Mehrob va Lavh (Shoh asar)
             </button>
             <button type="button" class="cam-preset-btn" data-cam-preset="desk" onclick="setRoomCameraPreset('desk', this)">
-                📖 Mutolaa stoli va Qo'lyozmalar
+                📖 Mutolaa Stoli va Yashil Chiroqlar
             </button>
             <button type="button" class="cam-preset-btn" data-cam-preset="shelves" onclick="setRoomCameraPreset('shelves', this)">
-                📚 LED Kitob javonlari
+                📚 Kitob Javonlari va Narvon
+            </button>
+            <button type="button" class="cam-preset-btn" data-cam-preset="mezzanine" onclick="setRoomCameraPreset('mezzanine', this)">
+                🪜 2-Qavat Balkon va Qandillar
+            </button>
+            <button type="button" class="cam-preset-btn" data-cam-preset="librarian" onclick="setRoomCameraPreset('librarian', this)">
+                🛎️ Kutubxonachi Peshtaxtasi
             </button>
             <button type="button" class="cam-preset-btn" data-cam-preset="corridor" onclick="setRoomCameraPreset('corridor', this)">
-                🏮 Ichki sharqona galereya
+                🏮 Sharqona Arkali Galereya
             </button>
         </div>
 
@@ -326,6 +408,8 @@
         BOOKS_DATA = [{
             id: 1, title: "O'tkan kunlar", author: "Abdulla Qodiriy",
             genre: "O'zbek klassikasi", isbn: "978-9943-2310-0-9",
+            udc: "821.512.133", publisher: "Sharq Nashriyoti",
+            pages: 384, year: 2024, rating: 5.0,
             available: 5, total: 5,
             annotation: "O'zbek romanchiligining asoschisi Abdulla Qodiriyning o'lmas tarixiy-badiiy shoh asari.",
             color: "#8B261D", detail_url: "/", read_url: "/"
@@ -333,7 +417,7 @@
     }
 
     // Drawer yangilash funksiyasi
-    window.open3dBookDrawer = function(book, badgeLabel) {
+    window.open3dBookDrawer = function(book, badgeLabel, shelfLocationText) {
         const drawer = document.getElementById('book3dDrawer');
         if (!drawer || !book) return;
         drawer.classList.remove('hidden');
@@ -343,6 +427,14 @@
         document.getElementById('drawer3dGenre').textContent = book.genre || "Adabiyot";
         const availEl = document.getElementById('drawer3dAvail');
         availEl.textContent = "Mavjud: " + book.available + " / " + book.total + " nusxa";
+        const metaEl = document.getElementById('drawer3dMeta');
+        if (metaEl) {
+            metaEl.textContent = (book.pages || 320) + " bet · " + (book.year || 2024) + "-yil · UO'K " + (book.udc || "821");
+        }
+        const locEl = document.getElementById('drawer3dShelfLoc');
+        if (locEl) {
+            locEl.textContent = "📍 Joylashuvi: " + (shelfLocationText || badgeLabel || "Markaziy Kutubxona Fondi");
+        }
         document.getElementById('drawer3dDesc').textContent = book.annotation || "SmartLib fondidagi nodir asar.";
         document.getElementById('drawer3dReadLink').href = book.read_url || "/";
         document.getElementById('drawer3dDetailLink').href = book.detail_url || "/";
@@ -366,22 +458,25 @@
     const host = document.getElementById('readingRoomCanvasHost');
     if (!host || typeof THREE === 'undefined') return;
 
-    // İlk kitobni pasportda ko'rsatib qo'yamiz
-    window.open3dBookDrawer(BOOKS_DATA[0], "🕌 MEHROB SHOH ASARI (LAVH)");
+    // Ilk kitobni pasportda ko'rsatamiz
+    window.open3dBookDrawer(BOOKS_DATA[0], "🕌 MEHROB SHOH ASARI (LAVH)", "Markaziy Zal · Sharqona Mehrob Vitrina Lavhi");
 
     // =========================================================================
-    // 1. PROCEDURAL TEXTURE GENERATORS (Yong'oq yog'ochi, Girih naqsh, Xattotlik, Qo'lyozma)
+    // 1. YUQORI ANIQLIKDAGI PROSEDURAL TEKSTURA GENERATORLARI
     // =========================================================================
-    function createWalnutTexture(darkness) {
+    function createWalnutTexture(baseHex, grainAlpha) {
         const c = document.createElement('canvas');
         c.width = 512; c.height = 512;
         const ctx = c.getContext('2d');
-        ctx.fillStyle = darkness || '#3A2112';
+        ctx.fillStyle = baseHex || '#381E0F';
         ctx.fillRect(0, 0, 512, 512);
-        for (let i = 0; i < 220; i++) {
+        const alpha = grainAlpha || 0.22;
+        for (let i = 0; i < 280; i++) {
             const x = Math.random() * 512;
-            const w = 2 + Math.random() * 10;
-            ctx.fillStyle = (i % 2 === 0) ? 'rgba(22, 11, 5, 0.24)' : 'rgba(92, 54, 28, 0.16)';
+            const w = 1.5 + Math.random() * 8;
+            ctx.fillStyle = (i % 2 === 0)
+                ? 'rgba(16, 7, 3, ' + alpha + ')'
+                : 'rgba(104, 62, 32, ' + (alpha * 0.72) + ')';
             ctx.fillRect(x, 0, w, 512);
         }
         const tex = new THREE.CanvasTexture(c);
@@ -389,13 +484,86 @@
         return tex;
     }
 
+    function createParquetFloorTexture() {
+        const c = document.createElement('canvas');
+        c.width = 512; c.height = 512;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#2B180D';
+        ctx.fillRect(0, 0, 512, 512);
+
+        const tones = ['#351E10', '#2E190D', '#3D2314', '#26140A'];
+        const bw = 64, bh = 16;
+        for (let y = 0; y < 512; y += bh) {
+            for (let x = 0; x < 512; x += bw) {
+                const offset = ((y / bh) % 2) * (bw / 2);
+                ctx.fillStyle = tones[((x / bw) + (y / bh)) % tones.length];
+                ctx.fillRect((x + offset) % 512, y, bw - 2, bh - 1);
+                ctx.strokeStyle = 'rgba(12, 6, 3, 0.55)';
+                ctx.lineWidth = 1;
+                ctx.strokeRect((x + offset) % 512, y, bw - 2, bh - 1);
+            }
+        }
+        const tex = new THREE.CanvasTexture(c);
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(14, 14);
+        return tex;
+    }
+
+    function createBukharaCarpetTexture() {
+        const c = document.createElement('canvas');
+        c.width = 512; c.height = 512;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#5E1914';
+        ctx.fillRect(0, 0, 512, 512);
+
+        // Hoshiya naqshlari
+        ctx.strokeStyle = '#D9A441';
+        ctx.lineWidth = 14;
+        ctx.strokeRect(18, 18, 476, 476);
+        ctx.strokeStyle = '#1E293B';
+        ctx.lineWidth = 6;
+        ctx.strokeRect(34, 34, 444, 444);
+        ctx.strokeStyle = '#E5C168';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(46, 46, 420, 420);
+
+        // Buxoro "Go'l" sakkizburchak medalyonlari
+        for (let gy = 112; gy <= 400; gy += 144) {
+            for (let gx = 128; gx <= 384; gx += 128) {
+                ctx.save();
+                ctx.translate(gx, gy);
+                ctx.fillStyle = '#2B1410';
+                ctx.strokeStyle = '#E5B85B';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                for (let k = 0; k < 8; k++) {
+                    const a = (k * Math.PI) / 4 + Math.PI / 8;
+                    const r = 46;
+                    if (k === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+                    else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+                }
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#8C2D19';
+                ctx.beginPath();
+                ctx.arc(0, 0, 20, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+        return new THREE.CanvasTexture(c);
+    }
+
     function createGirihPatternTexture() {
         const c = document.createElement('canvas');
         c.width = 512; c.height = 128;
         const ctx = c.getContext('2d');
-        ctx.fillStyle = '#3B2212';
+        ctx.fillStyle = '#361E10';
         ctx.fillRect(0, 0, 512, 128);
-        ctx.strokeStyle = '#C99342';
+        ctx.strokeStyle = '#D49B3E';
         ctx.lineWidth = 3;
         ctx.strokeRect(4, 6, 504, 116);
         ctx.strokeRect(10, 14, 492, 100);
@@ -424,8 +592,8 @@
         c.width = 512; c.height = 512;
         const ctx = c.getContext('2d');
         const grad = ctx.createRadialGradient(256, 256, 20, 256, 256, 250);
-        grad.addColorStop(0, '#FFF0B8');
-        grad.addColorStop(0.55, '#D8A242');
+        grad.addColorStop(0, '#FFF3C4');
+        grad.addColorStop(0.55, '#DAA545');
         grad.addColorStop(0.9, '#8E621C');
         grad.addColorStop(1, '#4A300B');
         ctx.fillStyle = grad;
@@ -460,7 +628,6 @@
         ctx.lineWidth = 3;
         ctx.strokeRect(36, 36, 440, 440);
 
-        // Oltin xattotlik doirasi
         ctx.beginPath();
         ctx.arc(256, 256, 175, 0, Math.PI * 2);
         ctx.strokeStyle = '#E8B856';
@@ -476,9 +643,9 @@
             ctx.stroke();
         }
         ctx.fillStyle = '#F3C766';
-        ctx.font = 'bold 48px Georgia, serif';
+        ctx.font = 'bold 46px Georgia, serif';
         ctx.textAlign = 'center';
-        ctx.fillText('스마트 · SMARTLIB', 256, 240);
+        ctx.fillText('SMARTLIB · ILM', 256, 238);
         ctx.font = 'italic 30px Georgia, serif';
         ctx.fillText('Маърифат Хазинаси', 256, 295);
         return new THREE.CanvasTexture(c);
@@ -490,7 +657,7 @@
         const ctx = c.getContext('2d');
         ctx.fillStyle = '#120C08';
         ctx.fillRect(0, 0, 256, 256);
-        ctx.strokeStyle = '#9E8B74';
+        ctx.strokeStyle = '#B89B72';
         ctx.lineWidth = 5;
         ctx.strokeRect(10, 10, 236, 236);
         ctx.lineWidth = 3;
@@ -510,15 +677,14 @@
         c.width = 512; c.height = 384;
         const ctx = c.getContext('2d');
         const grad = ctx.createLinearGradient(0, 0, 512, 0);
-        grad.addColorStop(0, '#E5C687');
-        grad.addColorStop(0.46, '#F7E4B5');
-        grad.addColorStop(0.5, '#7A5426');
-        grad.addColorStop(0.54, '#F7E4B5');
+        grad.addColorStop(0, '#E2C282');
+        grad.addColorStop(0.46, '#FBF0D4');
+        grad.addColorStop(0.5, '#6E491E');
+        grad.addColorStop(0.54, '#FBF0D4');
         grad.addColorStop(1, '#DFBD7C');
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, 512, 384);
 
-        // Zarhal hoshiya naqshlari
         ctx.strokeStyle = '#B37B24';
         ctx.lineWidth = 6;
         ctx.strokeRect(18, 18, 220, 348);
@@ -528,77 +694,217 @@
         ctx.font = 'bold 20px Georgia, serif';
         const title = (book && book.title) ? book.title.slice(0, 22) : "O'tkan kunlar";
         const author = (book && book.author) ? book.author.slice(0, 22) : "Abdulla Qodiriy";
-        ctx.fillText(title, 34, 62);
+        ctx.fillText(title, 32, 60);
         ctx.font = 'italic 15px Georgia, serif';
         ctx.fillStyle = '#6E4720';
-        ctx.fillText(author, 34, 88);
+        ctx.fillText(author, 32, 86);
 
-        // Qo'lyozma satrlari
-        ctx.fillStyle = 'rgba(60, 36, 14, 0.65)';
-        for (let y = 115; y < 340; y += 16) {
-            ctx.fillRect(34, y, 185, 3);
-            ctx.fillRect(292, y - 50 > 40 ? y - 50 : y, 185, 3);
+        ctx.fillStyle = 'rgba(60, 36, 14, 0.68)';
+        for (let y = 112; y < 342; y += 15) {
+            ctx.fillRect(32, y, 188, 3);
+            ctx.fillRect(290, y - 50 > 40 ? y - 50 : y, 188, 3);
         }
         return new THREE.CanvasTexture(c);
     }
 
-    function createCarpetFloorTexture() {
+    // Haqiqiy kitob koresti (spine) va muqova teksturasi — nomi, muallifi, zarhal belbog'lari va kutubxona shifri bilan!
+    const bookSpineTextureCache = {};
+    function createBookSpineTexture(book, variantIdx) {
+        const key = (book.id || 0) + '_' + (variantIdx % 5);
+        if (bookSpineTextureCache[key]) return bookSpineTextureCache[key];
+
+        const c = document.createElement('canvas');
+        c.width = 128; c.height = 512;
+        const ctx = c.getContext('2d');
+
+        const baseColor = book.color || '#8B261D';
+        ctx.fillStyle = baseColor;
+        ctx.fillRect(0, 0, 128, 512);
+
+        // Charm / mato soyasi (silindrik hajm berish)
+        const shade = ctx.createLinearGradient(0, 0, 128, 0);
+        shade.addColorStop(0, 'rgba(0,0,0,0.42)');
+        shade.addColorStop(0.18, 'rgba(255,255,255,0.12)');
+        shade.addColorStop(0.5, 'rgba(255,255,255,0.04)');
+        shade.addColorStop(0.82, 'rgba(0,0,0,0.15)');
+        shade.addColorStop(1, 'rgba(0,0,0,0.48)');
+        ctx.fillStyle = shade;
+        ctx.fillRect(0, 0, 128, 512);
+
+        // Zarhal bo'rtma belbog'lar (Spine Ribs)
+        ctx.fillStyle = '#E5B85B';
+        const ribPositions = [36, 52, 130, 370, 430, 482];
+        ribPositions.forEach(function(ry) {
+            ctx.fillRect(6, ry, 116, 5);
+            ctx.fillStyle = 'rgba(0,0,0,0.35)';
+            ctx.fillRect(6, ry + 5, 116, 3);
+            ctx.fillStyle = '#E5B85B';
+        });
+
+        // Korestda vertikal kitob nomi
+        ctx.save();
+        ctx.translate(64, 250);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillStyle = '#FFF3C4';
+        ctx.font = 'bold 21px Georgia, serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const shortTitle = (book.title || "Kitob").slice(0, 20);
+        ctx.fillText(shortTitle, 0, -10);
+        ctx.fillStyle = '#E2C792';
+        ctx.font = '14px sans-serif';
+        ctx.fillText((book.author || "").slice(0, 18), 0, 14);
+        ctx.restore();
+
+        // Pastki qismda haqiqiy kutubxona inventar yorlig'i (Call Number Sticker)
+        ctx.fillStyle = '#F8F4E8';
+        ctx.fillRect(20, 442, 88, 32);
+        ctx.strokeStyle = '#B8860B';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(20, 442, 88, 32);
+        ctx.fillStyle = '#1E293B';
+        ctx.font = 'bold 11px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText((book.udc || '821.5').slice(0, 8), 64, 456);
+        ctx.fillText('SL-' + (book.id || 1), 64, 469);
+
+        const tex = new THREE.CanvasTexture(c);
+        bookSpineTextureCache[key] = tex;
+        return tex;
+    }
+
+    // Kitob sahifalari qirrasi (Paper Block Fore-Edge) teksturasi
+    function createPaperEdgeTexture() {
+        const c = document.createElement('canvas');
+        c.width = 128; c.height = 256;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#EFE4C8';
+        ctx.fillRect(0, 0, 128, 256);
+        for (let x = 0; x < 128; x += 3) {
+            ctx.fillStyle = (x % 6 === 0) ? 'rgba(140, 112, 72, 0.25)' : 'rgba(255, 250, 235, 0.35)';
+            ctx.fillRect(x, 0, 1, 256);
+        }
+        return new THREE.CanvasTexture(c);
+    }
+
+    // Javon ustidagi bo'lim ko'rsatkichi (Section Sign Plaque)
+    function createSectionSignTexture(labelText) {
+        const c = document.createElement('canvas');
+        c.width = 512; c.height = 96;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#1C1008';
+        ctx.fillRect(0, 0, 512, 96);
+        ctx.strokeStyle = '#E5B24C';
+        ctx.lineWidth = 5;
+        ctx.strokeRect(6, 6, 500, 84);
+        ctx.fillStyle = '#F7DF94';
+        ctx.font = 'bold 28px Georgia, serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(labelText, 256, 48);
+        return new THREE.CanvasTexture(c);
+    }
+
+    // Shiftdagi vitraj oyna (Stained Glass Skylight Dome) teksturasi
+    function createStainedGlassTexture() {
         const c = document.createElement('canvas');
         c.width = 512; c.height = 512;
         const ctx = c.getContext('2d');
-        ctx.fillStyle = '#6D655C';
+        const grad = ctx.createRadialGradient(256, 256, 15, 256, 256, 256);
+        grad.addColorStop(0, '#FFFBE6');
+        grad.addColorStop(0.35, '#FFE082');
+        grad.addColorStop(0.7, '#D9822B');
+        grad.addColorStop(1, '#3E1F0D');
+        ctx.fillStyle = grad;
         ctx.fillRect(0, 0, 512, 512);
-        for (let y = 0; y < 512; y += 8) {
-            ctx.fillStyle = (y % 16 === 0) ? 'rgba(45, 40, 35, 0.28)' : 'rgba(145, 134, 120, 0.22)';
-            ctx.fillRect(0, y, 512, 4);
+
+        ctx.strokeStyle = '#2A1508';
+        ctx.lineWidth = 6;
+        for (let r = 60; r <= 240; r += 60) {
+            ctx.beginPath();
+            ctx.arc(256, 256, r, 0, Math.PI * 2);
+            ctx.stroke();
         }
-        const tex = new THREE.CanvasTexture(c);
-        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-        tex.repeat.set(8, 8);
-        return tex;
+        for (let k = 0; k < 16; k++) {
+            const a = (k * Math.PI * 2) / 16;
+            ctx.beginPath();
+            ctx.moveTo(256, 256);
+            ctx.lineTo(256 + Math.cos(a) * 250, 256 + Math.sin(a) * 250);
+            ctx.stroke();
+        }
+        return new THREE.CanvasTexture(c);
+    }
+
+    // Baland arkali kutubxona derazasi teksturasi
+    function createArchedWindowTexture() {
+        const c = document.createElement('canvas');
+        c.width = 256; c.height = 512;
+        const ctx = c.getContext('2d');
+        const grad = ctx.createLinearGradient(0, 0, 0, 512);
+        grad.addColorStop(0, '#1B2A4A');
+        grad.addColorStop(0.55, '#334E68');
+        grad.addColorStop(1, '#F5B041');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 256, 512);
+
+        // Deraza panjaralari
+        ctx.strokeStyle = '#261409';
+        ctx.lineWidth = 10;
+        ctx.strokeRect(6, 6, 244, 500);
+        for (let x = 64; x < 256; x += 64) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 512); ctx.stroke();
+        }
+        for (let y = 96; y < 512; y += 96) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(256, y); ctx.stroke();
+        }
+        return new THREE.CanvasTexture(c);
     }
 
     function createImacScreenTexture() {
         const c = document.createElement('canvas');
         c.width = 512; c.height = 320;
         const ctx = c.getContext('2d');
-        ctx.fillStyle = '#120B07';
+        ctx.fillStyle = '#0F172A';
         ctx.fillRect(0, 0, 512, 320);
         ctx.fillStyle = '#E8B04A';
-        ctx.fillRect(0, 0, 512, 28);
+        ctx.fillRect(0, 0, 512, 30);
         ctx.fillStyle = '#120B07';
-        ctx.font = 'bold 16px monospace';
-        ctx.fillText('SMARTLIB ELEKTRON KATALOG TERMINAL', 18, 19);
-        ctx.fillStyle = '#F7EFE0';
-        ctx.font = 'bold 28px Georgia, serif';
-        ctx.fillText('SmartLib 3D Kiosk', 28, 86);
-        ctx.font = '18px sans-serif';
-        ctx.fillStyle = '#D2BC9A';
-        ctx.fillText('Jami kitoblar: ' + BOOKS_DATA.length + ' ta faol asar', 28, 125);
+        ctx.font = 'bold 15px monospace';
+        ctx.fillText('SMARTLIB RAQAMLI KUTUBXONA KIOSKI · AI SEARCH', 16, 20);
+        ctx.fillStyle = '#F8FAFC';
+        ctx.font = 'bold 26px Georgia, serif';
+        ctx.fillText('SmartLib 3D Katalog Terminal', 24, 82);
+        ctx.font = '17px sans-serif';
+        ctx.fillStyle = '#93C5FD';
+        ctx.fillText('Fonddagi faol kitoblar: ' + BOOKS_DATA.length + ' ta asar', 24, 118);
         for (let i = 0; i < 4; i++) {
-            ctx.fillStyle = '#281A10';
-            ctx.fillRect(28 + i * 116, 155, 104, 130);
+            ctx.fillStyle = '#1E293B';
+            ctx.fillRect(24 + i * 116, 148, 104, 136);
             ctx.strokeStyle = '#E8B04A';
-            ctx.strokeRect(28 + i * 116, 155, 104, 130);
+            ctx.lineWidth = 2;
+            ctx.strokeRect(24 + i * 116, 148, 104, 136);
         }
         return new THREE.CanvasTexture(c);
     }
 
     // =========================================================================
-    // 2. THREE.JS SCENE, CAMERA & RENDERER SETUP
+    // 2. THREE.JS SAHNA, KAMERA VA RENDERER SOZLAMALARI
     // =========================================================================
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x140c07);
-    scene.fog = new THREE.FogExp2(0x140c07, 0.018);
+    scene.background = new THREE.Color(0x120a06);
+    scene.fog = new THREE.FogExp2(0x120a06, 0.0135);
 
-    const camera = new THREE.PerspectiveCamera(48, host.clientWidth / host.clientHeight, 0.1, 120);
-    // Asl rasmdagi ("Ўқув хонаси") rakurs: o'quv stoli oldidan chap javon va o'ng peshtoqqa qaragan burchak
+    const camera = new THREE.PerspectiveCamera(50, host.clientWidth / host.clientHeight, 0.1, 140);
+
+    // 7 ta realistik kamera rakurslari (1- va 2-qavatlar bilan)
     const CAM_PRESETS = {
-        overview: { pos: new THREE.Vector3(0.8, 3.1, 9.8), look: new THREE.Vector3(-1.4, 3.0, -2.5) },
-        mihrab:   { pos: new THREE.Vector3(-2.6, 3.1, 2.2), look: new THREE.Vector3(-6.8, 3.0, -0.8) },
-        desk:     { pos: new THREE.Vector3(1.1, 2.55, 6.2), look: new THREE.Vector3(-1.2, 1.65, 2.4) },
-        shelves:  { pos: new THREE.Vector3(-1.8, 3.6, 1.4), look: new THREE.Vector3(-6.2, 3.6, -4.5) },
-        corridor: { pos: new THREE.Vector3(3.8, 3.0, 2.0), look: new THREE.Vector3(6.5, 2.9, -12.0) }
+        overview:  { pos: new THREE.Vector3(1.4, 3.4, 10.6), look: new THREE.Vector3(-1.2, 3.2, -2.5) },
+        mihrab:    { pos: new THREE.Vector3(-2.4, 3.0, 2.1),  look: new THREE.Vector3(-6.8, 2.8, -0.4) },
+        desk:      { pos: new THREE.Vector3(1.2, 2.65, 6.4),  look: new THREE.Vector3(-1.0, 1.55, 2.8) },
+        shelves:   { pos: new THREE.Vector3(-2.2, 3.1, -0.5), look: new THREE.Vector3(-6.8, 3.2, -2.8) },
+        mezzanine: { pos: new THREE.Vector3(4.2, 6.2, 6.8),   look: new THREE.Vector3(-2.5, 5.2, -3.5) },
+        librarian: { pos: new THREE.Vector3(2.0, 2.6, 5.2),   look: new THREE.Vector3(5.8, 1.8, 2.2) },
+        corridor:  { pos: new THREE.Vector3(3.6, 3.0, 1.8),   look: new THREE.Vector3(3.6, 2.8, -14.0) }
     };
     let currentLookTarget = CAM_PRESETS.overview.look.clone();
     let desiredCamPos = CAM_PRESETS.overview.pos.clone();
@@ -614,162 +920,362 @@
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.15;
+        renderer.toneMappingExposure = 1.18;
         host.appendChild(renderer.domElement);
     } catch (err) {
         host.innerHTML = '<div class="p-5 text-center" style="color:var(--ink-0);">3D WebGL yuklanmoqda...</div>';
         return;
     }
 
-    // Materials
-    const walnutTex = createWalnutTexture('#3B2111');
-    const darkWalnutTex = createWalnutTexture('#261409');
+    // Umumiy materiallar
+    const walnutTex = createWalnutTexture('#3B2111', 0.22);
+    const darkWalnutTex = createWalnutTexture('#241208', 0.28);
     const girihTex = createGirihPatternTexture();
-    const walnutMat = new THREE.MeshStandardMaterial({ map: walnutTex, roughness: 0.42, metalness: 0.08 });
-    const darkWalnutMat = new THREE.MeshStandardMaterial({ map: darkWalnutTex, roughness: 0.48, metalness: 0.1 });
-    const girihMat = new THREE.MeshStandardMaterial({ map: girihTex, roughness: 0.38, metalness: 0.22 });
-    const goldMat = new THREE.MeshStandardMaterial({ color: 0xE5B24C, roughness: 0.25, metalness: 0.82 });
+    const paperEdgeTex = createPaperEdgeTexture();
+
+    const walnutMat = new THREE.MeshStandardMaterial({ map: walnutTex, roughness: 0.38, metalness: 0.08 });
+    const darkWalnutMat = new THREE.MeshStandardMaterial({ map: darkWalnutTex, roughness: 0.44, metalness: 0.10 });
+    const girihMat = new THREE.MeshStandardMaterial({ map: girihTex, roughness: 0.36, metalness: 0.22 });
+    const goldMat = new THREE.MeshStandardMaterial({ color: 0xE5B24C, roughness: 0.22, metalness: 0.86 });
+    const brassMat = new THREE.MeshStandardMaterial({ color: 0xC8963E, roughness: 0.28, metalness: 0.78 });
+    const darkIronMat = new THREE.MeshStandardMaterial({ color: 0x1E2229, roughness: 0.4, metalness: 0.75 });
+    const paperEdgeMat = new THREE.MeshStandardMaterial({ map: paperEdgeTex, roughness: 0.78, metalness: 0.02 });
     const ledStripMat = new THREE.MeshBasicMaterial({ color: 0xFFE6A3 });
+    const emeraldShadeMat = new THREE.MeshStandardMaterial({
+        color: 0x0D6E3E,
+        emissive: 0x073B20,
+        emissiveIntensity: 0.65,
+        roughness: 0.2,
+        metalness: 0.1
+    });
 
     // =========================================================================
-    // 3. LIGHTING (Issiq kutubxona LED chiroqlari va mehrob projektorlari)
+    // 3. YORITISH TIZIMI (Qandillar, Stol chiroqlari, Mehrob va Quyosh nurlari)
     // =========================================================================
-    const ambientLight = new THREE.AmbientLight(0xFFE4B8, 0.58);
+    const ambientLight = new THREE.AmbientLight(0xFFE4B8, 0.62);
     scene.add(ambientLight);
 
-    const mainWarmLight = new THREE.PointLight(0xFFC978, 1.35, 28);
-    mainWarmLight.position.set(-1.5, 6.8, 3.0);
+    const hemiLight = new THREE.HemisphereLight(0xFFEBC8, 0x261409, 0.42);
+    scene.add(hemiLight);
+
+    const mainWarmLight = new THREE.PointLight(0xFFC978, 1.45, 34);
+    mainWarmLight.position.set(0, 8.2, 2.5);
     mainWarmLight.castShadow = true;
     scene.add(mainWarmLight);
 
     // Mehrob (Lavh) ustidagi maxsus oltin projektor
-    const mihrabSpot = new THREE.SpotLight(0xFFD685, 2.2, 16, Math.PI / 4, 0.45, 1);
-    mihrabSpot.position.set(-4.5, 6.2, -0.5);
-    mihrabSpot.target.position.set(-6.8, 2.3, -0.8);
+    const mihrabSpot = new THREE.SpotLight(0xFFD685, 2.4, 18, Math.PI / 4, 0.45, 1);
+    mihrabSpot.position.set(-4.2, 6.2, -0.2);
+    mihrabSpot.target.position.set(-6.8, 2.2, -0.2);
     scene.add(mihrabSpot);
     scene.add(mihrabSpot.target);
 
     // Mutolaa stoli ustidagi issiq nur
-    const deskLight = new THREE.PointLight(0xFFD28A, 1.15, 18);
-    deskLight.position.set(-0.5, 4.8, 3.8);
+    const deskLight = new THREE.PointLight(0xFFD28A, 1.25, 20);
+    deskLight.position.set(-0.5, 4.5, 3.8);
     scene.add(deskLight);
 
+    // Kutubxonachi peshtaxtasi nuri
+    const receptionLight = new THREE.PointLight(0xFFE0A3, 1.1, 18);
+    receptionLight.position.set(5.6, 4.8, 2.5);
+    scene.add(receptionLight);
+
     // Ichki sharqona galereya chirog'i
-    const corridorLight = new THREE.PointLight(0xFFB85C, 1.3, 30);
-    corridorLight.position.set(5.2, 5.5, -9.0);
+    const corridorLight = new THREE.PointLight(0xFFB85C, 1.35, 32);
+    corridorLight.position.set(3.5, 5.5, -10.0);
     scene.add(corridorLight);
 
+    // Tanlangan kitobni yorituvchi fokus chiroq (Spotlight pulse)
+    const highlightLight = new THREE.PointLight(0xFFEE99, 0, 4.5);
+    scene.add(highlightLight);
+
     // =========================================================================
-    // 4. POL, SHIFT VA DEVORLAR
+    // 4. PARKET POL, BUXORO GILAMLARI, KESSON SHIFT VA VITRAJ GUMBAZ
     // =========================================================================
     const floorMat = new THREE.MeshStandardMaterial({
-        map: createCarpetFloorTexture(),
-        roughness: 0.78,
-        metalness: 0.04
+        map: createParquetFloorTexture(),
+        roughness: 0.45,
+        metalness: 0.08
     });
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(36, 36), floorMat);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(42, 42), floorMat);
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
     scene.add(floor);
 
-    // Shift va yorug'lik panellari
+    // Markaziy zalda katta Buxoro gilami
+    const carpetTex = createBukharaCarpetTexture();
+    const mainCarpet = new THREE.Mesh(
+        new THREE.PlaneGeometry(11.5, 8.2),
+        new THREE.MeshStandardMaterial({ map: carpetTex, roughness: 0.85 })
+    );
+    mainCarpet.rotation.x = -Math.PI / 2;
+    mainCarpet.position.set(-0.4, 0.015, 2.8);
+    mainCarpet.receiveShadow = true;
+    scene.add(mainCarpet);
+
+    // Baland 2-qavatli kesson shift (Coffered Ceiling, y = 9.6m)
+    const CEILING_Y = 9.6;
     const ceiling = new THREE.Mesh(
-        new THREE.PlaneGeometry(36, 36),
-        new THREE.MeshStandardMaterial({ color: 0x2A1A10, roughness: 0.7 })
+        new THREE.PlaneGeometry(42, 42),
+        new THREE.MeshStandardMaterial({ color: 0x221209, roughness: 0.65 })
     );
     ceiling.rotation.x = Math.PI / 2;
-    ceiling.position.y = 7.6;
+    ceiling.position.y = CEILING_Y;
     scene.add(ceiling);
 
-    // Shiftdagi yorug'lik plafoni (rasmning tepasidagi oq-issiq kvadrat chiroq)
+    // Shiftdagi yog'och to'sinlar (Coffered Beams)
+    for (let bx = -8; bx <= 8; bx += 4) {
+        const beam = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.35, 28), darkWalnutMat);
+        beam.position.set(bx, CEILING_Y - 0.18, -2);
+        scene.add(beam);
+    }
+    for (let bz = -12; bz <= 10; bz += 4.5) {
+        const crossBeam = new THREE.Mesh(new THREE.BoxGeometry(20, 0.32, 0.28), darkWalnutMat);
+        crossBeam.position.set(0, CEILING_Y - 0.16, bz);
+        scene.add(crossBeam);
+    }
+
+    // Shift markazidagi yorug'lik vitraj gumbazi (Stained Glass Skylight)
     const skylight = new THREE.Mesh(
-        new THREE.BoxGeometry(2.8, 0.08, 2.8),
-        new THREE.MeshBasicMaterial({ color: 0xFFF5DC })
+        new THREE.BoxGeometry(5.2, 0.1, 5.2),
+        new THREE.MeshBasicMaterial({ map: createStainedGlassTexture() })
     );
-    skylight.position.set(0.5, 7.54, 1.2);
+    skylight.position.set(0, CEILING_Y - 0.06, 1.5);
     scene.add(skylight);
 
     // =========================================================================
-    // 5. INTERAKTIV 3D KITOBLAR RO'YXATI (RAYCASTING UCHUN)
+    // 5. OSMA BILLUR VA OLTIN QANDILLAR (2 TA GRAND CHANDELIERS)
+    // =========================================================================
+    const chandelierGroups = [];
+    function buildGrandChandelier(cx, cy, cz) {
+        const chGroup = new THREE.Group();
+        chGroup.position.set(cx, cy, cz);
+
+        // Osma zanjir
+        const chain = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.2, 12), brassMat);
+        chain.position.y = 1.1;
+        chGroup.add(chain);
+
+        // 2 qavatli oltin halqa
+        const ring1 = new THREE.Mesh(new THREE.TorusGeometry(1.35, 0.055, 16, 48), goldMat);
+        ring1.rotation.x = Math.PI / 2;
+        chGroup.add(ring1);
+
+        const ring2 = new THREE.Mesh(new THREE.TorusGeometry(0.78, 0.045, 16, 36), goldMat);
+        ring2.rotation.x = Math.PI / 2;
+        ring2.position.y = 0.45;
+        chGroup.add(ring2);
+
+        // 12 ta sham-chiroq sharchalari
+        const bulbMat = new THREE.MeshBasicMaterial({ color: 0xFFF3C4 });
+        for (let i = 0; i < 12; i++) {
+            const a = (i * Math.PI * 2) / 12;
+            const bx = Math.cos(a) * 1.35;
+            const bz = Math.sin(a) * 1.35;
+            const holder = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.03, 0.18, 8), goldMat);
+            holder.position.set(bx, 0.1, bz);
+            chGroup.add(holder);
+
+            const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.085, 12, 12), bulbMat);
+            bulb.position.set(bx, 0.24, bz);
+            chGroup.add(bulb);
+        }
+
+        scene.add(chGroup);
+        chandelierGroups.push(chGroup);
+    }
+    buildGrandChandelier(-0.5, 7.3, 3.2);
+    buildGrandChandelier(-0.5, 7.3, -2.2);
+
+    // =========================================================================
+    // 6. INTERAKTIV REALISTIK 3D KITOBLAR GENERATORI (HAR XIL JOYLASHUV BILAN!)
     // =========================================================================
     const interactiveMeshes = [];
+    const bookSearchIndex = []; // Qidiruv orqali uchib borish uchun ro'yxat
+    let globalBookSeed = 0;
 
-    // Javon seksiyasini quruvchi yordamchi funksiya (6 qavat, har birida LED tasma va 3D kitoblar)
-    function buildBookshelfBay(width, height, depth, x, y, z, rotY) {
+    // Haqiqiy kitob meshini yaratish (Korestda yozuvi + Varaq qatlamlari bilan)
+    function createRealisticBookMesh(bData, bw, bh, bd, seed) {
+        const spineTex = createBookSpineTexture(bData, seed);
+        const bColor = new THREE.Color(bData.color || '#8B261D');
+        const coverMat = new THREE.MeshStandardMaterial({
+            color: bColor,
+            roughness: 0.42,
+            metalness: 0.12
+        });
+        const spineMat = new THREE.MeshStandardMaterial({
+            map: spineTex,
+            roughness: 0.36,
+            metalness: 0.18
+        });
+
+        // BoxGeometry face tartibi: +X (right), -X (left), +Y (top), -Y (bottom), +Z (front spine), -Z (back)
+        const materials = [
+            coverMat,      // +X: o'ng muqova
+            coverMat,      // -X: chap muqova
+            paperEdgeMat,  // +Y: yuqori varaqlar qirrasi
+            paperEdgeMat,  // -Y: pastki varaqlar qirrasi
+            spineMat,      // +Z: old korest (nomi va shifri yozilgan!)
+            paperEdgeMat   // -Z: orqa varaqlar
+        ];
+        return new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), materials);
+    }
+
+    const SECTION_TITLES = [
+        "I · O'ZBEK MUMTOZ ADABIYOTI",
+        "II · JAHON ADABIYOTI DURDONALARI",
+        "III · AXBOROT TEXNOLOGIYALARI & AI",
+        "IV · TARIX, FALSAFA VA MEROS",
+        "V · ANIQ FANLAR VA MATEMATIKA",
+        "VI · HUQUQ, IQTISODIYOT VA BIZNES",
+        "VII · NODIR QO'LYOZMALAR FONDI",
+        "VIII · ENSIKLOPEDIYA VA LUG'ATLAR"
+    ];
+    let sectionTitleCursor = 0;
+
+    // Realistik Kitob Javoni Seksiyasi (Tik kitoblar + Qiya suyangan kitoblar + Taxlangan kitoblar + Bookends + Bo'lim lavhasi)
+    function buildBookshelfBay(width, height, depth, x, y, z, rotY, floorLabel) {
         const group = new THREE.Group();
         group.position.set(x, y, z);
         group.rotation.y = rotY || 0;
+
+        const secTitle = SECTION_TITLES[sectionTitleCursor % SECTION_TITLES.length];
+        sectionTitleCursor++;
 
         // Orqa yog'och panel
         const backPanel = new THREE.Mesh(new THREE.BoxGeometry(width, height, 0.08), darkWalnutMat);
         backPanel.position.set(0, height / 2, -depth / 2);
         group.add(backPanel);
 
-        // Chap va o'ng ustunlar (pilyastrlar)
-        const sideGeo = new THREE.BoxGeometry(0.14, height, depth);
+        // Chap va o'ng ustunlar (pilyastrlar) + zarhal kapitel
+        const sideGeo = new THREE.BoxGeometry(0.15, height, depth);
         const leftPost = new THREE.Mesh(sideGeo, walnutMat);
-        leftPost.position.set(-width / 2 + 0.07, height / 2, 0);
+        leftPost.position.set(-width / 2 + 0.075, height / 2, 0);
         group.add(leftPost);
 
         const rightPost = new THREE.Mesh(sideGeo, walnutMat);
-        rightPost.position.set(width / 2 - 0.07, height / 2, 0);
+        rightPost.position.set(width / 2 - 0.075, height / 2, 0);
         group.add(rightPost);
 
-        // Yuqori karniz (toj)
+        // Yuqori karniz (toj) va Bo'lim nomi lavhasi (Section Plaque)
         const cornice = new THREE.Mesh(new THREE.BoxGeometry(width + 0.16, 0.34, depth + 0.18), walnutMat);
         cornice.position.set(0, height + 0.17, 0.04);
         group.add(cornice);
 
-        // 6 ta tokcha + LED chiroqlar + 3D kitoblar
-        const shelvesCount = 6;
-        const shelfSpacing = (height - 0.5) / shelvesCount;
-        let bookCursor = 0;
+        const signPlaque = new THREE.Mesh(
+            new THREE.PlaneGeometry(Math.min(width - 0.25, 1.65), 0.24),
+            new THREE.MeshBasicMaterial({ map: createSectionSignTexture(secTitle) })
+        );
+        signPlaque.position.set(0, height + 0.17, depth / 2 + 0.14);
+        group.add(signPlaque);
+
+        const shelvesCount = (height > 5.0) ? 6 : 4;
+        const shelfSpacing = (height - 0.45) / shelvesCount;
 
         for (let s = 0; s < shelvesCount; s++) {
-            const sy = 0.35 + s * shelfSpacing;
-            const shelfBoard = new THREE.Mesh(new THREE.BoxGeometry(width - 0.12, 0.08, depth), walnutMat);
+            const sy = 0.32 + s * shelfSpacing;
+            const shelfBoard = new THREE.Mesh(new THREE.BoxGeometry(width - 0.12, 0.075, depth), walnutMat);
             shelfBoard.position.set(0, sy, 0);
             group.add(shelfBoard);
 
+            // Tokcha old qirrasida zarhal chiziq
+            const brassTrim = new THREE.Mesh(new THREE.BoxGeometry(width - 0.14, 0.018, 0.02), brassMat);
+            brassTrim.position.set(0, sy, depth / 2 + 0.005);
+            group.add(brassTrim);
+
             // Tokcha osti issiq LED chiroq tasmasi
-            const ledStrip = new THREE.Mesh(new THREE.BoxGeometry(width - 0.28, 0.025, 0.04), ledStripMat);
-            ledStrip.position.set(0, sy + shelfSpacing - 0.06, depth / 2 - 0.05);
+            const ledStrip = new THREE.Mesh(new THREE.BoxGeometry(width - 0.28, 0.022, 0.04), ledStripMat);
+            ledStrip.position.set(0, sy + shelfSpacing - 0.055, depth / 2 - 0.05);
             group.add(ledStrip);
 
-            // Tokchadagi 3D kitoblar qatori
-            let bx = -width / 2 + 0.22;
-            const maxBx = width / 2 - 0.22;
+            // Har bir tokchada haqiqiy kutubxona tartibi:
+            // Ba'zi tokchalarda o'ng tomonda gorizontal taxlangan kitoblar yoki qiya suyangan kitob + Bookend!
+            let bx = -width / 2 + 0.20;
+            const reserveRight = ((s + sectionTitleCursor) % 3 === 0) ? 0.52 : 0.34;
+            const maxBx = width / 2 - reserveRight;
+
             while (bx < maxBx) {
-                const bData = BOOKS_DATA[bookCursor % BOOKS_DATA.length];
-                bookCursor++;
-                const bw = 0.085 + (bookCursor % 4) * 0.018;
-                const bh = shelfSpacing * (0.72 + ((bookCursor * 7) % 15) * 0.012);
-                const bd = depth * 0.76;
+                const bData = BOOKS_DATA[globalBookSeed % BOOKS_DATA.length];
+                globalBookSeed++;
 
-                const bColor = new THREE.Color(bData.color || '#8B261D');
-                const bookMat = new THREE.MeshStandardMaterial({
-                    color: bColor,
-                    roughness: 0.38,
-                    metalness: 0.15
-                });
-                const bookMesh = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), bookMat);
-                bookMesh.position.set(bx + bw / 2, sy + 0.04 + bh / 2, 0.02);
+                // Kitob qalinligi sahifalar soniga mutanosib!
+                const pagesFactor = Math.max(180, Math.min(750, bData.pages || 320));
+                const bw = 0.058 + (pagesFactor / 750) * 0.052 + (globalBookSeed % 3) * 0.008;
+                const bh = shelfSpacing * (0.68 + ((globalBookSeed * 11) % 17) * 0.011);
+                const bd = depth * (0.68 + (globalBookSeed % 4) * 0.03);
 
-                // Kitob korestidagi oltin zarhal chiziq
-                const goldBand = new THREE.Mesh(new THREE.BoxGeometry(bw + 0.004, 0.03, bd + 0.006), goldMat);
-                goldBand.position.y = bh * 0.28;
-                bookMesh.add(goldBand);
+                if (bx + bw > maxBx) break;
 
+                const bookMesh = createRealisticBookMesh(bData, bw, bh, bd, globalBookSeed);
+                // Ba'zi kitoblar javondan biroz oldinroq chiqib turadi (yaqinda ko'rilgan kitob effekti)
+                const pullOutZ = ((globalBookSeed % 7 === 0) ? 0.045 : 0.015);
+                bookMesh.position.set(bx + bw / 2, sy + 0.038 + bh / 2, pullOutZ);
+                // Tabiiy mikro-og'ish
+                bookMesh.rotation.z = ((globalBookSeed % 5) - 2) * 0.008;
+
+                const locText = (floorLabel || "1-Qavat") + " · " + secTitle + " · " + (s + 1) + "-tokcha";
                 bookMesh.userData = {
                     isBook: true,
                     bookData: bData,
-                    badge: "📚 JAVONDAGI KITOB · " + (s + 1) + "-QAVAT",
+                    badge: "📚 " + secTitle + " · " + (s + 1) + "-QAVAT",
+                    shelfLoc: locText,
                     baseZ: bookMesh.position.z
                 };
                 interactiveMeshes.push(bookMesh);
+                bookSearchIndex.push({ mesh: bookMesh, book: bData, locText: locText });
                 group.add(bookMesh);
 
-                bx += bw + 0.014;
+                bx += bw + 0.007;
+            }
+
+            // Qator oxirida: Qiya suyangan kitob (Leaning Book) + L-shaklli metall Bookend YOKI Ustma-ust taxlangan kitoblar!
+            if ((s + sectionTitleCursor) % 2 === 0 && (bx + 0.22 < width / 2 - 0.14)) {
+                const leanBookData = BOOKS_DATA[globalBookSeed % BOOKS_DATA.length];
+                globalBookSeed++;
+                const lbw = 0.075, lbh = shelfSpacing * 0.74, lbd = depth * 0.72;
+                const leanMesh = createRealisticBookMesh(leanBookData, lbw, lbh, lbd, globalBookSeed);
+                leanMesh.position.set(bx + 0.11, sy + 0.038 + lbh / 2 - 0.01, 0.02);
+                leanMesh.rotation.z = 0.24; // Qiya suyangan!
+                const locText = (floorLabel || "1-Qavat") + " · " + secTitle + " · " + (s + 1) + "-tokcha (Qiya suyangan)";
+                leanMesh.userData = {
+                    isBook: true,
+                    bookData: leanBookData,
+                    badge: "📐 QIYA SUYANGAN KITOB · " + (s + 1) + "-TOKCHA",
+                    shelfLoc: locText,
+                    baseZ: leanMesh.position.z
+                };
+                interactiveMeshes.push(leanMesh);
+                bookSearchIndex.push({ mesh: leanMesh, book: leanBookData, locText: locText });
+                group.add(leanMesh);
+
+                // Metall kitob tutqich (Brass Bookend)
+                const bookendVert = new THREE.Mesh(new THREE.BoxGeometry(0.015, shelfSpacing * 0.42, depth * 0.55), brassMat);
+                bookendVert.position.set(bx + 0.21, sy + 0.038 + shelfSpacing * 0.21, 0.02);
+                group.add(bookendVert);
+            } else if (width - (bx + width / 2) > 0.36) {
+                // Gorizontal ustma-ust taxlangan 2-3 ta kitob dastasi (Horizontal Book Stack)
+                const stackX = width / 2 - 0.26;
+                let stackY = sy + 0.04;
+                for (let k = 0; k < 3; k++) {
+                    const stData = BOOKS_DATA[globalBookSeed % BOOKS_DATA.length];
+                    globalBookSeed++;
+                    const sbw = 0.28, sbh = 0.055, sbd = depth * 0.68;
+                    const stMesh = createRealisticBookMesh(stData, sbw, sbh, sbd, globalBookSeed);
+                    stMesh.position.set(stackX, stackY + sbh / 2, 0.02);
+                    stMesh.rotation.y = (k - 1) * 0.08;
+                    const locText = (floorLabel || "1-Qavat") + " · " + secTitle + " · " + (s + 1) + "-tokcha (Taxlangan dasta)";
+                    stMesh.userData = {
+                        isBook: true,
+                        bookData: stData,
+                        badge: "🗂️ TAXLANGAN KITOBLAR DASTASI · " + (s + 1) + "-TOKCHA",
+                        shelfLoc: locText,
+                        baseZ: stMesh.position.z
+                    };
+                    interactiveMeshes.push(stMesh);
+                    bookSearchIndex.push({ mesh: stMesh, book: stData, locText: locText });
+                    group.add(stMesh);
+                    stackY += sbh + 0.003;
+                }
             }
         }
 
@@ -778,19 +1284,44 @@
     }
 
     // =========================================================================
-    // 6. CHAP DEVOR JAVONLARI VA SHARQONA MEHROB (ARKALI LAVH VITRINASI)
+    // 7. 1-QAVAT DEVOR JAVONLARI, NARVON VA SHARQONA MEHROB
     // =========================================================================
-    // 1-javon (chap old burchak)
-    buildBookshelfBay(1.85, 6.6, 0.65, -6.9, 0, 2.3, Math.PI / 2);
+    buildBookshelfBay(2.1, 4.2, 0.68, -6.9, 0, 2.5, Math.PI / 2, "1-Qavat Chap Qanot");
 
-    // 2-seksiya: SHARQONA MEHROB (Arkali tokcha, Oltin lagan, Xattotlik lavhasi va Lavhdagi ochiq Shoh asar)
+    // G'ildirakli yog'och kutubxona narvoni (Rolling Library Ladder)
+    function buildLibraryLadder(x, z, rotY) {
+        const lGroup = new THREE.Group();
+        lGroup.position.set(x, 0, z);
+        lGroup.rotation.y = rotY || 0;
+
+        const railAngle = -0.14;
+        const ladderH = 4.35;
+        const leftRail = new THREE.Mesh(new THREE.BoxGeometry(0.06, ladderH, 0.08), walnutMat);
+        leftRail.position.set(-0.24, ladderH / 2, 0.25);
+        leftRail.rotation.x = railAngle;
+        lGroup.add(leftRail);
+
+        const rightRail = new THREE.Mesh(new THREE.BoxGeometry(0.06, ladderH, 0.08), walnutMat);
+        rightRail.position.set(0.24, ladderH / 2, 0.25);
+        rightRail.rotation.x = railAngle;
+        lGroup.add(rightRail);
+
+        for (let r = 0.45; r < ladderH - 0.3; r += 0.42) {
+            const step = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.04, 0.10), brassMat);
+            step.position.set(0, r, 0.25 + (ladderH / 2 - r) * Math.sin(-railAngle));
+            lGroup.add(step);
+        }
+        scene.add(lGroup);
+    }
+    buildLibraryLadder(-6.32, 2.2, Math.PI / 2);
+
+    // SHARQONA MEHROB (Arkali tokcha, Oltin lagan, Xattotlik lavhasi va Lavhdagi ochiq Shoh asar)
     function buildMihrabShowcase(x, z, rotY) {
         const mGroup = new THREE.Group();
         mGroup.position.set(x, 0, z);
         mGroup.rotation.y = rotY;
 
-        const w = 2.35, h = 6.6, d = 0.72;
-        // Orqa va yon yog'och devorlar
+        const w = 2.35, h = 4.2, d = 0.72;
         const back = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.08), walnutMat);
         back.position.set(0, h / 2, -d / 2);
         mGroup.add(back);
@@ -803,136 +1334,260 @@
         rightP.position.set(w / 2 - 0.09, h / 2, 0);
         mGroup.add(rightP);
 
-        // Yuqori o'ymakor girih friz va arka
-        const topFrieze = new THREE.Mesh(new THREE.BoxGeometry(w, 0.85, d), girihMat);
-        topFrieze.position.set(0, h - 0.42, 0);
+        const topFrieze = new THREE.Mesh(new THREE.BoxGeometry(w, 0.65, d), girihMat);
+        topFrieze.position.set(0, h - 0.32, 0);
         mGroup.add(topFrieze);
 
-        const cornice = new THREE.Mesh(new THREE.BoxGeometry(w + 0.2, 0.34, d + 0.2), walnutMat);
-        cornice.position.set(0, h + 0.17, 0.04);
-        mGroup.add(cornice);
-
-        // 1) Yuqoridagi zarhal doira lagan (Gold Medallion)
-        const medallionGeo = new THREE.CylinderGeometry(0.58, 0.58, 0.06, 48);
-        const medallionMat = new THREE.MeshStandardMaterial({
-            map: createGoldMedallionTexture(),
-            roughness: 0.25,
-            metalness: 0.78
-        });
-        const medallion = new THREE.Mesh(medallionGeo, medallionMat);
+        const medallion = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.48, 0.48, 0.06, 48),
+            new THREE.MeshStandardMaterial({ map: createGoldMedallionTexture(), roughness: 0.25, metalness: 0.78 })
+        );
         medallion.rotation.x = Math.PI / 2;
-        medallion.position.set(0, 4.75, -d / 2 + 0.08);
+        medallion.position.set(0, 3.25, -d / 2 + 0.08);
         mGroup.add(medallion);
 
-        // 2) O'rtadagi qora-oltin xattotlik ramkasi (Calligraphy Frame)
         const plaque = new THREE.Mesh(
-            new THREE.BoxGeometry(1.22, 1.22, 0.08),
+            new THREE.BoxGeometry(0.95, 0.95, 0.08),
             new THREE.MeshStandardMaterial({ map: createCalligraphyPlaqueTexture(), roughness: 0.3, metalness: 0.35 })
         );
-        plaque.position.set(0, 3.25, -d / 2 + 0.08);
+        plaque.position.set(0, 2.35, -d / 2 + 0.08);
         mGroup.add(plaque);
 
-        // 3) Pastdagi sakkiz qirrali panjarali kursicha (Octagonal Lattice Pedestal)
         const pedestal = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.68, 0.68, 1.75, 8),
+            new THREE.CylinderGeometry(0.58, 0.58, 1.35, 8),
             new THREE.MeshStandardMaterial({ map: createLatticeTexture(), roughness: 0.55 })
         );
-        pedestal.position.set(0, 0.88, 0.08);
+        pedestal.position.set(0, 0.68, 0.08);
         mGroup.add(pedestal);
 
-        const pedestalCap = new THREE.Mesh(new THREE.CylinderGeometry(0.76, 0.72, 0.14, 8), walnutMat);
-        pedestalCap.position.set(0, 1.82, 0.08);
+        const pedestalCap = new THREE.Mesh(new THREE.CylinderGeometry(0.66, 0.62, 0.12, 8), walnutMat);
+        pedestalCap.position.set(0, 1.42, 0.08);
         mGroup.add(pedestalCap);
 
-        // 4) Yog'och Lavh va ustidagi Ochiq Oltin Qo'lyozma Shoh Asar
         const featuredBook = BOOKS_DATA[0];
         const openBookMesh = new THREE.Mesh(
-            new THREE.BoxGeometry(0.95, 0.08, 0.68),
+            new THREE.BoxGeometry(0.92, 0.08, 0.66),
             new THREE.MeshStandardMaterial({ map: createManuscriptPageTexture(featuredBook), roughness: 0.45 })
         );
-        openBookMesh.position.set(0, 2.02, 0.12);
+        openBookMesh.position.set(0, 1.58, 0.12);
         openBookMesh.rotation.x = 0.42;
         openBookMesh.userData = {
             isBook: true,
             bookData: featuredBook,
-            badge: "🕌 MEHROB SHOH ASARI (MARKAZIY LAVH)"
+            badge: "🕌 MEHROB SHOH ASARI (MARKAZIY LAVH)",
+            shelfLoc: "1-Qavat · Sharqona Mehrob Vitrina Lavhi"
         };
         interactiveMeshes.push(openBookMesh);
+        bookSearchIndex.push({ mesh: openBookMesh, book: featuredBook, locText: "1-Qavat · Sharqona Mehrob Vitrina Lavhi" });
         mGroup.add(openBookMesh);
 
         scene.add(mGroup);
     }
+    buildMihrabShowcase(-6.9, 0.0, Math.PI / 2);
 
-    buildMihrabShowcase(-6.9, -0.05, Math.PI / 2);
-
-    // 3-javon (mehrobdan keyingi javon)
-    buildBookshelfBay(1.85, 6.6, 0.65, -6.9, 0, -2.35, Math.PI / 2);
-
-    // 4-javon va 5-javon (burchakdagi burilgan javonlar — xuddi rasmdagi kabi!)
-    buildBookshelfBay(2.1, 6.6, 0.65, -5.85, 0, -4.15, Math.PI / 3.2);
-    buildBookshelfBay(2.2, 6.6, 0.65, -3.85, 0, -5.1, 0);
+    // 1-qavat keyingi javonlar
+    buildBookshelfBay(2.1, 4.2, 0.68, -6.9, 0, -2.5, Math.PI / 2, "1-Qavat Chap Qanot");
+    buildBookshelfBay(2.2, 4.2, 0.68, -5.85, 0, -4.3, Math.PI / 3.2, "1-Qavat Shimoliy Burchak");
+    buildBookshelfBay(2.3, 4.2, 0.68, -3.75, 0, -5.2, 0, "1-Qavat Markaziy Fond");
 
     // =========================================================================
-    // 7. OLD PLANDAGI UZUN MUTOLAA STOLI, 3 TA OCHIQ QO'LYOZMA VA iMac TERMINALLAR
+    // 8. 2-QAVAT BALKON GALEREYASI (MEZZANINE), PANJARALAR VA ZINAPOYA
+    // =========================================================================
+    const MEZZ_Y = 4.45;
+    // Chap devor bo'ylab 2-qavat balkon yo'lagi
+    const mezzLeftFloor = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.22, 12.5), walnutMat);
+    mezzLeftFloor.position.set(-5.8, MEZZ_Y, 0.2);
+    scene.add(mezzLeftFloor);
+
+    // Orqa devor bo'ylab 2-qavat balkon ko'prigi
+    const mezzBackFloor = new THREE.Mesh(new THREE.BoxGeometry(11.5, 0.22, 2.6), walnutMat);
+    mezzBackFloor.position.set(-1.2, MEZZ_Y, -4.8);
+    scene.add(mezzBackFloor);
+
+    // Balkon yog'och va zarhal panjarasi (Balustrade Railing)
+    const railHand = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.1, 11.2), walnutMat);
+    railHand.position.set(-4.48, MEZZ_Y + 1.05, 0.5);
+    scene.add(railHand);
+
+    for (let rz = -4.2; rz <= 5.8; rz += 0.45) {
+        const spindle = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.035, 0.95, 10), brassMat);
+        spindle.position.set(-4.48, MEZZ_Y + 0.55, rz);
+        scene.add(spindle);
+    }
+
+    // 2-qavat balkon javonlari (Mezzanine Upper Bookshelves)
+    buildBookshelfBay(2.2, 4.2, 0.62, -6.9, MEZZ_Y + 0.11, 2.6, Math.PI / 2, "2-Qavat Mezzanine Balkoni");
+    buildBookshelfBay(2.2, 4.2, 0.62, -6.9, MEZZ_Y + 0.11, 0.0, Math.PI / 2, "2-Qavat Mezzanine Balkoni");
+    buildBookshelfBay(2.2, 4.2, 0.62, -6.9, MEZZ_Y + 0.11, -2.6, Math.PI / 2, "2-Qavat Mezzanine Balkoni");
+    buildBookshelfBay(2.4, 4.2, 0.62, -3.6, MEZZ_Y + 0.11, -5.3, 0, "2-Qavat Shimoliy Galereya");
+
+    // 1-qavatdan 2-qavat balkonga chiquvchi yog'och zinapoya (Grand Staircase)
+    const stairsGroup = new THREE.Group();
+    const stepsCount = 16;
+    for (let st = 0; st < stepsCount; st++) {
+        const stepMesh = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.14, 0.34), walnutMat);
+        stepMesh.position.set(-5.15, (st + 1) * (MEZZ_Y / stepsCount), 6.2 - st * 0.28);
+        stairsGroup.add(stepMesh);
+    }
+    scene.add(stairsGroup);
+
+    // =========================================================================
+    // 9. BALAND ARKALI DERAZALAR VA HAJMLI QUYOSH NURLARI (VOLUMETRIC GOD-RAYS)
+    // =========================================================================
+    const winTex = createArchedWindowTexture();
+    const godRayMat = new THREE.MeshBasicMaterial({
+        color: 0xFFE6A3,
+        transparent: true,
+        opacity: 0.075,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+    });
+    const godRays = [];
+
+    [5.2, 8.2].forEach(function(wz) {
+        const winFrame = new THREE.Mesh(
+            new THREE.PlaneGeometry(1.9, 4.6),
+            new THREE.MeshBasicMaterial({ map: winTex })
+        );
+        winFrame.position.set(-7.15, 3.8, wz);
+        winFrame.rotation.y = Math.PI / 2;
+        scene.add(winFrame);
+
+        // Derazadan zal o'rtasiga tushayotgan hajmli quyosh nuri ustuni
+        const rayCone = new THREE.Mesh(new THREE.ConeGeometry(2.2, 9.5, 24, 1, true), godRayMat);
+        rayCone.position.set(-3.2, 2.4, wz - 0.4);
+        rayCone.rotation.z = -Math.PI / 3.4;
+        scene.add(rayCone);
+        godRays.push(rayCone);
+    });
+
+    // =========================================================================
+    // 10. MUTOLAA STOLI, YASHIL BANKER CHIROQLARI, GLOBUS, OCHIQ KITOBLAR VA iMac
     // =========================================================================
     const deskGroup = new THREE.Group();
     deskGroup.position.set(-0.6, 0, 3.6);
-    deskGroup.rotation.y = 0.52; // Rasmdagi diagonal stol burchagi
+    deskGroup.rotation.y = 0.52;
 
     // Stol yuzasi
-    const deskTop = new THREE.Mesh(new THREE.BoxGeometry(8.6, 0.12, 1.65), walnutMat);
+    const deskTop = new THREE.Mesh(new THREE.BoxGeometry(8.8, 0.14, 1.75), walnutMat);
     deskTop.position.set(0, 1.18, 0);
     deskTop.castShadow = true;
     deskTop.receiveShadow = true;
     deskGroup.add(deskTop);
 
-    // Stol o'rtasidagi qiya yog'och to'siq (kitob tayanchi)
-    const deskSpine = new THREE.Mesh(new THREE.BoxGeometry(8.6, 0.58, 0.14), darkWalnutMat);
-    deskSpine.position.set(0, 1.52, -0.18);
+    const deskSpine = new THREE.Mesh(new THREE.BoxGeometry(8.8, 0.46, 0.12), darkWalnutMat);
+    deskSpine.position.set(0, 1.46, -0.15);
     deskGroup.add(deskSpine);
 
-    // Stol oyoqlari
-    for (let lx = -3.8; lx <= 3.8; lx += 2.5) {
-        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1.18, 1.45), darkWalnutMat);
+    for (let lx = -3.9; lx <= 3.9; lx += 2.6) {
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.18, 1.18, 1.50), darkWalnutMat);
         leg.position.set(lx, 0.59, 0);
         deskGroup.add(leg);
     }
 
-    // Stol ustidagi 3 ta yirik Ochiq Oltin Qo'lyozma Kitoblar (rasmning chap-old qismidagi)
-    const deskBookPositions = [-2.9, -1.15, 2.35];
+    // Haqiqiy kutubxona ramzi: Yashil shishali Banker's Lamp stol chiroqlari!
+    function buildBankersLamp(lx, lz) {
+        const lamp = new THREE.Group();
+        lamp.position.set(lx, 1.25, lz);
+
+        const base = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 0.05, 20), brassMat);
+        lamp.add(base);
+
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.44, 12), brassMat);
+        stem.position.y = 0.22;
+        lamp.add(stem);
+
+        const shade = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.22, 0.16, 16, 1, false, 0, Math.PI), emeraldShadeMat);
+        shade.rotation.z = Math.PI / 2;
+        shade.rotation.y = Math.PI / 2;
+        shade.position.set(0, 0.44, 0.04);
+        lamp.add(shade);
+
+        const bulbGlow = new THREE.Mesh(
+            new THREE.SphereGeometry(0.055, 10, 10),
+            new THREE.MeshBasicMaterial({ color: 0xFFF2B2 })
+        );
+        bulbGlow.position.set(0, 0.39, 0.04);
+        lamp.add(bulbGlow);
+
+        return lamp;
+    }
+    deskGroup.add(buildBankersLamp(-3.6, -0.35));
+    deskGroup.add(buildBankersLamp(-1.85, -0.35));
+    deskGroup.add(buildBankersLamp(1.65, -0.35));
+    deskGroup.add(buildBankersLamp(3.45, -0.35));
+
+    // Stol burchagida Qadimiy Globus (Antique Brass Library Globe)
+    const globeStand = new THREE.Group();
+    globeStand.position.set(-3.95, 1.25, 0.35);
+    const gBase = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 0.06, 20), brassMat);
+    globeStand.add(gBase);
+    const gRing = new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.02, 12, 32), brassMat);
+    gRing.position.y = 0.32;
+    globeStand.add(gRing);
+    const globeSphere = new THREE.Mesh(
+        new THREE.SphereGeometry(0.20, 24, 24),
+        new THREE.MeshStandardMaterial({ color: 0xC8A96E, roughness: 0.4, metalness: 0.25 })
+    );
+    globeSphere.position.y = 0.32;
+    globeStand.add(globeSphere);
+    deskGroup.add(globeStand);
+
+    // Stol ustidagi 3 ta yirik Ochiq Oltin Qo'lyozma Kitoblar
+    const deskBookPositions = [-2.85, -1.15, 2.35];
     deskBookPositions.forEach(function(dx, idx) {
         const bData = BOOKS_DATA[(idx + 1) % BOOKS_DATA.length];
-        const stand = new THREE.Mesh(new THREE.BoxGeometry(1.18, 0.26, 0.72), darkWalnutMat);
-        stand.position.set(dx, 1.32, 0.25);
+        const stand = new THREE.Mesh(new THREE.BoxGeometry(1.14, 0.24, 0.70), darkWalnutMat);
+        stand.position.set(dx, 1.32, 0.28);
         stand.rotation.x = 0.36;
         deskGroup.add(stand);
 
-        // Chap va o'ng ochiq sahifalar
         const openManuscript = new THREE.Mesh(
-            new THREE.BoxGeometry(1.16, 0.07, 0.74),
+            new THREE.BoxGeometry(1.12, 0.07, 0.72),
             new THREE.MeshStandardMaterial({
                 map: createManuscriptPageTexture(bData),
                 roughness: 0.42,
                 metalness: 0.12
             })
         );
-        openManuscript.position.set(dx, 1.44, 0.28);
+        openManuscript.position.set(dx, 1.44, 0.30);
         openManuscript.rotation.x = 0.36;
+        const locText = "1-Qavat · Markaziy Mutolaa Stoli · #" + (idx + 1) + " Lavh";
         openManuscript.userData = {
             isBook: true,
             bookData: bData,
-            badge: "📖 MUTOLAA STOLIDAGI OCHIQ QO'LYOZMA #" + (idx + 1)
+            badge: "📖 MUTOLAA STOLIDAGI OCHIQ QO'LYOZMA #" + (idx + 1),
+            shelfLoc: locText
         };
         interactiveMeshes.push(openManuscript);
+        bookSearchIndex.push({ mesh: openManuscript, book: bData, locText: locText });
         deskGroup.add(openManuscript);
     });
 
-    // Stol ustidagi iMac Kompyuter Kiosklari (rasmning o'rta-o'ng qismidagi)
+    // Stol ustida o'qish uchun olib qo'yilgan taxlangan kitoblar dastasi
+    for (let st = 0; st < 3; st++) {
+        const sbData = BOOKS_DATA[(st + 5) % BOOKS_DATA.length];
+        const sbMesh = createRealisticBookMesh(sbData, 0.34, 0.06, 0.46, 900 + st);
+        sbMesh.position.set(-2.0, 1.28 + st * 0.062, 0.42);
+        sbMesh.rotation.y = 0.2 + st * 0.14;
+        const locText = "1-Qavat · Mutolaa Stoli Ustidagi Kitoblar Dastasi";
+        sbMesh.userData = {
+            isBook: true,
+            bookData: sbData,
+            badge: "📚 STOLDAGI TANLANGAN KITOB",
+            shelfLoc: locText
+        };
+        interactiveMeshes.push(sbMesh);
+        deskGroup.add(sbMesh);
+    }
+
+    // Stol ustidagi iMac Kompyuter Kiosklari
     const imacScreenTex = createImacScreenTexture();
     [0.75, -0.35].forEach(function(mx, idx) {
         const isFront = (idx === 0);
         const monitorGroup = new THREE.Group();
-        monitorGroup.position.set(mx, 1.72, isFront ? 0.18 : -0.45);
+        monitorGroup.position.set(mx, 1.72, isFront ? 0.20 : -0.45);
         if (!isFront) monitorGroup.rotation.y = Math.PI;
 
         const body = new THREE.Mesh(
@@ -950,7 +1605,8 @@
         screen.userData = {
             isBook: true,
             bookData: bData,
-            badge: "🖥️ SMARTLIB RAQAMLI iMac TERMINALI"
+            badge: "🖥️ SMARTLIB RAQAMLI iMac TERMINALI",
+            shelfLoc: "Markaziy Stol · Elektron Katalog Terminali #" + (idx + 1)
         };
         interactiveMeshes.push(screen);
         monitorGroup.add(screen);
@@ -965,45 +1621,82 @@
         deskGroup.add(monitorGroup);
     });
 
-    // Stol atrofidagi xrom oyoqli kreslolar (4 ta)
-    const chairVelvetMat = new THREE.MeshStandardMaterial({ color: 0x3A2734, roughness: 0.72 });
+    // Stol atrofidagi xrom oyoqli baxmal kreslolar (6 ta — ikkala tomonda)
+    const chairVelvetMat = new THREE.MeshStandardMaterial({ color: 0x422432, roughness: 0.68 });
     const chromeMat = new THREE.MeshStandardMaterial({ color: 0xDCDFE4, roughness: 0.18, metalness: 0.88 });
-    [-2.4, -0.7, 1.0, 2.7].forEach(function(cx) {
-        const cGroup = new THREE.Group();
-        cGroup.position.set(cx, 0, 1.32);
+    [-2.7, -1.0, 0.8, 2.5].forEach(function(cx) {
+        [1.34, -1.34].forEach(function(cz, sideIdx) {
+            if (sideIdx === 1 && (cx < -1.5 || cx > 1.5)) return;
+            const cGroup = new THREE.Group();
+            cGroup.position.set(cx, 0, cz);
+            if (sideIdx === 1) cGroup.rotation.y = Math.PI;
 
-        const basePlate = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.38, 0.05, 24), chromeMat);
-        basePlate.position.y = 0.025;
-        cGroup.add(basePlate);
+            const basePlate = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.38, 0.05, 24), chromeMat);
+            basePlate.position.y = 0.025;
+            cGroup.add(basePlate);
 
-        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.68, 16), chromeMat);
-        pole.position.y = 0.36;
-        cGroup.add(pole);
+            const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.68, 16), chromeMat);
+            pole.position.y = 0.36;
+            cGroup.add(pole);
 
-        const seat = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.12, 0.64), chairVelvetMat);
-        seat.position.y = 0.72;
-        cGroup.add(seat);
+            const seat = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.12, 0.64), chairVelvetMat);
+            seat.position.y = 0.72;
+            cGroup.add(seat);
 
-        const backRest = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.58, 0.12), chairVelvetMat);
-        backRest.position.set(0, 1.04, 0.26);
-        backRest.rotation.x = 0.12;
-        cGroup.add(backRest);
+            const backRest = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.58, 0.12), chairVelvetMat);
+            backRest.position.set(0, 1.04, 0.26);
+            backRest.rotation.x = 0.12;
+            cGroup.add(backRest);
 
-        deskGroup.add(cGroup);
+            deskGroup.add(cGroup);
+        });
     });
 
     scene.add(deskGroup);
 
     // =========================================================================
-    // 8. O'NG TARAFDAGI O'YMAKOR SHARQONA PESHTOQ (PORTAL) VA ICHKI GALEREYA
+    // 11. KUTUBXONACHI QABUL PESHTAXTASI (CIRCULATION & RECEPTION DESK)
     // =========================================================================
-    // Travertin marmar ustun (chapda javon va peshtoq oralig'ida)
-    const travertineMat = new THREE.MeshStandardMaterial({ color: 0xD8CBB8, roughness: 0.45 });
-    const marblePillar = new THREE.Mesh(new THREE.BoxGeometry(0.92, 7.6, 0.92), travertineMat);
-    marblePillar.position.set(-2.1, 3.8, -5.0);
+    const receptionGroup = new THREE.Group();
+    receptionGroup.position.set(5.8, 0, 2.2);
+    receptionGroup.rotation.y = -Math.PI / 2.4;
+
+    const counterBody = new THREE.Mesh(new THREE.BoxGeometry(3.8, 1.15, 1.05), walnutMat);
+    counterBody.position.y = 0.575;
+    receptionGroup.add(counterBody);
+
+    const counterMarbleTop = new THREE.Mesh(
+        new THREE.BoxGeometry(4.0, 0.10, 1.22),
+        new THREE.MeshStandardMaterial({ color: 0xEDE3D2, roughness: 0.25, metalness: 0.1 })
+    );
+    counterMarbleTop.position.y = 1.18;
+    receptionGroup.add(counterMarbleTop);
+
+    // Peshtaxta oldida oltin "KUTUBXONACHI · AXBOROT" lavhasi
+    const recSign = new THREE.Mesh(
+        new THREE.PlaneGeometry(2.6, 0.38),
+        new THREE.MeshBasicMaterial({ map: createSectionSignTexture("🛎️ KUTUBXONACHI · QABUL & AXBOROT") })
+    );
+    recSign.position.set(0, 0.72, 0.54);
+    receptionGroup.add(recSign);
+
+    receptionGroup.add(buildBankersLamp(-1.3, 0));
+    receptionGroup.add(buildBankersLamp(1.3, 0));
+
+    // Peshtaxta orqasida qo'shimcha baland kitob javoni
+    buildBookshelfBay(2.6, 4.4, 0.65, 7.6, 0, 2.4, -Math.PI / 2, "O'ng Qanot · Kutubxonachi Fondi");
+    buildBookshelfBay(2.6, 4.4, 0.65, 7.6, 0, -0.5, -Math.PI / 2, "O'ng Qanot · Kutubxonachi Fondi");
+
+    scene.add(receptionGroup);
+
+    // =========================================================================
+    // 12. O'NG TARAFDAGI O'YMAKOR SHARQONA PESHTOQ (PORTAL) VA ICHKI GALEREYA
+    // =========================================================================
+    const travertineMat = new THREE.MeshStandardMaterial({ color: 0xD8CBB8, roughness: 0.42 });
+    const marblePillar = new THREE.Mesh(new THREE.BoxGeometry(0.92, CEILING_Y, 0.92), travertineMat);
+    marblePillar.position.set(-2.1, CEILING_Y / 2, -5.0);
     scene.add(marblePillar);
 
-    // O'ymakor Girih Peshtoq Arkasi (Portal Frame)
     const portalGroup = new THREE.Group();
     portalGroup.position.set(3.4, 0, -4.6);
 
@@ -1021,22 +1714,20 @@
 
     scene.add(portalGroup);
 
-    // Peshtoq ortidagi Ichki Sharqona Galereya (Gilamlar, stollar va oltin fonuslar)
+    // Peshtoq ortidagi Ichki Sharqona Galereya (Ikki tomonda javonlar, Buxoro gilamlari, stollar va oltin fonuslar)
     for (let cz = -7.5; cz >= -18.5; cz -= 3.6) {
-        // Ichki koridor chap javon-arkalari
-        buildBookshelfBay(2.2, 5.8, 0.55, 0.2, 0, cz, Math.PI / 2);
+        buildBookshelfBay(2.2, 5.4, 0.58, 0.2, 0, cz, Math.PI / 2, "Sharqona Galereya Chap Qator");
+        buildBookshelfBay(2.2, 5.4, 0.58, 6.8, 0, cz, -Math.PI / 2, "Sharqona Galereya O'ng Qator");
 
-        // Buxoro gilami
         const rug = new THREE.Mesh(
-            new THREE.PlaneGeometry(3.2, 2.4),
-            new THREE.MeshStandardMaterial({ color: 0x7A231D, roughness: 0.85 })
+            new THREE.PlaneGeometry(3.4, 2.5),
+            new THREE.MeshStandardMaterial({ map: carpetTex, roughness: 0.85 })
         );
         rug.rotation.x = -Math.PI / 2;
         rug.position.set(3.5, 0.02, cz);
         scene.add(rug);
 
-        // Kichik choy-mutolaa stoli va ustidagi oltin fonus (chiroq)
-        const lowTable = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.58, 16), walnutMat);
+        const lowTable = new THREE.Mesh(new THREE.CylinderGeometry(0.58, 0.58, 0.58, 16), walnutMat);
         lowTable.position.set(3.5, 0.29, cz);
         scene.add(lowTable);
 
@@ -1049,13 +1740,118 @@
     }
 
     // =========================================================================
-    // 9. CAMERA CONTROLS, RAYCASTING & ANIMATION LOOP
+    // 13. HAVODA SUZUVCHI OLTIN ZARRALAR (ATMOSPHERIC DUST MOTES IN SUNBEAMS)
+    // =========================================================================
+    const dustCount = 260;
+    const dustGeo = new THREE.BufferGeometry();
+    const dustPositions = new Float32Array(dustCount * 3);
+    for (let i = 0; i < dustCount; i++) {
+        dustPositions[i * 3]     = (Math.random() - 0.5) * 18;
+        dustPositions[i * 3 + 1] = 0.8 + Math.random() * 7.8;
+        dustPositions[i * 3 + 2] = (Math.random() - 0.5) * 20;
+    }
+    dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
+    const dustMat = new THREE.PointsMaterial({
+        color: 0xFFE8A3,
+        size: 0.065,
+        transparent: true,
+        opacity: 0.65,
+        blending: THREE.AdditiveBlending
+    });
+    const dustParticles = new THREE.Points(dustGeo, dustMat);
+    scene.add(dustParticles);
+
+    // Jami 3D kitoblar sonini HUD badge'da ko'rsatish
+    const badgeEl = document.getElementById('total3dBooksBadge');
+    if (badgeEl) {
+        badgeEl.textContent = interactiveMeshes.length + " ta 3D kitob";
+    }
+
+    // =========================================================================
+    // 14. 3D KITOB QIDIRUV VA AVTO-PARVOZ (FLY-TO-BOOK IN 3D)
+    // =========================================================================
+    let focusedBookMesh = null;
+
+    window.flyToBookMesh = function(entry) {
+        if (!entry || !entry.mesh) return;
+        const targetWorldPos = new THREE.Vector3();
+        entry.mesh.getWorldPosition(targetWorldPos);
+
+        const targetQuat = new THREE.Quaternion();
+        entry.mesh.getWorldQuaternion(targetQuat);
+        const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(targetQuat).normalize();
+
+        desiredLookTarget.copy(targetWorldPos);
+        desiredCamPos.copy(targetWorldPos).addScaledVector(forward, 2.15);
+        desiredCamPos.y = Math.max(1.5, targetWorldPos.y + 0.18);
+        yawOffset = 0;
+        pitchOffset = 0;
+
+        focusedBookMesh = entry.mesh;
+        highlightLight.position.copy(targetWorldPos).addScaledVector(forward, 0.65);
+        highlightLight.intensity = 2.6;
+
+        window.open3dBookDrawer(entry.book, entry.mesh.userData.badge, entry.locText);
+    };
+
+    window.focusRandomBookIn3D = function() {
+        if (!bookSearchIndex.length) return;
+        const pick = bookSearchIndex[Math.floor(Math.random() * bookSearchIndex.length)];
+        window.flyToBookMesh(pick);
+    };
+
+    const searchInputEl = document.getElementById('search3dBookInput');
+    const searchResultsEl = document.getElementById('search3dResults');
+    if (searchInputEl && searchResultsEl) {
+        searchInputEl.addEventListener('input', function() {
+            const q = searchInputEl.value.trim().toLowerCase();
+            if (!q) {
+                searchResultsEl.style.display = 'none';
+                searchResultsEl.innerHTML = '';
+                return;
+            }
+            const seenIds = {};
+            const matches = [];
+            for (let i = 0; i < bookSearchIndex.length; i++) {
+                const item = bookSearchIndex[i];
+                const b = item.book;
+                const hay = ((b.title || '') + ' ' + (b.author || '') + ' ' + (b.genre || '') + ' ' + (b.isbn || '')).toLowerCase();
+                if (hay.includes(q) && !seenIds[b.id]) {
+                    seenIds[b.id] = true;
+                    matches.push(item);
+                    if (matches.length >= 8) break;
+                }
+            }
+            searchResultsEl.innerHTML = '';
+            if (!matches.length) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'room-search-item';
+                emptyDiv.textContent = "Kitob topilmadi.";
+                searchResultsEl.appendChild(emptyDiv);
+            } else {
+                matches.forEach(function(m) {
+                    const row = document.createElement('div');
+                    row.className = 'room-search-item';
+                    row.innerHTML = '<strong>📖 ' + m.book.title + '</strong><br><small style="color:var(--ink-1);">' + m.book.author + ' · ' + m.locText + '</small>';
+                    row.addEventListener('click', function() {
+                        window.flyToBookMesh(m);
+                        searchResultsEl.style.display = 'none';
+                    });
+                    searchResultsEl.appendChild(row);
+                });
+            }
+            searchResultsEl.style.display = 'block';
+        });
+    }
+
+    // =========================================================================
+    // 15. KAMERA BOSHQARUVI, RAYCASTING VA JONLI ANIMATSIYA SIKLI
     // =========================================================================
     let isDragging = false;
     let prevX = 0, prevY = 0;
     let dragMoved = 0;
     let autoOrbit = false;
-    let warmMode = true;
+    let lightModeIdx = 0;
     let yawOffset = 0, pitchOffset = 0;
 
     window.setRoomCameraPreset = function(presetName, btnEl) {
@@ -1077,18 +1873,26 @@
     };
 
     window.toggleRoomLighting = function() {
-        warmMode = !warmMode;
+        lightModeIdx = (lightModeIdx + 1) % 3;
         const btn = document.getElementById('toggleWarmLightBtn');
-        if (warmMode) {
+        if (lightModeIdx === 0) {
             ambientLight.color.setHex(0xFFE4B8);
-            ambientLight.intensity = 0.58;
-            mainWarmLight.intensity = 1.35;
-            if (btn) btn.innerHTML = '<i class="fa-solid fa-lightbulb"></i> <span>Chiroqlar: Kechki Oltin</span>';
-        } else {
+            ambientLight.intensity = 0.62;
+            mainWarmLight.intensity = 1.45;
+            godRayMat.opacity = 0.075;
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-lightbulb"></i> <span>Yoritish: Kechki Oltin</span>';
+        } else if (lightModeIdx === 1) {
             ambientLight.color.setHex(0xFFF8EE);
-            ambientLight.intensity = 0.95;
-            mainWarmLight.intensity = 1.75;
-            if (btn) btn.innerHTML = '<i class="fa-solid fa-sun"></i> <span>Chiroqlar: Kunduzgi Zal</span>';
+            ambientLight.intensity = 1.05;
+            mainWarmLight.intensity = 1.85;
+            godRayMat.opacity = 0.14;
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-sun"></i> <span>Yoritish: Kunduzgi Quyosh</span>';
+        } else {
+            ambientLight.color.setHex(0xFFD090);
+            ambientLight.intensity = 0.36;
+            mainWarmLight.intensity = 0.85;
+            godRayMat.opacity = 0.03;
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-moon"></i> <span>Yoritish: Tungi Mutolaa</span>';
         }
     };
 
@@ -1117,11 +1921,10 @@
             prevX = e.clientX;
             prevY = e.clientY;
             yawOffset -= dx * 0.0045;
-            pitchOffset = Math.max(-0.55, Math.min(0.55, pitchOffset - dy * 0.0035));
+            pitchOffset = Math.max(-0.62, Math.min(0.62, pitchOffset - dy * 0.0035));
             return;
         }
 
-        // Raycast hover
         mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
         raycaster.setFromCamera(mouse, camera);
@@ -1134,15 +1937,16 @@
                 }
                 hoveredBookMesh = hitObj;
                 if (hoveredBookMesh.userData.baseZ !== undefined) {
-                    hoveredBookMesh.position.z = hoveredBookMesh.userData.baseZ + 0.12;
+                    hoveredBookMesh.position.z = hoveredBookMesh.userData.baseZ + 0.14;
                 }
             }
             host.style.cursor = 'pointer';
             if (tooltip && hitObj.userData.bookData) {
+                const bd = hitObj.userData.bookData;
                 tooltip.style.display = 'block';
                 tooltip.style.left = (e.clientX - rect.left + 14) + 'px';
                 tooltip.style.top = (e.clientY - rect.top + 14) + 'px';
-                tooltip.textContent = "📖 " + hitObj.userData.bookData.title + " — " + hitObj.userData.bookData.author;
+                tooltip.innerHTML = '📖 <strong>' + bd.title + '</strong> — ' + bd.author + '<br><small style="color:var(--ink-accent);">' + (hitObj.userData.shelfLoc || hitObj.userData.badge) + '</small>';
             }
         } else {
             if (hoveredBookMesh && hoveredBookMesh.userData.baseZ !== undefined) {
@@ -1164,7 +1968,7 @@
         if (hits.length > 0) {
             const ud = hits[0].object.userData;
             if (ud && ud.bookData) {
-                window.open3dBookDrawer(ud.bookData, ud.badge);
+                window.open3dBookDrawer(ud.bookData, ud.badge, ud.shelfLoc);
             }
         }
     });
@@ -1172,14 +1976,17 @@
     host.addEventListener('wheel', function(e) {
         e.preventDefault();
         const dir = new THREE.Vector3().subVectors(desiredLookTarget, desiredCamPos).normalize();
-        const step = (e.deltaY < 0) ? 0.65 : -0.65;
+        const step = (e.deltaY < 0) ? 0.72 : -0.72;
         desiredCamPos.addScaledVector(dir, step);
-        desiredCamPos.y = Math.max(1.4, Math.min(6.2, desiredCamPos.y));
+        desiredCamPos.y = Math.max(1.25, Math.min(8.4, desiredCamPos.y));
     }, { passive: false });
 
-    // Klaviaturada WASD harakati
+    // Klaviaturada WASD + Q/E (1-2 qavatga ko'tarilish) harakati
     const keys = {};
-    window.addEventListener('keydown', function(e) { keys[e.code] = true; });
+    window.addEventListener('keydown', function(e) {
+        if (document.activeElement === searchInputEl) return;
+        keys[e.code] = true;
+    });
     window.addEventListener('keyup', function(e) { keys[e.code] = false; });
 
     window.addEventListener('resize', function() {
@@ -1195,18 +2002,31 @@
         const t = clock.getElapsedTime();
 
         if (autoOrbit) {
-            yawOffset = Math.sin(t * 0.35) * 0.48;
-            pitchOffset = Math.cos(t * 0.25) * 0.08;
+            yawOffset = Math.sin(t * 0.32) * 0.55;
+            pitchOffset = Math.cos(t * 0.22) * 0.10;
         }
 
-        const moveSpeed = 0.06;
+        // Havodagi oltin chang zarralarini va qandillarni mayin tebratish
+        dustParticles.rotation.y = t * 0.015;
+        dustParticles.position.y = Math.sin(t * 0.4) * 0.12;
+        chandelierGroups.forEach(function(cg, idx) {
+            cg.rotation.y = t * 0.05 * (idx % 2 === 0 ? 1 : -1);
+        });
+
+        if (focusedBookMesh && highlightLight.intensity > 0) {
+            highlightLight.intensity = 1.8 + Math.sin(t * 4.5) * 0.8;
+        }
+
+        const moveSpeed = 0.075;
         if (keys['KeyW'] || keys['ArrowUp']) desiredCamPos.z -= moveSpeed;
         if (keys['KeyS'] || keys['ArrowDown']) desiredCamPos.z += moveSpeed;
         if (keys['KeyA'] || keys['ArrowLeft']) desiredCamPos.x -= moveSpeed;
         if (keys['KeyD'] || keys['ArrowRight']) desiredCamPos.x += moveSpeed;
+        if (keys['KeyE']) desiredCamPos.y = Math.min(8.2, desiredCamPos.y + moveSpeed * 0.8);
+        if (keys['KeyQ']) desiredCamPos.y = Math.max(1.3, desiredCamPos.y - moveSpeed * 0.8);
 
-        camera.position.lerp(desiredCamPos, 0.07);
-        currentLookTarget.lerp(desiredLookTarget, 0.07);
+        camera.position.lerp(desiredCamPos, 0.075);
+        currentLookTarget.lerp(desiredLookTarget, 0.075);
 
         const lookOffset = currentLookTarget.clone();
         const dist = camera.position.distanceTo(lookOffset);
