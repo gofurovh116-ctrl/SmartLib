@@ -907,6 +907,13 @@
                             <div class="small text-white-50" style="font-size: 0.74rem;">Aravachadagi aralash kitoblarni UO'K va fan bo'limlari bo'yicha to'g'ri javonlarga joylashtiring!</div>
                         </div>
                     </button>
+                    <button type="button" class="game-card-btn" onclick="window.SmartLibGames.startDailyChallenge(); toggleGameMenu(false);">
+                        <span style="font-size: 1.8rem;">⭐</span>
+                        <div>
+                            <div class="fw-bold font-display" style="color: #f59e0b;">4. Kunlik Maxsus Sinov (Daily Challenge)</div>
+                            <div class="small text-white-50" style="font-size: 0.74rem;">Bugungi kun uchun maxsus kvest va bilimlar sinovi. 2x ball va Kunlik Chempion nishoni!</div>
+                        </div>
+                    </button>
                     <button type="button" class="game-card-btn" onclick="window.SmartLibGames.showLeaderboard();">
                         <span style="font-size: 1.8rem;">🏆</span>
                         <div>
@@ -925,7 +932,12 @@
                     <span class="badge font-mono" id="quizDomainBadge" style="background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; color: #38bdf8;">
                         💡 FANLAR VIKTORINASI
                     </span>
-                    <span class="font-mono small text-warning" id="quizProgressBadge">Savol 1 / 10</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-info font-mono" id="quizTtsSpeakBtn" onclick="window.SmartLibGames.readCurrentQuizQuestionAloud()" style="font-size: 0.70rem; padding: 3px 8px; border-radius: 6px;">
+                            <i class="fa-solid fa-volume-high"></i> <span>🔊 Ovozli</span>
+                        </button>
+                        <span class="font-mono small text-warning" id="quizProgressBadge">Savol 1 / 10</span>
+                    </div>
                 </div>
                 <h5 class="fw-bold font-display mb-3" id="quizQuestionText" style="line-height: 1.45; color: var(--ink-0); min-height: 52px;">
                     Savol yuklanmoqda...
@@ -1064,7 +1076,7 @@
                     </div>
                     <button type="button" class="btn-close btn-close-white" onclick="toggleLeaderboardModal(false)" aria-label="Yopish"></button>
                 </div>
-                <div class="row g-2 mb-3 text-center">
+                <div class="row g-2 mb-2 text-center">
                     <div class="col-4">
                         <div class="p-2 rounded" style="background: rgba(0,0,0,0.45); border: 1px solid rgba(232,176,74,0.3);">
                             <div class="font-mono text-warning" style="font-size: 0.64rem;">🔍 KVEST REKORDI</div>
@@ -1086,6 +1098,9 @@
                             <div class="font-mono text-white-50" style="font-size: 0.6rem;" id="lbShelvingSorted">0 kitob</div>
                         </div>
                     </div>
+                </div>
+                <div id="lbDailyStatusBox" class="p-2 rounded mb-3 text-center" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); font-size: 0.74rem;">
+                    <span class="text-warning fw-bold">⭐ Bugungi Kunlik Sinov:</span> <span id="lbDailyStatusText" class="text-white-50">Bajarilmagan (Boshlash uchun kvestga o'ting)</span>
                 </div>
                 <div class="font-mono small text-uppercase text-white-50 mb-1" style="font-size: 0.68rem;">So'nggi O'yinlar Tarixi:</div>
                 <div id="lbHistoryList" class="p-2 rounded mb-3" style="max-height: 160px; overflow-y: auto; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.1); font-size: 0.72rem; font-family: var(--font-mono);">
@@ -4877,6 +4892,19 @@
     laserPathLine.visible = false;
     scene.add(laserPathLine);
     let currentLaserTargetPos = new THREE.Vector3(0, 1.3, 0);
+    const laserStartPos = new THREE.Vector3(6.1, 2.15, 0.0);
+
+    // Dynamic Golden Guiding Wisp along Laser Path
+    const guidingWispGroup = new THREE.Group();
+    const wispCore = new THREE.Mesh(
+        new THREE.SphereGeometry(0.08, 12, 12),
+        new THREE.MeshBasicMaterial({ color: 0xFFE082 })
+    );
+    const wispGlow = createGlowSprite(0xF59E0B, 0.95, 0.85);
+    guidingWispGroup.add(wispCore);
+    guidingWispGroup.add(wispGlow);
+    guidingWispGroup.visible = false;
+    scene.add(guidingWispGroup);
 
     function updateLaserPathTo(worldTargetVec) {
         currentLaserTargetPos.copy(worldTargetVec);
@@ -4885,6 +4913,7 @@
         posArr[3] = worldTargetVec.x; posArr[4] = worldTargetVec.y; posArr[5] = worldTargetVec.z;
         laserPathLine.geometry.attributes.position.needsUpdate = true;
         laserPathLine.visible = true;
+        guidingWispGroup.visible = true;
     }
 
     // =========================================================================
@@ -4898,7 +4927,8 @@
                 updatedAt: new Date().toISOString(),
                 quest: { highScore: 0, completedCount: 0, bestTime: 0, history: [] },
                 quiz: { highScore: 0, totalAnswered: 0, correctCount: 0, maxStreak: 0, history: [] },
-                shelving: { highScore: 0, booksSorted: 0, perfectRounds: 0, history: [] }
+                shelving: { highScore: 0, booksSorted: 0, perfectRounds: 0, history: [] },
+                daily: { date: '', completed: false, score: 0 }
             };
         },
         load: function() {
@@ -4920,6 +4950,16 @@
         },
         updateResult: function(gameType, result) {
             const state = this.load();
+            if (gameType === 'daily') {
+                const todayStr = new Date().toISOString().slice(0, 10);
+                state.daily = {
+                    date: result.date || todayStr,
+                    completed: !!result.completed,
+                    score: result.score || 0
+                };
+                this.save(state);
+                return { state: state, isNewHigh: false };
+            }
             const target = state[gameType] || {};
             const existingHigh = target.highScore || 0;
             const newScore = result.score || 0;
@@ -4994,6 +5034,9 @@
             this.particleVelocities = null;
             this.particleAges = null;
             this.isParticlesActive = false;
+            this.isDailyMode = false;
+            this.viewmodelBookGroup = null;
+            this.viewmodelBookCover = null;
         }
 
         init(sceneInstance, interactiveArray, searchIndexArray) {
@@ -5319,6 +5362,20 @@
                     this.handleTimeOut();
                 }
             }
+
+            // 4. Guiding Golden Wisp along Laser Path
+            if (guidingWispGroup && guidingWispGroup.visible) {
+                const wispT = (performance.now() * 0.0006) % 1.0;
+                const pingPong = Math.sin(wispT * Math.PI);
+                guidingWispGroup.position.lerpVectors(laserStartPos, currentLaserTargetPos, pingPong);
+                wispGlow.scale.setScalar(0.95 + Math.sin(performance.now() * 0.007) * 0.22);
+            }
+
+            // 5. First-Person Viewmodel Book swaying
+            if (this.viewmodelBookGroup && this.viewmodelBookGroup.visible) {
+                this.viewmodelBookGroup.position.y = -0.32 + headBobY * 0.45;
+                this.viewmodelBookGroup.position.x = 0.38 + Math.cos(walkPhase * 0.5) * 0.015;
+            }
         }
 
         handleTimeOut() {
@@ -5453,6 +5510,16 @@
         }
 
         finishQuest(isSuccess, message) {
+            if (this.isDailyMode && isSuccess) {
+                this.score = Math.round(this.score * 2.0);
+                const todayStr = new Date().toISOString().slice(0, 10);
+                ZeroDataLossStorageEngine.updateResult('daily', {
+                    date: todayStr,
+                    completed: true,
+                    score: this.score
+                });
+                message = "⭐ KUNLIK SINOV MUVAFFAQIYATLI YAKUNLANDI! 2x ball mukofoti va Kunlik Chempion nishoni berildi!";
+            }
             const timeSpent = Math.max(1, Math.round(90 - this.timeRemaining));
             const res = ZeroDataLossStorageEngine.updateResult('quest', {
                 score: this.score,
@@ -5462,8 +5529,8 @@
             });
 
             this.showCelebrationModal({
-                icon: isSuccess ? '🏆' : '⏳',
-                title: isSuccess ? 'KVEST G\'ALABASI!' : 'KVEST YAKUNLANDI',
+                icon: isSuccess ? (this.isDailyMode ? '⭐' : '🏆') : '⏳',
+                title: isSuccess ? (this.isDailyMode ? 'KUNLIK SINOV CHEMPIONI!' : 'KVEST G\'ALABASI!') : 'KVEST YAKUNLANDI',
                 message: message,
                 score: this.score,
                 time: timeSpent + 's',
@@ -5472,8 +5539,31 @@
             });
 
             this.activeGame = null;
+            this.isDailyMode = false;
             document.getElementById('activeGameHud').style.display = 'none';
             laserPathLine.visible = false;
+            if (guidingWispGroup) guidingWispGroup.visible = false;
+        }
+
+        startDailyChallenge() {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const state = ZeroDataLossStorageEngine.load();
+            if (state.daily && state.daily.date === todayStr && state.daily.completed) {
+                this.showCelebrationModal({
+                    icon: '⭐',
+                    title: 'KUNLIK CHEMPION!',
+                    message: `Siz bugungi kunlik sinovni allaqachon muvaffaqiyatli bajargansiz! To'plangan ball: ${state.daily.score}. Ertaga yangi topshiriq kutmoqda!`,
+                    score: state.daily.score,
+                    time: 'Bajarilgan',
+                    highScore: state.daily.score,
+                    isNewHigh: false
+                });
+                return;
+            }
+            this.isDailyMode = true;
+            this.startQuest();
+            document.getElementById('activeGameTitle').textContent = "⭐ Kunlik Maxsus Sinov";
+            document.getElementById('activeGameSubtitle').textContent = "Bugungi kunlik topshiriq! 2x ball va Kunlik Chempion nishoni beriladi!";
         }
 
         // =====================================================================
@@ -5611,11 +5701,32 @@
 
             const modal = document.getElementById('gameQuizModal');
             if (modal) modal.classList.add('active');
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            const btn = document.getElementById('quizTtsSpeakBtn');
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-volume-high"></i> <span>🔊 Ovozli</span>';
+        }
+
+        readCurrentQuizQuestionAloud() {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const q = this.quizQuestions[this.quizIndex];
+            if (!q) return;
+            const btn = document.getElementById('quizTtsSpeakBtn');
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-volume-high"></i> <span>🔊 O\'qilmoqda</span>';
+            const text = q.domain + ". " + q.question + ". 1: " + q.choices[0] + ". 2: " + q.choices[1] + ". 3: " + q.choices[2] + ". 4: " + q.choices[3];
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'uz-UZ';
+            u.rate = 0.95;
+            u.onend = function() {
+                if (btn) btn.innerHTML = '<i class="fa-solid fa-volume-high"></i> <span>🔊 Ovozli</span>';
+            };
+            window.speechSynthesis.speak(u);
         }
 
         answerQuiz(choiceIndex) {
             if (this.quizAnswerLocked || this.activeGame !== 'quiz') return;
             this.quizAnswerLocked = true;
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
 
             const q = this.quizQuestions[this.quizIndex];
             const isCorrect = (choiceIndex === q.correct);
@@ -5694,6 +5805,29 @@
         // =====================================================================
         // GAME 3: KUTUBXONACHI KITOB SARALASH SIMULYATORI
         // =====================================================================
+        initViewmodelBook() {
+            if (this.viewmodelBookGroup) return;
+            this.viewmodelBookGroup = new THREE.Group();
+            const coverMat = new THREE.MeshStandardMaterial({ color: 0x8B261D, roughness: 0.35, metalness: 0.1 });
+            const pageMat = new THREE.MeshStandardMaterial({ color: 0xFDF6E2, roughness: 0.7 });
+            const goldLeafMat = new THREE.MeshStandardMaterial({ color: 0xFACC15, roughness: 0.2, metalness: 0.85 });
+
+            this.viewmodelBookCover = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.34, 0.05), coverMat);
+            const bookPages = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.32, 0.046), pageMat);
+            bookPages.position.x = 0.01;
+            const bookRibbon = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.35, 0.052), goldLeafMat);
+            bookRibbon.position.x = -0.11;
+
+            this.viewmodelBookGroup.add(this.viewmodelBookCover);
+            this.viewmodelBookGroup.add(bookPages);
+            this.viewmodelBookGroup.add(bookRibbon);
+
+            this.viewmodelBookGroup.position.set(0.38, -0.32, -0.68);
+            this.viewmodelBookGroup.rotation.set(-0.25, -0.35, 0.12);
+            this.viewmodelBookGroup.visible = false;
+            camera.add(this.viewmodelBookGroup);
+        }
+
         initShelvingBooks() {
             this.shelvingQueue = [
                 { title: "Alisher Navoiy — Xamsa", author: "Alisher Navoiy", udc: "UO'K 821 · Badiiy Mumtoz Adabiyot", correctShelf: "literature" },
@@ -5750,6 +5884,13 @@
             const modal = document.getElementById('gameShelvingModal');
             if (modal) modal.classList.add('active');
 
+            this.initViewmodelBook();
+            if (this.viewmodelBookGroup) this.viewmodelBookGroup.visible = true;
+            if (this.viewmodelBookCover) {
+                const bookColors = [0x8B261D, 0x1E40AF, 0x065F46, 0x9D174D, 0xB45309];
+                this.viewmodelBookCover.material.color.setHex(bookColors[index % bookColors.length]);
+            }
+
             playTouchSound('pickup');
         }
 
@@ -5759,6 +5900,13 @@
             const isCorrect = (shelfGenre === b.correctShelf);
 
             const feedback = document.getElementById('shelvingFeedbackBox');
+
+            if (this.viewmodelBookGroup) {
+                this.viewmodelBookGroup.position.z = -1.1;
+                setTimeout(() => {
+                    if (this.viewmodelBookGroup) this.viewmodelBookGroup.position.z = -0.68;
+                }, 400);
+            }
 
             if (isCorrect) {
                 this.shelvingSuccessCount++;
@@ -5794,6 +5942,7 @@
         finishShelving() {
             const modal = document.getElementById('gameShelvingModal');
             if (modal) modal.classList.remove('active');
+            if (this.viewmodelBookGroup) this.viewmodelBookGroup.visible = false;
 
             // Perfect round bonus
             let bonusText = "";
@@ -5836,6 +5985,7 @@
         exitGame() {
             this.activeGame = null;
             this.timeRemaining = 0;
+            this.isDailyMode = false;
             const hud = document.getElementById('activeGameHud');
             if (hud) hud.style.display = 'none';
 
@@ -5846,6 +5996,9 @@
             if (sModal) sModal.classList.remove('active');
 
             if (laserPathLine) laserPathLine.visible = false;
+            if (guidingWispGroup) guidingWispGroup.visible = false;
+            if (this.viewmodelBookGroup) this.viewmodelBookGroup.visible = false;
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
             playTouchSound('switch');
         }
 
@@ -5871,6 +6024,17 @@
 
             const modal = document.getElementById('gameCelebrationModal');
             if (modal) modal.classList.add('active');
+
+            // Web Speech API Voice Praise from AI Librarian Al-Khwarizmi
+            if ('speechSynthesis' in window && (data.isNewHigh || (data.score && data.score >= 500))) {
+                try {
+                    window.speechSynthesis.cancel();
+                    const praise = new SpeechSynthesisUtterance("Tabriklaymiz! Siz SmartLib ilmiy kutubxonasida yangi natijaga erishdingiz! Ilm yo'lidagi intilishingiz bardavom bo'lsin!");
+                    praise.lang = 'uz-UZ';
+                    praise.rate = 1.0;
+                    window.speechSynthesis.speak(praise);
+                } catch (e) {}
+            }
         }
 
         showLeaderboard() {
@@ -5883,6 +6047,16 @@
 
             document.getElementById('lbShelvingScore').textContent = state.shelving.highScore || 0;
             document.getElementById('lbShelvingSorted').textContent = (state.shelving.booksSorted || 0) + ' kitob';
+
+            const dailyBox = document.getElementById('lbDailyStatusText');
+            if (dailyBox) {
+                const todayStr = new Date().toISOString().slice(0, 10);
+                if (state.daily && state.daily.date === todayStr && state.daily.completed) {
+                    dailyBox.innerHTML = `<span class="badge bg-success font-mono">✅ Bajarildi (+${state.daily.score} ball)</span>`;
+                } else {
+                    dailyBox.innerHTML = `<span class="badge bg-secondary font-mono">Bajarilmagan · 2x ball kutmoqda</span>`;
+                }
+            }
 
             const historyBox = document.getElementById('lbHistoryList');
             if (historyBox) {
