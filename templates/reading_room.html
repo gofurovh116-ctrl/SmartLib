@@ -594,6 +594,48 @@
         border-color: #f59e0b;
         transform: scale(1.02);
     }
+    .sitting-desk-hud {
+        position: absolute;
+        bottom: 64px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 28;
+        background: rgba(18, 11, 6, 0.95);
+        backdrop-filter: blur(14px);
+        border: 2px solid #E8B04A;
+        border-radius: 14px;
+        padding: 8px 18px;
+        box-shadow: 0 16px 42px rgba(0, 0, 0, 0.92);
+        color: var(--ink-0);
+        min-width: 360px;
+        max-width: 92%;
+        animation: gameHudSlideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .comp-book-card {
+        background: rgba(20, 30, 48, 0.85);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        border-radius: 8px;
+        padding: 8px 10px;
+        transition: all 0.15s ease;
+    }
+    .comp-book-card:hover {
+        background: rgba(56, 189, 248, 0.15);
+        border-color: #38bdf8;
+        transform: translateY(-2px);
+    }
+    .comp-room-card {
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(232, 176, 74, 0.35);
+        border-radius: 10px;
+        padding: 10px;
+        cursor: pointer;
+        transition: all 0.16s ease;
+    }
+    .comp-room-card:hover {
+        background: rgba(232, 176, 74, 0.18);
+        border-color: #f59e0b;
+        transform: translateY(-2px);
+    }
 </style>
 {% endblock %}
 
@@ -622,6 +664,12 @@
             <span class="room-ctrl-btn font-mono" id="fpsCounterBadge" style="border-color: rgba(74, 222, 128, 0.55); color: #4ade80; pointer-events: none;" title="WebGL Tezlik Telemetriyasi">
                 ⚡ 60 FPS · TURBO
             </span>
+            <button type="button" class="room-ctrl-btn" id="sitAtDeskBtn" onclick="toggleSitAtDesk()" style="border-color: #facc15; color: #fde047; font-weight: 700;" title="Mutolaa stoliga o'tirib kitob o'qish">
+                <i class="fa-solid fa-chair"></i> <span>🪑 Stolga O'tirish</span>
+            </button>
+            <button type="button" class="room-ctrl-btn" id="openComputerBtn" onclick="openSmartLibComputer()" style="border-color: #38bdf8; color: #38bdf8; font-weight: 700;" title="SmartLib Kompyuter Terminalini ochish">
+                <i class="fa-solid fa-desktop"></i> <span>💻 Kompyuter</span>
+            </button>
             <button type="button" class="room-ctrl-btn" id="openGamesMenuBtn" onclick="toggleGameMenu()" style="border-color: #f59e0b; color: #fbbf24; font-weight: 700;">
                 <i class="fa-solid fa-gamepad"></i> <span>🎮 3D O'yinlar</span>
             </button>
@@ -805,37 +853,40 @@
             🖱️ Tortish: 360° qarash · Bosish: Buyumga tegish · 🗺️ Radar: Teleport · ⌨️ WASD: Yurish va Zinadan chiqish
         </div>
 
-        <!-- Kamera va Fan Laboratoriyalari Pulti (11 ta zona) -->
-        <div class="room-camera-dock" role="toolbar" aria-label="3D Xona va Ilmiy Burchaklar">
+        <!-- Kamera va 10 ta Alohida Fan Xonalari Pulti -->
+        <div class="room-camera-dock" role="toolbar" aria-label="10 ta Alohida Fan Xonalari">
             <button type="button" class="cam-preset-btn active" data-cam-preset="overview" onclick="setRoomCameraPreset('overview', this)">
-                🏛️ 360° Markaziy Zal
+                🏛️ 1. Bosh Zal
+            </button>
+            <button type="button" class="cam-preset-btn" data-cam-preset="literature" onclick="setRoomCameraPreset('literature', this)">
+                📖 2. Badiiy Adabiyot
             </button>
             <button type="button" class="cam-preset-btn" data-cam-preset="physics" onclick="setRoomCameraPreset('physics', this)">
-                ⚛️ Fizika (Atom & Mayatnik)
+                ⚛️ 3. Fizika Lab
             </button>
             <button type="button" class="cam-preset-btn" data-cam-preset="chemistry" onclick="setRoomCameraPreset('chemistry', this)">
-                🧪 Kimyo (Mendeleyev & Molekula)
+                🧪 4. Kimyo Lab
             </button>
             <button type="button" class="cam-preset-btn" data-cam-preset="biology" onclick="setRoomCameraPreset('biology', this)">
-                🧬 Biologiya (3D DNK & Mikroskop)
+                🧬 5. Biologiya & DNK
             </button>
             <button type="button" class="cam-preset-btn" data-cam-preset="geometry" onclick="setRoomCameraPreset('geometry', this)">
-                📐 Geometriya (Platon & Formulalar)
+                📐 6. Geometriya
             </button>
-            <button type="button" class="cam-preset-btn" data-cam-preset="planetarium" onclick="setRoomCameraPreset('planetarium', this)">
-                🌌 Ulug'bek Gumbazi (Kosmos)
+            <button type="button" class="cam-preset-btn" data-cam-preset="astronomy" onclick="setRoomCameraPreset('astronomy', this)">
+                🌌 7. Astronomiya
+            </button>
+            <button type="button" class="cam-preset-btn" data-cam-preset="it_hall" onclick="setRoomCameraPreset('it_hall', this)">
+                💻 8. IT & PC Zali
+            </button>
+            <button type="button" class="cam-preset-btn" data-cam-preset="games_hall" onclick="setRoomCameraPreset('games_hall', this)">
+                🎮 9. O'yinlar Zali
+            </button>
+            <button type="button" class="cam-preset-btn" data-cam-preset="quiet_hall" onclick="setRoomCameraPreset('quiet_hall', this)">
+                🕯️ 10. Sokin Mutolaa
             </button>
             <button type="button" class="cam-preset-btn" data-cam-preset="stairs" onclick="setRoomCameraPreset('stairs', this)">
-                🪜 Zinapoya va 2-Qavat Balkon
-            </button>
-            <button type="button" class="cam-preset-btn" data-cam-preset="mihrab" onclick="setRoomCameraPreset('mihrab', this)">
-                🕌 Mehrob va Shoh Asar
-            </button>
-            <button type="button" class="cam-preset-btn" data-cam-preset="desk" onclick="setRoomCameraPreset('desk', this)">
-                📖 Mutolaa Stoli
-            </button>
-            <button type="button" class="cam-preset-btn" data-cam-preset="librarian" onclick="setRoomCameraPreset('librarian', this)">
-                🤖 AI Kutubxonachi Gologrammasi
+                🪜 2-Qavat Balkon
             </button>
         </div>
 
@@ -868,6 +919,116 @@
                     <button type="button" class="btn btn-sm btn-outline-danger" onclick="window.SmartLibGames.exitGame()" style="font-size: 0.72rem; padding: 4px 8px;">
                         ✕ Chiqish
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Birinchi Shaxs Mutolaa Stoli O'tirish Pulti (Sit at Desk HUD) -->
+        <div id="sittingDeskHud" class="sitting-desk-hud" style="display: none;">
+            <div class="d-flex align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span style="font-size: 1.4rem;">📖</span>
+                    <div>
+                        <div class="fw-bold font-display" style="font-size: 0.92rem; color: #fbbf24;" id="sittingBookTitle">Mutolaa Stolidasiz (O'tirilgan holat)</div>
+                        <div class="font-mono small text-white-50" style="font-size: 0.68rem;" id="sittingDeskHint">Stoldagi kitobni 3D varaqlang yoki AI bilan ovozli tinglang</div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-warning" onclick="open3dPageFlipModal()" style="font-size: 0.72rem; padding: 4px 8px;">
+                        📖 3D Varaqlash
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-info" onclick="toggleBookTtsSpeech()" style="font-size: 0.72rem; padding: 4px 8px;">
+                        🔊 AI Ovozli
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="window.standUpFromDesk()" style="font-size: 0.72rem; padding: 4px 8px;" title="O'rindan turish (WASD / Space / Esc)">
+                        🚪 O'rindan Turish
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3D Kompyuter Terminali: SMARTLIB DASTURINI OCHISH MODALI -->
+        <div class="game-modal-overlay" id="smartlibComputerModal" role="dialog" aria-modal="true">
+            <div class="game-modal-card" style="width: min(860px, 96vw); max-height: 92vh; overflow-y: auto; background: linear-gradient(145deg, #0e1726, #060c16); border: 2px solid #38bdf8;">
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom" style="border-color: rgba(56, 189, 248, 0.3) !important;">
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="font-size: 1.4rem;">💻</span>
+                        <div>
+                            <h5 class="font-display fw-bold mb-0 text-white">SmartLib OS v2.4 · Raqamli Kutubxona Ish Stansiyasi</h5>
+                            <small class="font-mono text-info" style="font-size: 0.65rem;">Terminal: IT-HALL-PC01 · Online · Baza: SQLite3 (Zero Data Loss)</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="{% url 'home' %}" target="_blank" class="btn btn-sm btn-outline-info font-mono" style="font-size: 0.72rem; padding: 3px 8px;">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Brauzerda Ochish
+                        </a>
+                        <button type="button" class="btn-close btn-close-white" onclick="window.closeSmartLibComputer()" aria-label="Yopish"></button>
+                    </div>
+                </div>
+
+                <!-- Tablar -->
+                <ul class="nav nav-pills mb-3 gap-1" id="computerTabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active font-mono py-1 px-3" id="tabCatalogBtn" onclick="window.switchComputerTab('catalog')" style="font-size: 0.75rem;">📚 Elektron Katalog</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link font-mono py-1 px-3" id="tabRoomsBtn" onclick="window.switchComputerTab('rooms')" style="font-size: 0.75rem;">🏛️ 10 ta Xona Holati</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link font-mono py-1 px-3" id="tabProfileBtn" onclick="window.switchComputerTab('profile')" style="font-size: 0.75rem;">👤 Mening Profilim & Ijaralar</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link font-mono py-1 px-3" id="tabSysinfoBtn" onclick="window.switchComputerTab('sysinfo')" style="font-size: 0.75rem;">⚡ Tizim Diagnostikasi</button>
+                    </li>
+                </ul>
+
+                <!-- Tab 1: Katalog & Qidiruv -->
+                <div id="compTabCatalog" class="comp-tab-content">
+                    <div class="input-group mb-2">
+                        <span class="input-group-text bg-dark border-secondary text-info"><i class="fa-solid fa-search"></i></span>
+                        <input type="text" id="compSearchInput" class="form-control bg-dark border-secondary text-white" placeholder="SmartLib fondidagi kitoblar, mualliflar yoki UO'K indeksi..." oninput="window.filterComputerBooks(this.value)">
+                    </div>
+                    <div id="compBookList" class="row g-2 mb-2" style="max-height: 320px; overflow-y: auto;"></div>
+                </div>
+
+                <!-- Tab 2: 10 ta Xonalar Ro'yxati -->
+                <div id="compTabRooms" class="comp-tab-content" style="display: none;">
+                    <div class="row g-2 mb-2" id="compRoomsList" style="max-height: 340px; overflow-y: auto;"></div>
+                </div>
+
+                <!-- Tab 3: Profil & Ijaralar -->
+                <div id="compTabProfile" class="comp-tab-content" style="display: none;">
+                    <div class="p-3 rounded bg-dark border border-secondary mb-2">
+                        <div class="d-flex align-items-center gap-3">
+                            <div style="font-size: 2.2rem;">👤</div>
+                            <div>
+                                <h6 class="text-white mb-0">SmartLib O'quvchi Pasporti</h6>
+                                <small class="text-white-50 font-mono">Status: Faol A'zo · ID: SL-2026-9812 · 3D Mutolaachi</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-3 rounded bg-dark border border-secondary font-mono small text-white-50">
+                        <div class="text-warning fw-bold mb-1">📋 Faol Kitob Ijaralari:</div>
+                        <div>1. «O'tkan kunlar» (Abdulla Qodiriy) — Qaytarish muddati: 14 kun qoldi</div>
+                        <div>2. «Ziji Jadidi Ko'ragoniy» (Mirzo Ulug'bek) — 3D Nusxa o'qilmoqda</div>
+                    </div>
+                </div>
+
+                <!-- Tab 4: Tizim Diagnostikasi -->
+                <div id="compTabSysinfo" class="comp-tab-content" style="display: none;">
+                    <div class="p-3 rounded bg-black font-mono small text-success border border-secondary" style="font-size: 0.72rem; line-height: 1.65;">
+                        <div>[SYSTEM OK] SmartLib Django Engine v4.2.20 & SQLite3 Wal Mode Active</div>
+                        <div>[WEBGL ENGINE] Three.js r128 · 60 FPS Turbo Governor · Symplectic Verlet Active</div>
+                        <div>[10 ROOMS ARCHITECTURE] 10 ta alohida fan va adabiyot zallari to'liq yuklangan</div>
+                        <div>[INTERACTIVE TERMINALS] 3D Kompyuter va stol mutolaasi faol</div>
+                        <div>[DATABASE INTEGRITY] Zero Data Loss monotonic storage verified</div>
+                    </div>
+                </div>
+
+                <!-- Terminal Footer -->
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top border-secondary">
+                    <span class="font-mono text-white-50 small" style="font-size: 0.68rem;">⌨️ Terminaldan chiqish uchun ESC yoki Yopish tugmasini bosing</span>
+                    <button type="button" class="btn btn-sm btn-outline-info px-3" onclick="window.closeSmartLibComputer()">Terminalni Yopish</button>
                 </div>
             </div>
         </div>
@@ -2034,17 +2195,35 @@
 
     const camera = new THREE.PerspectiveCamera(52, host.clientWidth / host.clientHeight, 0.1, 160);
 
-    // 10 ta Rakurs: 360° Markaziy Zal, Fizika, Kimyo, Biologiya, Geometriya, Planetariy, Zinapoya/2-Qavat, Mehrob, Stol, AI Kutubxonachi
+    // 10 ta Alohida Ilmiy Xonalar Konfiguratsiyasi va Kamera Rakurslari
+    const ROOMS_CONFIG = [
+        { id: 1, key: "overview", name: "1. Bosh Zal & Qabulxona", icon: "🏛️", pos: new THREE.Vector3(0.0, 2.2, 8.8), yaw: 0.0, pitch: 0.02, floor: 1, desc: "AI Al-Xorazmiy Gologrammasi, 360° Rotunda, Kvest Stendi" },
+        { id: 2, key: "literature", name: "2. Badiiy Adabiyot & Mumtoz Meros", icon: "📖", pos: new THREE.Vector3(0.0, 2.0, -8.2), yaw: 0.0, pitch: 0.0, floor: 1, desc: "Alisher Navoiy «Xamsa», Sharqona Mehrob, Mumtoz javonlar" },
+        { id: 3, key: "physics", name: "3. Nazariy Fizika & Kvant Lab", icon: "⚛️", pos: new THREE.Vector3(-4.5, 2.0, -4.5), yaw: 0.55, pitch: 0.04, floor: 1, desc: "Kvant mayatnik, Arximed richagi, Kvant atomi, Snell optikasi" },
+        { id: 4, key: "chemistry", name: "4. Noorganik & Umumiy Kimyo Lab", icon: "🧪", pos: new THREE.Vector3(4.5, 2.0, -4.5), yaw: -0.55, pitch: 0.04, floor: 1, desc: "Mendeleyev davriy jadvali, Gaz ajralishi, Titrlash, Cho'kma" },
+        { id: 5, key: "biology", name: "5. Biologiya & DNK Genetika", icon: "🧬", pos: new THREE.Vector3(-4.5, 2.0, 4.5), yaw: 1.35, pitch: 0.02, floor: 1, desc: "3D DNK qo'sh spirali, Optik mikroskop, Botanika & Hujayra" },
+        { id: 6, key: "geometry", name: "6. Oliy Matematika & Geometriya", icon: "📐", pos: new THREE.Vector3(4.5, 2.0, 4.5), yaw: -1.35, pitch: 0.02, floor: 1, desc: "Platon ko'pyoqliklari, Oltin kesim φ, Eyler xarakteristikasi" },
+        { id: 7, key: "astronomy", name: "7. Mirzo Ulug'bek Astronomiya", icon: "🌌", pos: new THREE.Vector3(0.0, 2.2, 3.2), yaw: 0.0, pitch: 0.88, floor: 1, desc: "Samarqand rasadxonasi kvadranti, 6 Sayyora orrerisi, Teleskop" },
+        { id: 8, key: "it_hall", name: "8. Axborot Texnologiyalari & SmartLib PC", icon: "💻", pos: new THREE.Vector3(6.5, 2.0, -2.5), yaw: -1.45, pitch: -0.05, floor: 1, desc: "Interaktiv kompyuter terminali, Server ustunlari, SmartLib OS" },
+        { id: 9, key: "games_hall", name: "9. Bolalar & Interaktiv O'yinlar", icon: "🎮", pos: new THREE.Vector3(4.2, 2.0, 2.8), yaw: -1.25, pitch: -0.05, floor: 1, desc: "Fanlar viktorinasi kiosk terminali, Kitob saralash aravachasi" },
+        { id: 10, key: "quiet_hall", name: "10. Sokin Mutolaa & Falsafa Meditatsiya", icon: "🕯️", pos: new THREE.Vector3(-6.2, 2.0, 0.0), yaw: 1.57, pitch: -0.05, floor: 1, desc: "Ibn Sino va Forobiy asarlari, Qulay charm kreslolar, Mutolaa stollari" }
+    ];
+
     const CAM_PRESETS = {
         overview:    { pos: new THREE.Vector3(0.0, 2.2, 8.8),   yaw: 0.0,    pitch: 0.02 },
-        physics:     { pos: new THREE.Vector3(-3.8, 2.0, -3.2), yaw: 0.55,   pitch: 0.04 },
-        chemistry:   { pos: new THREE.Vector3(3.8, 2.0, -3.2),  yaw: -0.55,  pitch: 0.04 },
-        biology:     { pos: new THREE.Vector3(-4.0, 2.0, 5.2),  yaw: 1.35,   pitch: 0.02 },
-        geometry:    { pos: new THREE.Vector3(4.0, 2.0, 5.2),   yaw: -1.35,  pitch: 0.02 },
+        literature:  { pos: new THREE.Vector3(0.0, 2.0, -8.2),  yaw: 0.0,    pitch: 0.0 },
+        physics:     { pos: new THREE.Vector3(-4.5, 2.0, -4.5), yaw: 0.55,   pitch: 0.04 },
+        chemistry:   { pos: new THREE.Vector3(4.5, 2.0, -4.5),  yaw: -0.55,  pitch: 0.04 },
+        biology:     { pos: new THREE.Vector3(-4.5, 2.0, 4.5),  yaw: 1.35,   pitch: 0.02 },
+        geometry:    { pos: new THREE.Vector3(4.5, 2.0, 4.5),   yaw: -1.35,  pitch: 0.02 },
+        astronomy:   { pos: new THREE.Vector3(0.0, 2.2, 3.2),   yaw: 0.0,    pitch: 0.88 },
+        it_hall:     { pos: new THREE.Vector3(6.5, 2.0, -2.5),  yaw: -1.45,  pitch: -0.05 },
+        games_hall:  { pos: new THREE.Vector3(4.2, 2.0, 2.8),   yaw: -1.25,  pitch: -0.05 },
+        quiet_hall:  { pos: new THREE.Vector3(-6.2, 2.0, 0.0),  yaw: 1.57,   pitch: -0.05 },
         planetarium: { pos: new THREE.Vector3(0.0, 2.2, 3.2),   yaw: 0.0,    pitch: 0.88 },
         stairs:      { pos: new THREE.Vector3(-5.8, 6.2, 5.2),  yaw: -0.45,  pitch: -0.14 },
         mihrab:      { pos: new THREE.Vector3(-3.5, 2.1, 0.0),  yaw: 1.57,   pitch: 0.05 },
-        desk:        { pos: new THREE.Vector3(0.0, 2.2, 4.8),   yaw: 0.0,    pitch: -0.15 },
+        desk:        { pos: new THREE.Vector3(0.0, 1.25, 3.8),  yaw: 0.0,    pitch: -0.22 },
         librarian:   { pos: new THREE.Vector3(3.6, 2.0, 0.5),   yaw: -1.57,  pitch: 0.02 },
         quest:       { pos: new THREE.Vector3(4.2, 2.0, 0.2),   yaw: -1.35,  pitch: -0.05 },
         quiz:        { pos: new THREE.Vector3(-2.2, 1.85, -3.4), yaw: 0.15,  pitch: -0.08 },
@@ -2057,6 +2236,165 @@
     let targetYaw = camYaw;
     let targetPitch = camPitch;
     camera.position.copy(desiredCamPos);
+
+    // =========================================================================
+    // BIRINCHI SHAXS MUTOLAA STOLIGA O'TIRISH & SMARTLIB INTERAKTIV KOMPYUTERI
+    // =========================================================================
+    let isSittingAtDesk = false;
+    let sittingSavedCamPos = new THREE.Vector3();
+    let currentSittingBook = BOOKS_DATA[0];
+
+    window.sitAtDesk = function(deskPos, lookAtPos, bookData) {
+        if (!deskPos) return;
+        playTouchSound('chair');
+        if (!isSittingAtDesk) {
+            sittingSavedCamPos.copy(camera.position);
+        }
+        isSittingAtDesk = true;
+        desiredCamPos.set(deskPos.x, 1.18, deskPos.z);
+        if (lookAtPos) {
+            const dx = lookAtPos.x - deskPos.x;
+            const dz = lookAtPos.z - deskPos.z;
+            targetYaw = Math.atan2(-dx, -dz);
+            targetPitch = -0.22;
+        }
+        currentSittingBook = bookData || BOOKS_DATA[0];
+        currentSelectedBook = currentSittingBook;
+        const hud = document.getElementById('sittingDeskHud');
+        if (hud) {
+            hud.style.display = 'block';
+            document.getElementById('sittingBookTitle').textContent = "📖 " + (currentSittingBook.title || "Mutolaa Stolidasiz");
+        }
+        const sitBtn = document.getElementById('sitAtDeskBtn');
+        if (sitBtn) {
+            sitBtn.innerHTML = '<i class="fa-solid fa-person-walking"></i> <span>🚪 O\'rindan Turish</span>';
+            sitBtn.classList.add('active');
+        }
+    };
+
+    window.standUpFromDesk = function() {
+        if (!isSittingAtDesk) return;
+        playTouchSound('chair');
+        isSittingAtDesk = false;
+        desiredCamPos.y = 1.85;
+        const hud = document.getElementById('sittingDeskHud');
+        if (hud) hud.style.display = 'none';
+        const sitBtn = document.getElementById('sitAtDeskBtn');
+        if (sitBtn) {
+            sitBtn.innerHTML = '<i class="fa-solid fa-chair"></i> <span>🪑 Stolga O\'tirish</span>';
+            sitBtn.classList.remove('active');
+        }
+    };
+
+    window.toggleSitAtDesk = function() {
+        if (isSittingAtDesk) {
+            window.standUpFromDesk();
+        } else {
+            window.sitAtDesk(new THREE.Vector3(0.0, 1.18, 3.6), new THREE.Vector3(0.0, 0.95, 2.0), BOOKS_DATA[0]);
+        }
+    };
+
+    window.openSmartLibComputer = function() {
+        playTouchSound('switch');
+        const modal = document.getElementById('smartlibComputerModal');
+        if (modal) modal.classList.add('active');
+        populateComputerBooks();
+        populateComputerRooms();
+    };
+
+    window.closeSmartLibComputer = function() {
+        playTouchSound('switch');
+        const modal = document.getElementById('smartlibComputerModal');
+        if (modal) modal.classList.remove('active');
+    };
+
+    window.switchComputerTab = function(tabName) {
+        playTouchSound('switch');
+        const tabs = ['catalog', 'rooms', 'profile', 'sysinfo'];
+        tabs.forEach(t => {
+            const el = document.getElementById('compTab' + t.charAt(0).toUpperCase() + t.slice(1));
+            if (el) el.style.display = (t === tabName) ? 'block' : 'none';
+            const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1) + 'Btn');
+            if (btn) btn.classList.toggle('active', t === tabName);
+        });
+    };
+
+    function populateComputerBooks() {
+        const box = document.getElementById('compBookList');
+        if (!box) return;
+        box.innerHTML = BOOKS_DATA.map(function(b) {
+            return `
+                <div class="col-12 col-md-6">
+                    <div class="comp-book-card">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <strong class="text-white small">${b.title}</strong>
+                            <span class="badge font-mono" style="background: rgba(232,176,74,0.18); color: #E8B04A; font-size: 0.62rem;">${b.udc || 'UO\'K 821'}</span>
+                        </div>
+                        <div class="text-white-50 small mb-2" style="font-size: 0.72rem;">${b.author} · ${b.genre || 'Ilmiy-badiiy'}</div>
+                        <div class="d-flex gap-1">
+                            <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2 font-mono" style="font-size: 0.68rem;" onclick="window.closeSmartLibComputer(); currentSelectedBook = BOOKS_DATA.find(x => x.id === ${b.id}); open3dPageFlipModal();">
+                                📖 Mutolaa
+                            </button>
+                            <a href="${b.detail_url || '/'}" target="_blank" class="btn btn-sm btn-outline-info py-0 px-2 font-mono" style="font-size: 0.68rem;">
+                                📄 Pasport
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    window.filterComputerBooks = function(query) {
+        const q = (query || '').toLowerCase().trim();
+        const box = document.getElementById('compBookList');
+        if (!box) return;
+        const filtered = BOOKS_DATA.filter(function(b) {
+            return (b.title + ' ' + b.author + ' ' + (b.genre || '') + ' ' + (b.udc || '')).toLowerCase().includes(q);
+        });
+        box.innerHTML = filtered.map(function(b) {
+            return `
+                <div class="col-12 col-md-6">
+                    <div class="comp-book-card">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <strong class="text-white small">${b.title}</strong>
+                            <span class="badge font-mono" style="background: rgba(232,176,74,0.18); color: #E8B04A; font-size: 0.62rem;">${b.udc || 'UO\'K 821'}</span>
+                        </div>
+                        <div class="text-white-50 small mb-2" style="font-size: 0.72rem;">${b.author} · ${b.genre || 'Ilmiy-badiiy'}</div>
+                        <div class="d-flex gap-1">
+                            <button type="button" class="btn btn-sm btn-outline-warning py-0 px-2 font-mono" style="font-size: 0.68rem;" onclick="window.closeSmartLibComputer(); currentSelectedBook = BOOKS_DATA.find(x => x.id === ${b.id}); open3dPageFlipModal();">
+                                📖 Mutolaa
+                            </button>
+                            <a href="${b.detail_url || '/'}" target="_blank" class="btn btn-sm btn-outline-info py-0 px-2 font-mono" style="font-size: 0.68rem;">
+                                📄 Pasport
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    };
+
+    function populateComputerRooms() {
+        const box = document.getElementById('compRoomsList');
+        if (!box) return;
+        box.innerHTML = ROOMS_CONFIG.map(function(r) {
+            return `
+                <div class="col-12 col-md-6">
+                    <div class="comp-room-card" onclick="window.closeSmartLibComputer(); window.setRoomCameraPreset('${r.key}');">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span style="font-size: 1.3rem;">${r.icon}</span>
+                            <strong class="text-white" style="font-size: 0.82rem;">${r.name}</strong>
+                        </div>
+                        <div class="text-white-50 font-mono small mb-2" style="font-size: 0.68rem;">${r.desc}</div>
+                        <div class="text-end">
+                            <span class="badge font-mono" style="background: rgba(56,189,248,0.2); color: #38bdf8; font-size: 0.66rem;">Xonaga O'tish →</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
 
     let renderer;
     let currentPixelRatio = Math.min(window.devicePixelRatio || 1, 1.35);
@@ -6375,6 +6713,422 @@
     );
     scene.add(dustParticles);
 
+    // =========================================================================
+    // FEATURE 27: 10 TA ALOHIDA XONALAR ARXITEKTURASI, IT STANSIYA VA SOZLANMALAR
+    // =========================================================================
+    function createComputerScreenTexture() {
+        const c = document.createElement('canvas');
+        c.width = 512; c.height = 320;
+        const ctx = c.getContext('2d');
+        const grad = ctx.createLinearGradient(0, 0, 512, 320);
+        grad.addColorStop(0, '#091524');
+        grad.addColorStop(0.5, '#0E2A47');
+        grad.addColorStop(1, '#050D17');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 512, 320);
+
+        // OS Taskbar
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+        ctx.fillRect(0, 0, 512, 32);
+        ctx.fillStyle = '#E8B04A';
+        ctx.font = 'bold 15px monospace';
+        ctx.fillText('💻 SmartLib Cloud OS 2026', 14, 21);
+        ctx.fillStyle = '#4ade80';
+        ctx.font = '12px monospace';
+        ctx.fillText('● TIZIM ONLAYN · 10 XONA FAOL', 290, 21);
+
+        // Window Frame
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(16, 44, 480, 256);
+        ctx.fillStyle = 'rgba(11, 20, 34, 0.88)';
+        ctx.fillRect(16, 44, 480, 256);
+
+        // Header
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 18px sans-serif';
+        ctx.fillText('📚 SMARTLIB ELEKTRON KUTUBXONA TIZIMI', 32, 74);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '13px sans-serif';
+        ctx.fillText('Elektron katalog · 3D Mutolaa zallari · O\'quvchi ID pasporti', 32, 98);
+
+        // App Cards Preview
+        const apps = [
+            { title: '📖 Kitoblar', sub: 'Qidiruv & 3D Mutolaa', col: '#eab308' },
+            { title: '🏛️ 10 ta Xona', sub: 'Navigatsiya & Teleport', col: '#38bdf8' },
+            { title: '⚙️ Diagnostika', sub: 'WebGL 60 FPS & Baza', col: '#4ade80' }
+        ];
+        apps.forEach((app, i) => {
+            const ax = 32 + i * 150;
+            ctx.fillStyle = 'rgba(30, 41, 59, 0.85)';
+            ctx.fillRect(ax, 116, 140, 92);
+            ctx.strokeStyle = app.col;
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(ax, 116, 140, 92);
+            ctx.fillStyle = app.col;
+            ctx.font = 'bold 12px sans-serif';
+            ctx.fillText(app.title, ax + 8, 142);
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '10px sans-serif';
+            ctx.fillText(app.sub, ax + 8, 164);
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = 'bold 9px monospace';
+            ctx.fillText('[OCHISH]', ax + 8, 192);
+        });
+
+        // Bottom CTA Banner
+        ctx.fillStyle = 'rgba(232, 176, 74, 0.22)';
+        ctx.fillRect(32, 224, 448, 56);
+        ctx.strokeStyle = '#E8B04A';
+        ctx.strokeRect(32, 224, 448, 56);
+        ctx.fillStyle = '#FFE8A3';
+        ctx.font = 'bold 15px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('👉 SMARTLIB DASTURINI OCHISH UCHUN BOSING 👈', 256, 258);
+        ctx.textAlign = 'left';
+
+        return new THREE.CanvasTexture(c);
+    }
+
+    function createRoomPortalSignTexture(title, icon) {
+        const c = document.createElement('canvas');
+        c.width = 512; c.height = 128;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#120B06';
+        ctx.fillRect(0, 0, 512, 128);
+        ctx.strokeStyle = '#E8B04A';
+        ctx.lineWidth = 6;
+        ctx.strokeRect(8, 8, 496, 112);
+        ctx.strokeStyle = 'rgba(232, 176, 74, 0.4)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(16, 16, 480, 96);
+        ctx.fillStyle = '#FFE8A3';
+        ctx.font = 'bold 22px Georgia, serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText((icon ? icon + ' ' : '') + title, 256, 52);
+        ctx.fillStyle = '#38BDF8';
+        ctx.font = '13px monospace';
+        ctx.fillText("SmartLib Ilmiy Bo'limi · O'tish uchun bosing", 256, 88);
+        return new THREE.CanvasTexture(c);
+    }
+
+    function buildRoomPortalSigns() {
+        const portalGroup = new THREE.Group();
+        ROOMS_CONFIG.forEach(function(r) {
+            const pX = r.pos.x;
+            const pZ = r.pos.z;
+            const pY = 3.65;
+
+            const beam = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.22, 0.28), darkWalnutMat);
+            beam.position.set(pX, pY, pZ);
+            portalGroup.add(beam);
+
+            const signTex = createRoomPortalSignTexture(r.name, r.icon);
+            const signMat = new THREE.MeshStandardMaterial({
+                map: signTex,
+                roughness: 0.3,
+                metalness: 0.1,
+                emissive: 0x221508,
+                emissiveIntensity: 0.35,
+                side: THREE.DoubleSide
+            });
+            const signMesh = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 0.72), signMat);
+            signMesh.position.set(pX, pY - 0.45, pZ);
+            signMesh.lookAt(0, pY - 0.45, 0);
+
+            const lanternGlow = createGlowSprite(0xFFD580, 0.95, 0.65);
+            lanternGlow.position.set(pX, pY - 0.88, pZ);
+            portalGroup.add(lanternGlow);
+
+            signMesh.userData = {
+                isBook: true,
+                touchType: 'room_portal',
+                roomKey: r.key,
+                roomData: r,
+                bookData: {
+                    title: `${r.icon} ${r.name}`,
+                    author: "SmartLib Arxitekturasi",
+                    genre: "Ilmiy Bo'lim",
+                    metaText: `10 ta Xona · ${r.desc}`,
+                    annotation: `${r.name} bo'limiga xush kelibsiz! Bu yerda soha bo'yicha eng sara kitoblar, laboratoriya uskunalari va mutolaa vositalari mavjud.`,
+                    read_url: `/?q=${encodeURIComponent(r.key)}`, detail_url: "/"
+                },
+                badge: `🏛️ ${r.name.toUpperCase()}`,
+                shelfLoc: `1-Qavat · ${r.name}`
+            };
+            interactiveMeshes.push(signMesh);
+            bookSearchIndex.push({ mesh: signMesh, book: signMesh.userData.bookData, locText: signMesh.userData.shelfLoc });
+            portalGroup.add(signMesh);
+        });
+        scene.add(portalGroup);
+    }
+
+    function buildITHallAndComputerStation() {
+        const itGroup = new THREE.Group();
+        itGroup.position.set(6.5, 0, -2.5);
+
+        // 1. Computer Workstation Desk
+        const deskTop = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.08, 1.2), darkWalnutMat);
+        deskTop.position.set(0, 1.11, 0);
+        deskTop.castShadow = true;
+        deskTop.receiveShadow = true;
+        itGroup.add(deskTop);
+
+        const legMat = new THREE.MeshStandardMaterial({ color: 0x1E293B, roughness: 0.3, metalness: 0.85 });
+        const legOffsets = [[-1.1, -0.5], [1.1, -0.5], [-1.1, 0.5], [1.1, 0.5]];
+        legOffsets.forEach(pos => {
+            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1.07, 12), legMat);
+            leg.position.set(pos[0], 0.535, pos[1]);
+            itGroup.add(leg);
+        });
+
+        // 2. Dual Widescreen Curved Monitors
+        const screenTex = createComputerScreenTexture();
+        const screenMat = new THREE.MeshBasicMaterial({ map: screenTex });
+        const bezelMat = new THREE.MeshStandardMaterial({ color: 0x0F172A, roughness: 0.2, metalness: 0.7 });
+
+        const computerTouchData = {
+            isBook: true,
+            touchType: 'computer',
+            bookData: {
+                title: "💻 SmartLib Tizim Kompyuteri (Terminal)",
+                author: "SmartLib Cloud OS 2026",
+                genre: "Axborot Texnologiyalari & Boshqaruv",
+                metaText: "10 ta Xona · Elektron Katalog · Shaxsiy Profil · Diagnostika",
+                annotation: "SmartLib elektron kutubxona tizimining to'liq interaktiv dasturiy terminali. Bosish orqali qidiruv katalogi, xonalar ro'yxati, o'quvchi pasporti va tizim ko'rsatkichlarini oching!",
+                read_url: "/", detail_url: "/"
+            },
+            badge: "💻 SMARTLIB ELEKTRON TIZIMI TERMINALI",
+            shelfLoc: "1-Qavat · 8-Xona Axborot Texnologiyalari Zali"
+        };
+
+        const monitor1Group = new THREE.Group();
+        monitor1Group.position.set(-0.48, 1.15, -0.22);
+        monitor1Group.rotation.y = 0.12;
+
+        const stand1 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.28, 8), legMat);
+        stand1.position.y = 0.14;
+        monitor1Group.add(stand1);
+
+        const bezel1 = new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.54, 0.04), bezelMat);
+        bezel1.position.y = 0.42;
+        monitor1Group.add(bezel1);
+
+        const screen1 = new THREE.Mesh(new THREE.PlaneGeometry(0.82, 0.50), screenMat);
+        screen1.position.set(0, 0.42, 0.022);
+        screen1.userData = computerTouchData;
+        interactiveMeshes.push(screen1);
+        bookSearchIndex.push({ mesh: screen1, book: computerTouchData.bookData, locText: computerTouchData.shelfLoc });
+        monitor1Group.add(screen1);
+        itGroup.add(monitor1Group);
+
+        const monitor2Group = new THREE.Group();
+        monitor2Group.position.set(0.48, 1.15, -0.20);
+        monitor2Group.rotation.y = -0.24;
+
+        const stand2 = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.28, 8), legMat);
+        stand2.position.y = 0.14;
+        monitor2Group.add(stand2);
+
+        const bezel2 = new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.54, 0.04), bezelMat);
+        bezel2.position.y = 0.42;
+        monitor2Group.add(bezel2);
+
+        const screen2 = new THREE.Mesh(new THREE.PlaneGeometry(0.82, 0.50), screenMat);
+        screen2.position.set(0, 0.42, 0.022);
+        screen2.userData = computerTouchData;
+        interactiveMeshes.push(screen2);
+        monitor2Group.add(screen2);
+        itGroup.add(monitor2Group);
+
+        const compGlow = createGlowSprite(0x38BDF8, 1.4, 0.65);
+        compGlow.position.set(0, 1.55, -0.25);
+        itGroup.add(compGlow);
+
+        // 3. Mechanical Keyboard & Mouse
+        const kbBody = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.018, 0.16), bezelMat);
+        kbBody.position.set(0, 1.16, 0.18);
+        itGroup.add(kbBody);
+
+        const kbRgb = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.14), new THREE.MeshBasicMaterial({ color: 0x38BDF8 }));
+        kbRgb.rotation.x = -Math.PI / 2;
+        kbRgb.position.set(0, 1.17, 0.18);
+        itGroup.add(kbRgb);
+
+        const mouseMesh = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.022, 0.11), bezelMat);
+        mouseMesh.position.set(0.35, 1.16, 0.18);
+        itGroup.add(mouseMesh);
+
+        // 4. Glowing PC Tower
+        const pcCase = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.48, 0.46), bezelMat);
+        pcCase.position.set(0.95, 1.39, -0.15);
+        itGroup.add(pcCase);
+
+        const pcLedStrip = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.44, 0.015), new THREE.MeshBasicMaterial({ color: 0x4ADE80 }));
+        pcLedStrip.position.set(0.82, 1.39, 0.08);
+        itGroup.add(pcLedStrip);
+
+        // 5. IT Developer Ergonomic Chair
+        const itChairGroup = new THREE.Group();
+        itChairGroup.position.set(0, 0, 0.72);
+        const itSeat = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.10, 0.54), new THREE.MeshStandardMaterial({ color: 0x0F172A, roughness: 0.45 }));
+        itSeat.position.y = 0.72;
+        const itBack = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.68, 0.08), new THREE.MeshStandardMaterial({ color: 0x1E293B, roughness: 0.4 }));
+        itBack.position.set(0, 1.12, 0.24);
+        const itPole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.70, 12), legMat);
+        itPole.position.y = 0.35;
+        itChairGroup.add(itSeat, itBack, itPole);
+
+        const itChairTouchData = {
+            touchType: 'chair_sit',
+            chairGroup: itChairGroup,
+            deskPos: new THREE.Vector3(6.5, 1.18, -1.8),
+            lookAtPos: new THREE.Vector3(6.5, 1.45, -2.7),
+            bookData: computerTouchData.bookData
+        };
+        itSeat.userData = itChairTouchData;
+        itBack.userData = itChairTouchData;
+        interactiveMeshes.push(itSeat, itBack);
+        itGroup.add(itChairGroup);
+
+        // 6. Enterprise Server Racks
+        [-0.85, 0.85].forEach((rx) => {
+            const rack = new THREE.Mesh(new THREE.BoxGeometry(0.85, 2.8, 0.7), new THREE.MeshStandardMaterial({ color: 0x0B0F19, roughness: 0.3, metalness: 0.8 }));
+            rack.position.set(rx, 1.4, -1.4);
+            itGroup.add(rack);
+
+            for (let li = 0; li < 6; li++) {
+                const ledBar = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.72, 0.03, 0.02),
+                    new THREE.MeshBasicMaterial({ color: (li % 2 === 0 ? 0x38BDF8 : 0x22C55E) })
+                );
+                ledBar.position.set(rx, 0.5 + li * 0.38, -1.04);
+                itGroup.add(ledBar);
+            }
+        });
+
+        const itSign = new THREE.Mesh(
+            new THREE.PlaneGeometry(2.2, 0.32),
+            new THREE.MeshBasicMaterial({ map: createSectionSignTexture("💻 8. AXBOROT TEXNOLOGIYALARI & SMARTLIB PC") })
+        );
+        itSign.position.set(0, 2.7, -1.72);
+        itGroup.add(itSign);
+
+        scene.add(itGroup);
+    }
+
+    function buildQuietPhilosophyReadingNook() {
+        const quietGroup = new THREE.Group();
+        quietGroup.position.set(-6.2, 0, 0.0);
+
+        // 1. Deep Burgundy Leather & Velvet Luxury Armchair
+        const armChairGroup = new THREE.Group();
+        const leatherMat = new THREE.MeshStandardMaterial({ color: 0x4A151B, roughness: 0.42, metalness: 0.1 });
+        const cushionMat = new THREE.MeshStandardMaterial({ color: 0x5C1D24, roughness: 0.65 });
+
+        const seatCushion = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.22, 0.85), cushionMat);
+        seatCushion.position.y = 0.55;
+        armChairGroup.add(seatCushion);
+
+        const highBack = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.88, 0.18), leatherMat);
+        highBack.position.set(0, 1.05, -0.38);
+        armChairGroup.add(highBack);
+
+        const armL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.42, 0.85), leatherMat);
+        armL.position.set(-0.48, 0.72, 0);
+        const armR = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.42, 0.85), leatherMat);
+        armR.position.set(0.48, 0.72, 0);
+        armChairGroup.add(armL, armR);
+
+        [[-0.38, -0.38], [0.38, -0.38], [-0.38, 0.38], [0.38, 0.38]].forEach(fp => {
+            const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.02, 0.24, 8), darkWalnutMat);
+            foot.position.set(fp[0], 0.12, fp[1]);
+            armChairGroup.add(foot);
+        });
+
+        const quietTouchData = {
+            touchType: 'chair_sit',
+            chairGroup: armChairGroup,
+            deskPos: new THREE.Vector3(-6.2, 1.18, 0.0),
+            lookAtPos: new THREE.Vector3(-5.2, 0.95, 0.0),
+            bookData: {
+                title: "🕯️ Ibn Sino — «Tib Qonunlari» & Forobiy «Fozil Odamlar Shahri»",
+                author: "Abu Ali ibn Sino · Abu Nasr Forobiy",
+                genre: "Falsafa va Sharq Tafakkuri",
+                metaText: "Sokin Mutolaa · 10-Xona · Meditatsiya",
+                annotation: "Sharq falsafasi, qadimiy donishmandlik va inson kamoloti haqidagi fundamental asarlar. Sokin muhitda tafakkur yuritish uchun qulay charm kreslo va sokin mutolaa stoli.",
+                read_url: "/?q=falsafa", detail_url: "/?q=falsafa"
+            },
+            badge: "🕯️ 10. SOKIN MUTOLAA & FALSAFA ZALI",
+            shelfLoc: "1-Qavat · G'arbiy Qanot · Sokin Mutolaa Burchagi"
+        };
+        seatCushion.userData = quietTouchData;
+        highBack.userData = quietTouchData;
+        interactiveMeshes.push(seatCushion, highBack);
+        bookSearchIndex.push({ mesh: seatCushion, book: quietTouchData.bookData, locText: quietTouchData.shelfLoc });
+        quietGroup.add(armChairGroup);
+
+        // 2. Round Side Table
+        const tableGroup = new THREE.Group();
+        tableGroup.position.set(1.05, 0, 0.0);
+
+        const tableTop = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.06, 24), walnutMat);
+        tableTop.position.y = 0.85;
+        const tablePillar = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.08, 0.82, 12), darkWalnutMat);
+        tablePillar.position.y = 0.41;
+        const tableBase = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.38, 0.04, 16), darkWalnutMat);
+        tableBase.position.y = 0.02;
+        tableGroup.add(tableTop, tablePillar, tableBase);
+
+        const lampStem = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.02, 0.44, 8), brassMat);
+        lampStem.position.set(0.12, 1.07, -0.12);
+        const lampShade = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.16, 12), brassMat);
+        lampShade.position.set(0.12, 1.28, -0.12);
+        tableGroup.add(lampStem, lampShade);
+
+        const readingLight = new THREE.PointLight(0xFFE2A0, 0.95, 4.5);
+        readingLight.position.set(0.12, 1.24, -0.12);
+        tableGroup.add(readingLight);
+
+        const candleBase = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.03, 12), brassMat);
+        candleBase.position.set(-0.15, 0.89, 0.12);
+        const candleWax = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.12, 10), new THREE.MeshStandardMaterial({ color: 0xFDFBF7, roughness: 0.3 }));
+        candleWax.position.set(-0.15, 0.96, 0.12);
+        const flameMesh = new THREE.Mesh(new THREE.SphereGeometry(0.015, 8, 8), new THREE.MeshBasicMaterial({ color: 0xFF9900 }));
+        flameMesh.position.set(-0.15, 1.03, 0.12);
+        const flameGlow = createGlowSprite(0xF59E0B, 0.55, 0.7);
+        flameGlow.position.set(-0.15, 1.03, 0.12);
+        tableGroup.add(candleBase, candleWax, flameMesh, flameGlow);
+
+        const philoBook = new THREE.Mesh(
+            new THREE.BoxGeometry(0.42, 0.04, 0.32),
+            new THREE.MeshStandardMaterial({ map: createManuscriptPageTexture(BOOKS_DATA[0]), roughness: 0.45 })
+        );
+        philoBook.position.set(-0.05, 0.89, -0.05);
+        philoBook.rotation.y = 0.25;
+        philoBook.userData = quietTouchData;
+        interactiveMeshes.push(philoBook);
+        tableGroup.add(philoBook);
+
+        quietGroup.add(tableGroup);
+
+        const quietSign = new THREE.Mesh(
+            new THREE.PlaneGeometry(2.2, 0.32),
+            new THREE.MeshBasicMaterial({ map: createSectionSignTexture("🕯️ 10. SOKIN MUTOLAA & FALSAFA ZALI") })
+        );
+        quietSign.position.set(0, 2.7, -1.8);
+        quietGroup.add(quietSign);
+
+        scene.add(quietGroup);
+    }
+
+    // Build 10 Rooms Models, IT Station & Quiet Hall
+    buildRoomPortalSigns();
+    buildITHallAndComputerStation();
+    buildQuietPhilosophyReadingNook();
+
     const badgeEl = document.getElementById('total3dBooksBadge');
     if (badgeEl) {
         badgeEl.textContent = interactiveMeshes.length + " ta interaktiv ob'yekt";
@@ -6479,8 +7233,26 @@
             const rect = minimapCanvas.getBoundingClientRect();
             const nx = (e.clientX - rect.left) / rect.width;
             const nz = (e.clientY - rect.top) / rect.height;
-            desiredCamPos.x = (nx - 0.5) * 17.0;
-            desiredCamPos.z = (nz - 0.5) * 19.0;
+            const clickWorldX = (nx - 0.5) * 17.0;
+            const clickWorldZ = (nz - 0.5) * 19.0;
+
+            let nearestRoom = null;
+            let minDist = 4.0;
+            for (let i = 0; i < ROOMS_CONFIG.length; i++) {
+                const rm = ROOMS_CONFIG[i];
+                const d = Math.hypot(rm.pos.x - clickWorldX, rm.pos.z - clickWorldZ);
+                if (d < minDist) {
+                    minDist = d;
+                    nearestRoom = rm;
+                }
+            }
+
+            if (nearestRoom) {
+                window.setRoomCameraPreset(nearestRoom.key);
+            } else {
+                desiredCamPos.x = clickWorldX;
+                desiredCamPos.z = clickWorldZ;
+            }
             playTouchSound('switch');
         });
     }
@@ -6501,22 +7273,25 @@
         minimapCtx.fillStyle = 'rgba(180, 110, 45, 0.65)';
         minimapCtx.fillRect(46, 58, 40, 14);
 
-        // 4 ta Ilmiy Pavilyon nuqtalari (Fizika, Kimyo, Biologiya, Geometriya) va AI Gologramma
-        const landmarks = [
-            { x: -4.2, z: -6.2, c: '#38bdf8' }, // Fizika
-            { x:  4.2, z: -6.2, c: '#22c55e' }, // Kimyo
-            { x: -4.2, z:  5.2, c: '#f472b6' }, // Biologiya
-            { x:  4.2, z:  5.2, c: '#facc15' }, // Geometriya
-            { x:  6.4, z:  0.0, c: '#7dd3fc' }  // AI Kutubxonachi
+        // 10 ta Alohida Xona (Raqamli nishonlar va individual tematik ranglar)
+        const roomColors = [
+            '#e8b04a', '#f59e0b', '#38bdf8', '#22c55e', '#f472b6',
+            '#facc15', '#818cf8', '#06b6d4', '#fb923c', '#a78bfa'
         ];
-        for (let i = 0; i < landmarks.length; i++) {
-            const lm = landmarks[i];
-            const mx = w / 2 + (lm.x / 10.5) * (w / 2 - 10);
-            const mz = h / 2 + (lm.z / 11.5) * (h / 2 - 10);
-            minimapCtx.fillStyle = lm.c;
+        for (let i = 0; i < ROOMS_CONFIG.length; i++) {
+            const rm = ROOMS_CONFIG[i];
+            const mx = w / 2 + (rm.pos.x / 10.5) * (w / 2 - 10);
+            const mz = h / 2 + (rm.pos.z / 11.5) * (h / 2 - 10);
+            minimapCtx.fillStyle = roomColors[i] || '#e8b04a';
             minimapCtx.beginPath();
-            minimapCtx.arc(mx, mz, 4, 0, Math.PI * 2);
+            minimapCtx.arc(mx, mz, 5.2, 0, Math.PI * 2);
             minimapCtx.fill();
+
+            minimapCtx.fillStyle = '#0a0502';
+            minimapCtx.font = 'bold 7px monospace';
+            minimapCtx.textAlign = 'center';
+            minimapCtx.textBaseline = 'middle';
+            minimapCtx.fillText(String(rm.id), mx, mz);
         }
 
         // Foydalanuvchi pozitsiyasi va 360° Qarash Konusi (FOV)
@@ -6707,6 +7482,20 @@
                 playTouchSound('book');
                 window.SmartLibGames.startShelving();
                 return;
+            } else if (ud.touchType === 'computer') {
+                playTouchSound('switch');
+                window.openSmartLibComputer();
+                return;
+            } else if (ud.touchType === 'chair_sit') {
+                playTouchSound('chair');
+                const sitPos = ud.deskPos || new THREE.Vector3(hitObj.position.x, 1.18, hitObj.position.z + 0.3);
+                const lookPos = ud.lookAtPos || new THREE.Vector3(sitPos.x, 0.95, sitPos.z - 1.2);
+                window.sitAtDesk(sitPos, lookPos, ud.bookData || currentSittingBook);
+                return;
+            } else if (ud.touchType === 'room_portal') {
+                playTouchSound('switch');
+                window.setRoomCameraPreset(ud.roomKey);
+                return;
             } else if (ud.touchType === 'lamp') {
                 playTouchSound('switch');
                 ud.isOn = !ud.isOn;
@@ -6719,6 +7508,9 @@
                 const sign = ud.baseZ > 0 ? 1 : -1;
                 ud.chairGroup.position.z = ud.baseZ + (ud.pulled ? sign * 0.55 : 0);
                 ud.chairGroup.rotation.y = (ud.baseZ < 0 ? Math.PI : 0) + (ud.pulled ? 0.35 : 0);
+                const deskLookAt = new THREE.Vector3(ud.chairGroup.position.x, 0.95, (ud.baseZ > 0 ? 0.2 : -0.2));
+                window.sitAtDesk(new THREE.Vector3(ud.chairGroup.position.x, 1.18, ud.chairGroup.position.z), deskLookAt, ud.bookData || currentSittingBook);
+                return;
             } else if (ud.touchType === 'globe') {
                 playTouchSound('science');
                 ud.spinVel = 0.28;
@@ -6795,6 +7587,11 @@
     window.addEventListener('keydown', function(e) {
         if (document.activeElement === searchInputEl) return;
         if (e.code === 'Escape') {
+            if (isSittingAtDesk) {
+                window.standUpFromDesk();
+                return;
+            }
+            window.closeSmartLibComputer();
             if (window.SmartLibGames && window.SmartLibGames.activeGame) {
                 window.SmartLibGames.exitGame();
                 return;
@@ -6857,8 +7654,12 @@
         if (keys['KeyS'] || keys['ArrowDown']) { desiredCamPos.addScaledVector(_forwardVec, -moveSpeed); isMoving = true; }
         if (keys['KeyA'] || keys['ArrowLeft']) { desiredCamPos.addScaledVector(_rightVec, -moveSpeed); isMoving = true; }
         if (keys['KeyD'] || keys['ArrowRight']){ desiredCamPos.addScaledVector(_rightVec, moveSpeed); isMoving = true; }
-        if (keys['KeyE']) { desiredCamPos.y = Math.min(7.8, desiredCamPos.y + moveSpeed * 0.8); }
-        if (keys['KeyQ']) { desiredCamPos.y = Math.max(1.75, desiredCamPos.y - moveSpeed * 0.8); }
+        if (keys['KeyE']) { desiredCamPos.y = Math.min(7.8, desiredCamPos.y + moveSpeed * 0.8); isMoving = true; }
+        if (keys['KeyQ']) { desiredCamPos.y = Math.max(1.75, desiredCamPos.y - moveSpeed * 0.8); isMoving = true; }
+
+        if (isMoving && isSittingAtDesk) {
+            window.standUpFromDesk();
+        }
 
         // Xona devorlaridan chiqib ketmaslik (Wall Collision Guard)
         desiredCamPos.x = Math.max(-8.9, Math.min(8.9, desiredCamPos.x));
