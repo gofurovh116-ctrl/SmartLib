@@ -2685,9 +2685,9 @@ def pwa_icon_view(request, size=192):
 
 
 def service_worker_view(request):
-    """Root-scoped PWA Service Worker (Safe Network-first + Offline Navigation Fallback)."""
+    """Root-scoped PWA Service Worker (Safe Network-first + Cold-start tolerance + Offline Navigation Fallback)."""
     sw_js = """
-const CACHE_NAME = 'smartlib-pwa-v5';
+const CACHE_NAME = 'smartlib-pwa-v6';
 const PRECACHE_URLS = [
     '/offline/',
     '/manifest.json'
@@ -2710,12 +2710,37 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     if (event.request.method !== 'GET') return;
     const url = new URL(event.request.url);
-    if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/admin/')) {
+    if (url.pathname.startsWith('/api/') || 
+        url.pathname.startsWith('/admin/') || 
+        url.pathname.startsWith('/health/')) {
         return;
     }
     if (event.request.mode === 'navigate') {
         event.respondWith(
-            fetch(event.request).catch(() => caches.match('/offline/'))
+            (async () => {
+                // If device has no internet connection at all, serve cached offline fallback immediately
+                if (typeof navigator !== 'undefined' && 'onLine' in navigator && !navigator.onLine) {
+                    const cached = await caches.match('/offline/');
+                    if (cached) return cached;
+                }
+
+                try {
+                    const networkResponse = await fetch(event.request);
+                    // If Render is waking up and returns 502/504 Bad Gateway, try a quick retry
+                    if (networkResponse && (networkResponse.status === 502 || networkResponse.status === 504)) {
+                        try {
+                            await new Promise(r => setTimeout(r, 2000));
+                            const retryResp = await fetch(event.request);
+                            if (retryResp && retryResp.status < 500) return retryResp;
+                        } catch (e) {}
+                    }
+                    return networkResponse;
+                } catch (err) {
+                    const cachedOffline = await caches.match('/offline/');
+                    if (cachedOffline) return cachedOffline;
+                    throw err;
+                }
+            })()
         );
     }
 });
