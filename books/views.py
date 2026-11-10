@@ -2687,15 +2687,16 @@ def pwa_icon_view(request, size=192):
 def service_worker_view(request):
     """Root-scoped PWA Service Worker (Safe Network-first + Cold-start tolerance + Offline Navigation Fallback)."""
     sw_js = """
-const CACHE_NAME = 'smartlib-pwa-v6';
+const CACHE_NAME = 'smartlib-pwa-v7';
 const PRECACHE_URLS = [
     '/offline/',
     '/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
+    self.skipWaiting();
     event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS)).then(() => self.skipWaiting())
+        caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_URLS))
     );
 });
 
@@ -2716,32 +2717,15 @@ self.addEventListener('fetch', (event) => {
         return;
     }
     if (event.request.mode === 'navigate') {
-        event.respondWith(
-            (async () => {
-                // If device has no internet connection at all, serve cached offline fallback immediately
-                if (typeof navigator !== 'undefined' && 'onLine' in navigator && !navigator.onLine) {
-                    const cached = await caches.match('/offline/');
-                    if (cached) return cached;
-                }
-
-                try {
-                    const networkResponse = await fetch(event.request);
-                    // If Render is waking up and returns 502/504 Bad Gateway, try a quick retry
-                    if (networkResponse && (networkResponse.status === 502 || networkResponse.status === 504)) {
-                        try {
-                            await new Promise(r => setTimeout(r, 2000));
-                            const retryResp = await fetch(event.request);
-                            if (retryResp && retryResp.status < 500) return retryResp;
-                        } catch (e) {}
-                    }
-                    return networkResponse;
-                } catch (err) {
-                    const cachedOffline = await caches.match('/offline/');
-                    if (cachedOffline) return cachedOffline;
-                    throw err;
-                }
-            })()
-        );
+        // Only serve cached offline fallback if the device is strictly offline
+        if (typeof navigator !== 'undefined' && 'onLine' in navigator && !navigator.onLine) {
+            event.respondWith(
+                caches.match('/offline/').then((cached) => cached || fetch(event.request))
+            );
+            return;
+        }
+        // When online, NEVER intercept navigation! Let the browser natively fetch from the server.
+        return;
     }
 });
 """.strip()

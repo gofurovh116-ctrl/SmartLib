@@ -41,7 +41,7 @@
             <button type="button" id="manualReconnectBtn" class="btn btn-primary rounded-pill px-4 py-2.5 fw-bold shadow-sm" onclick="manualReconnect()">
                 <i class="fa-solid fa-rotate-right me-1.5"></i>Qayta ulanish
             </button>
-            <a href="/?home=1" class="btn btn-outline-secondary rounded-pill px-4 py-2.5 fw-semibold">
+            <a href="/?home=1" class="btn btn-outline-secondary rounded-pill px-4 py-2.5 fw-semibold" onclick="window.location.replace('/?home=' + Date.now()); return false;">
                 <i class="fa-solid fa-house me-1.5"></i>Bosh sahifa
             </a>
         </div>
@@ -56,6 +56,11 @@
 </div>
 
 <script>
+    // Kritik Auto-Rescue: Agar telefonda internet aloqasi bor bo'lsa, ushbu sahifada qolmasdan darhol bosh sahifaga yo'naltirish
+    if (typeof navigator !== 'undefined' && navigator.onLine) {
+        window.location.replace("/?online_auto=" + Date.now());
+    }
+
     let pollInterval = null;
     let pollAttempts = 0;
     let isChecking = false;
@@ -152,15 +157,8 @@
             } catch (e) {}
         }
 
-        const healthy = await checkServerHealth();
-        if (!healthy) {
-            setTimeout(() => {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-rotate-right me-1.5"></i>Qayta ulanish';
-                }
-            }, 1000);
-        }
+        // To'g'ridan-to'g'ri yangi vaqt tamg'asi bilan bosh sahifani ochish
+        window.location.replace("/?reconnect=" + Date.now());
     }
 
     async function hardResetApp() {
